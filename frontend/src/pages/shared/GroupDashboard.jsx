@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   MessageSquare,
   Users,
@@ -12,16 +12,11 @@ import {
   Save,
   Clock,
   ExternalLink,
-  Shield,
-  AlertTriangle,
-  Send,
   Plus,
   Calendar,
-  Copy,
   Check,
   Eye,
   Camera,
-  Upload,
   Hash,
   Loader2,
   CheckSquare,
@@ -32,7 +27,6 @@ import { useSocket } from '../../context/SocketContext';
 import { useNotification } from '../../context/NotificationContext';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
-import Modal from '../../components/Modal';
 import AddGroupMembersModal from '../../components/AddGroupMembersModal';
 import CreateMeetingModal from '../../components/CreateMeetingModal';
 import MeetingDetailModal from '../../components/MeetingDetailModal';
@@ -41,7 +35,13 @@ import TaskDetailModal from '../../components/TaskDetailModal';
 import GroupInfoModal from '../../components/GroupInfoModal';
 import GroupChat from './GroupChat';
 
-const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, allUsers = [] }) => {
+const GroupDashboard = ({
+  groupId,
+  onBack,
+  onGroupDeleted,
+  onSelectChatGroup: _onSelectChatGroup,
+  allUsers = [],
+}) => {
   const { user, isAdmin } = useAuth();
   const { socket, joinGroupRoom, leaveGroupRoom } = useSocket();
   const { addToast, confirm } = useNotification();
@@ -123,7 +123,14 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
     return () => {
       leaveGroupRoom(groupId);
     };
-  }, [groupId, fetchGroupDetail, fetchGroupMeetings, fetchGroupTasks, joinGroupRoom, leaveGroupRoom]);
+  }, [
+    groupId,
+    fetchGroupDetail,
+    fetchGroupMeetings,
+    fetchGroupTasks,
+    joinGroupRoom,
+    leaveGroupRoom,
+  ]);
 
   // Real-time Socket.IO Listeners for permission & member changes
   useEffect(() => {
@@ -192,7 +199,16 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
       socket.off('task:statusChanged', fetchGroupTasks);
       socket.off('task:deleted', fetchGroupTasks);
     };
-  }, [socket, groupId, user?.id, addToast, onBack, fetchGroupDetail, fetchGroupMeetings, fetchGroupTasks]);
+  }, [
+    socket,
+    groupId,
+    user?.id,
+    addToast,
+    onBack,
+    fetchGroupDetail,
+    fetchGroupMeetings,
+    fetchGroupTasks,
+  ]);
 
   // Settings: Save Rename, Description & Chat Permission
   const handleSaveInfo = async (e) => {
@@ -233,7 +249,11 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
 
       if (data.success) {
         setGroup((prev) => (prev ? { ...prev, chatPermission: newPermission } : null));
-        addToast(data.message || `Posting permission updated to ${newPermission === 'adminOnly' ? 'Admin Only' : 'Everyone'}`, 'success');
+        addToast(
+          data.message ||
+            `Posting permission updated to ${newPermission === 'adminOnly' ? 'Admin Only' : 'Everyone'}`,
+          'success'
+        );
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to update permission', 'error');
@@ -257,7 +277,7 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               memberIds: prev.memberIds.filter((m) => m._id !== targetUser._id),
             }));
           }
-        } catch (err) {
+        } catch (_err) {
           addToast('Failed to remove member', 'error');
         }
       },
@@ -279,7 +299,7 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
             if (onGroupDeleted) onGroupDeleted(groupId);
             if (onBack) onBack();
           }
-        } catch (err) {
+        } catch (_err) {
           addToast('Failed to delete group channel', 'error');
         }
       },
@@ -336,7 +356,9 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
   if (loading || !group) {
     return (
       <div className="page-container" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>Loading channel dashboard...</div>
+        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+          Loading channel dashboard...
+        </div>
       </div>
     );
   }
@@ -344,18 +366,27 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
   const isLocked = group.chatPermission === 'adminOnly';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 60px)', backgroundColor: 'var(--color-bg)' }}>
-      {/* Top Header Banner */}
-      <div style={{
-        padding: '16px 28px',
-        backgroundColor: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
+    <div
+      style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-      }}>
+        flexDirection: 'column',
+        height: 'calc(100vh - 60px)',
+        backgroundColor: 'var(--color-bg)',
+      }}
+    >
+      {/* Top Header Banner */}
+      <div
+        style={{
+          padding: '16px 28px',
+          backgroundColor: 'var(--color-surface)',
+          borderBottom: '1px solid var(--color-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {onBack && (
             <button
@@ -380,24 +411,32 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               borderRadius: 'var(--radius-md)',
               transition: 'background-color 0.15s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+            }
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             title="Click to view channel information, change photo & settings"
           >
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-primary-soft)',
-              color: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              flexShrink: 0,
-            }}>
+            <div
+              style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-primary-soft)',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
               {group.avatar ? (
-                <img src={group.avatar} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={group.avatar}
+                  alt={group.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               ) : (
                 <Hash size={22} />
               )}
@@ -410,7 +449,13 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                   {isLocked ? 'Admin Only' : 'Everyone Can Chat'}
                 </Badge>
               </div>
-              <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+              <p
+                style={{
+                  fontSize: '12.5px',
+                  color: 'var(--color-text-secondary)',
+                  marginTop: '2px',
+                }}
+              >
                 {group.description || 'Tap here for channel details, photo & members'}
               </p>
             </div>
@@ -418,14 +463,16 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
         </div>
 
         {/* Tab Switcher Pills */}
-        <div style={{
-          display: 'flex',
-          backgroundColor: 'var(--color-surface-alt)',
-          borderRadius: 'var(--radius-md)',
-          padding: '3px',
-          border: '1px solid var(--color-border)',
-          gap: '2px',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            backgroundColor: 'var(--color-surface-alt)',
+            borderRadius: 'var(--radius-md)',
+            padding: '3px',
+            border: '1px solid var(--color-border)',
+            gap: '2px',
+          }}
+        >
           <button
             className={`btn btn-ghost btn-sm ${activeTab === 'chat' ? 'active' : ''}`}
             style={{
@@ -442,7 +489,8 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
             className={`btn btn-ghost btn-sm ${activeTab === 'members' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'members' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'members' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color:
+                activeTab === 'members' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'members' ? 600 : 500,
             }}
             onClick={() => setActiveTab('members')}
@@ -478,7 +526,8 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
             className={`btn btn-ghost btn-sm ${activeTab === 'meetings' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'meetings' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'meetings' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color:
+                activeTab === 'meetings' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'meetings' ? 600 : 500,
             }}
             onClick={() => setActiveTab('meetings')}
@@ -491,7 +540,8 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               className={`btn btn-ghost btn-sm ${activeTab === 'settings' ? 'active' : ''}`}
               style={{
                 backgroundColor: activeTab === 'settings' ? 'var(--color-surface)' : 'transparent',
-                color: activeTab === 'settings' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                color:
+                  activeTab === 'settings' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                 fontWeight: activeTab === 'settings' ? 600 : 500,
               }}
               onClick={() => setActiveTab('settings')}
@@ -519,8 +569,12 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
           <div className="page-container">
             <div className="page-header" style={{ marginBottom: 0 }}>
               <div>
-                <h2 style={{ fontSize: '16px' }}>Channel Members ({group.memberIds?.length || 0})</h2>
-                <p style={{ fontSize: '13px' }}>Teammates currently participating in #{group.name}</p>
+                <h2 style={{ fontSize: '16px' }}>
+                  Channel Members ({group.memberIds?.length || 0})
+                </h2>
+                <p style={{ fontSize: '13px' }}>
+                  Teammates currently participating in #{group.name}
+                </p>
               </div>
 
               {isAdmin && (
@@ -552,7 +606,9 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                           <Avatar name={m.name} src={m.avatar} size="md" />
                           <div>
                             <div style={{ fontWeight: 600 }}>{m.name}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{m.email}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                              {m.email}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -562,7 +618,9 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                           <Badge variant={m.role === 'admin' ? 'primary' : 'neutral'}>
                             {m.role?.toUpperCase()}
                           </Badge>
-                          <span style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
+                          <span
+                            style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)' }}
+                          >
                             {m.post || 'Member'}
                           </span>
                         </div>
@@ -608,13 +666,19 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               </div>
             </div>
 
-            <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-muted)' }}>
+            <div
+              className="card"
+              style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-muted)' }}
+            >
               <FileText size={36} style={{ margin: '0 auto 12px auto', opacity: 0.6 }} />
-              <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text-primary)' }}>
+              <div
+                style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text-primary)' }}
+              >
                 Channel File Repository
               </div>
               <p style={{ fontSize: '13px', maxWidth: '380px', margin: '4px auto 0 auto' }}>
-                Files uploaded during live chat conversations will automatically be indexed and cataloged here.
+                Files uploaded during live chat conversations will automatically be indexed and
+                cataloged here.
               </p>
             </div>
           </div>
@@ -626,7 +690,9 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
             <div className="page-header">
               <div>
                 <h2 style={{ fontSize: '16px' }}>Channel Tasks ({groupTasks.length})</h2>
-                <p style={{ fontSize: '13px' }}>Work deliverables and assignments for #{group.name}</p>
+                <p style={{ fontSize: '13px' }}>
+                  Work deliverables and assignments for #{group.name}
+                </p>
               </div>
 
               {isAdmin && (
@@ -639,11 +705,40 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 310px), 1fr))', gap: '16px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 310px), 1fr))',
+                gap: '16px',
+              }}
+            >
               {groupTasks.length === 0 ? (
-                <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px', color: 'var(--color-text-muted)' }}>
-                  <CheckSquare size={36} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }} />
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text-primary)' }}>No tasks assigned in this channel</div>
+                <div
+                  className="card"
+                  style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '48px',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
+                  <CheckSquare
+                    size={36}
+                    style={{
+                      margin: '0 auto 12px auto',
+                      opacity: 0.5,
+                      color: 'var(--color-primary)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    No tasks assigned in this channel
+                  </div>
                   <p style={{ fontSize: '13px', margin: '4px auto 14px auto', maxWidth: '340px' }}>
                     Admins can assign deliverables and track progress with real-time status updates.
                   </p>
@@ -676,31 +771,57 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                           t.priority === 'urgent'
                             ? 'var(--color-danger)'
                             : t.priority === 'high'
-                            ? 'var(--color-warning)'
-                            : t.priority === 'medium'
-                            ? 'var(--color-primary)'
-                            : 'var(--color-success)'
+                              ? 'var(--color-warning)'
+                              : t.priority === 'medium'
+                                ? 'var(--color-primary)'
+                                : 'var(--color-success)'
                         }`,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
                         <Badge variant={isDone ? 'success' : isInProgress ? 'primary' : 'neutral'}>
                           {isDone ? 'COMPLETED' : isInProgress ? 'IN PROGRESS' : 'TO DO'}
                         </Badge>
-                        <Badge variant={t.priority === 'urgent' ? 'danger' : t.priority === 'high' ? 'warning' : 'neutral'}>
+                        <Badge
+                          variant={
+                            t.priority === 'urgent'
+                              ? 'danger'
+                              : t.priority === 'high'
+                                ? 'warning'
+                                : 'neutral'
+                          }
+                        >
                           {t.priority.toUpperCase()}
                         </Badge>
                       </div>
 
                       <div>
                         <h3
-                          style={{ fontSize: '14.5px', fontWeight: 700, cursor: 'pointer', color: 'var(--color-text-primary)' }}
+                          style={{
+                            fontSize: '14.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            color: 'var(--color-text-primary)',
+                          }}
                           onClick={() => setViewingTask(t)}
                         >
                           {t.title}
                         </h3>
                         {t.description && (
-                          <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', marginTop: '3px', lineHeight: 1.4 }}>
+                          <p
+                            style={{
+                              fontSize: '12.5px',
+                              color: 'var(--color-text-secondary)',
+                              marginTop: '3px',
+                              lineHeight: 1.4,
+                            }}
+                          >
                             {t.description}
                           </p>
                         )}
@@ -708,22 +829,60 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
 
                       {/* Assignees Avatars */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Assigned:</span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-tertiary)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Assigned:
+                        </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {(t.assignedTo || []).map((u) => (
-                            <Avatar key={u._id || u} name={u.name || 'Member'} src={u.avatar} size="xs" />
+                            <Avatar
+                              key={u._id || u}
+                              name={u.name || 'Member'}
+                              src={u.avatar}
+                              size="xs"
+                            />
                           ))}
                         </div>
                       </div>
 
                       {/* Deadline */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)', marginTop: 'auto' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '11.5px',
+                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
+                          marginTop: 'auto',
+                        }}
+                      >
                         <Calendar size={13} color={isOverdue ? 'var(--color-danger)' : 'inherit'} />
-                        <span>Due {deadlineDate.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>
+                          Due{' '}
+                          {deadlineDate.toLocaleDateString([], {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
 
                       {/* Bottom Actions */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '10px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          borderTop: '1px solid var(--color-border)',
+                          paddingTop: '10px',
+                        }}
+                      >
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"
@@ -733,19 +892,27 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                           <Eye size={13} /> View Details
                         </button>
 
-                        {(isAdmin || t.assignedTo?.some((u) => (u._id || u).toString() === (user?.id || '').toString())) && (
+                        {(isAdmin ||
+                          t.assignedTo?.some(
+                            (u) => (u._id || u).toString() === (user?.id || '').toString()
+                          )) && (
                           <button
                             type="button"
                             className={`btn btn-sm ${isDone ? 'btn-secondary' : 'btn-primary'}`}
                             style={{ fontSize: '11.5px', padding: '3px 8px' }}
                             onClick={async () => {
-                              const nextStatus = isDone ? 'todo' : isInProgress ? 'completed' : 'inprogress';
+                              const nextStatus = isDone
+                                ? 'todo'
+                                : isInProgress
+                                  ? 'completed'
+                                  : 'inprogress';
                               await api.patch(`/tasks/${t._id}/status`, { status: nextStatus });
                               addToast(`Task marked as ${nextStatus.toUpperCase()}`, 'info');
                               fetchGroupTasks();
                             }}
                           >
-                            <Check size={12} /> {isDone ? 'Reopen' : isInProgress ? 'Complete' : 'Start'}
+                            <Check size={12} />{' '}
+                            {isDone ? 'Reopen' : isInProgress ? 'Complete' : 'Start'}
                           </button>
                         )}
                       </div>
@@ -776,16 +943,49 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+                gap: '16px',
+              }}
+            >
               {groupMeetings.length === 0 ? (
-                <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px', color: 'var(--color-text-muted)' }}>
-                  <Video size={36} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }} />
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text-primary)' }}>No channel meetings scheduled</div>
+                <div
+                  className="card"
+                  style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '48px',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
+                  <Video
+                    size={36}
+                    style={{
+                      margin: '0 auto 12px auto',
+                      opacity: 0.5,
+                      color: 'var(--color-primary)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    No channel meetings scheduled
+                  </div>
                   <p style={{ fontSize: '13px', margin: '4px auto 14px auto', maxWidth: '340px' }}>
-                    Schedule Google Meet syncs for #{group.name} and all members will be notified automatically.
+                    Schedule Google Meet syncs for #{group.name} and all members will be notified
+                    automatically.
                   </p>
                   {isAdmin && (
-                    <button className="btn btn-primary btn-sm" onClick={() => setIsCreateMeetingOpen(true)}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setIsCreateMeetingOpen(true)}
+                    >
                       <Plus size={14} /> Schedule First Meeting
                     </button>
                   )}
@@ -797,15 +997,31 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                   const meetDate = new Date(m.dateTime);
 
                   return (
-                    <div key={m._id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Badge variant={isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'}>
+                    <div
+                      key={m._id}
+                      className="card"
+                      style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Badge
+                          variant={isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'}
+                        >
                           {m.status.toUpperCase()}
                         </Badge>
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"
-                          style={{ padding: '2px 6px', fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                          style={{
+                            padding: '2px 6px',
+                            fontSize: '11.5px',
+                            color: 'var(--color-text-secondary)',
+                          }}
                           onClick={() => setViewingMeeting(m)}
                         >
                           <Eye size={13} /> View
@@ -819,7 +1035,13 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                         >
                           {m.title}
                         </h3>
-                        <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', marginTop: '3px' }}>
+                        <p
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--color-text-secondary)',
+                            marginTop: '3px',
+                          }}
+                        >
                           {m.description || 'No description provided.'}
                         </p>
                       </div>
@@ -837,27 +1059,57 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Calendar size={13} color="var(--color-primary)" />
-                          <span>{meetDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                          <span>
+                            {meetDate.toLocaleDateString(undefined, {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={13} color="var(--color-primary)" />
-                          <span>{meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({m.durationMinutes} min)</span>
+                          <span>
+                            {meetDate.toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}{' '}
+                            ({m.durationMinutes} min)
+                          </span>
                         </div>
                       </div>
 
-                      <div style={{ marginTop: 'auto', borderTop: '1px solid var(--color-border)', paddingTop: '10px' }}>
+                      <div
+                        style={{
+                          marginTop: 'auto',
+                          borderTop: '1px solid var(--color-border)',
+                          paddingTop: '10px',
+                        }}
+                      >
                         {!isCancelled ? (
                           <a
                             href={m.googleMeetLink}
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-primary btn-sm"
-                            style={{ width: '100%', backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-accent)', fontWeight: 600 }}
+                            style={{
+                              width: '100%',
+                              backgroundColor: 'var(--color-accent)',
+                              borderColor: 'var(--color-accent)',
+                              fontWeight: 600,
+                            }}
                           >
                             <Video size={14} /> Join Google Meet <ExternalLink size={12} />
                           </a>
                         ) : (
-                          <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-danger)', fontWeight: 600 }}>
+                          <div
+                            style={{
+                              textAlign: 'center',
+                              fontSize: '12px',
+                              color: 'var(--color-danger)',
+                              fontWeight: 600,
+                            }}
+                          >
                             Meeting Cancelled
                           </div>
                         )}
@@ -876,7 +1128,13 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
             {/* Channel Photo Card */}
             <div className="card">
               <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>Channel Photo / Icon</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '16px',
+                }}
+              >
                 Click on the avatar below to change or update the channel photo.
               </p>
 
@@ -903,7 +1161,11 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                   {avatarLoading ? (
                     <Loader2 size={26} className="spin" />
                   ) : group.avatar ? (
-                    <img src={group.avatar} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={group.avatar}
+                      alt={group.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   ) : (
                     <Hash size={36} />
                   )}
@@ -930,7 +1192,13 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--color-text-primary)' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '13.5px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     {group.avatar ? 'Custom Channel Photo' : 'Default Channel Icon'}
                   </div>
                   <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -970,12 +1238,23 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
 
             {/* Channel Settings & Permission Form Card */}
             <div className="card">
-              <h3 style={{ fontSize: '16px', marginBottom: '6px' }}>Channel Settings & Permissions</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '18px' }}>
+              <h3 style={{ fontSize: '16px', marginBottom: '6px' }}>
+                Channel Settings & Permissions
+              </h3>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '18px',
+                }}
+              >
                 Manage channel name, description, and message posting rules.
               </p>
 
-              <form onSubmit={handleSaveInfo} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form
+                onSubmit={handleSaveInfo}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              >
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Channel Name *</label>
                   <input
@@ -1010,7 +1289,10 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                         padding: '12px 14px',
                         borderRadius: 'var(--radius-md)',
                         border: `1px solid ${editPermission === 'everyone' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        backgroundColor: editPermission === 'everyone' ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                        backgroundColor:
+                          editPermission === 'everyone'
+                            ? 'var(--color-primary-soft)'
+                            : 'var(--color-surface)',
                         cursor: 'pointer',
                       }}
                     >
@@ -1022,11 +1304,24 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                         style={{ marginTop: '3px' }}
                       />
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--color-text-primary)' }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '13.5px',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
                           Everyone Can Chat (Open Discussion)
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                          All channel members can post messages, reply, and upload photo/document attachments.
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--color-text-secondary)',
+                            marginTop: '2px',
+                          }}
+                        >
+                          All channel members can post messages, reply, and upload photo/document
+                          attachments.
                         </div>
                       </div>
                     </label>
@@ -1040,7 +1335,10 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                         padding: '12px 14px',
                         borderRadius: 'var(--radius-md)',
                         border: `1px solid ${editPermission === 'adminOnly' ? 'var(--color-warning)' : 'var(--color-border)'}`,
-                        backgroundColor: editPermission === 'adminOnly' ? 'var(--color-warning-soft)' : 'var(--color-surface)',
+                        backgroundColor:
+                          editPermission === 'adminOnly'
+                            ? 'var(--color-warning-soft)'
+                            : 'var(--color-surface)',
                         cursor: 'pointer',
                       }}
                     >
@@ -1052,11 +1350,24 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                         style={{ marginTop: '3px' }}
                       />
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--color-text-primary)' }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '13.5px',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
                           Only Admin Can Chat (Broadcast Mode)
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                          Members can read messages and files, but only Workspace Administrators can post. Non-admin posts are blocked.
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--color-text-secondary)',
+                            marginTop: '2px',
+                          }}
+                        >
+                          Members can read messages and files, but only Workspace Administrators can
+                          post. Non-admin posts are blocked.
                         </div>
                       </div>
                     </label>
@@ -1064,7 +1375,12 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '4px' }}>
-                  <button type="submit" disabled={savingSettings} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    type="submit"
+                    disabled={savingSettings}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
                     <Save size={14} /> {savingSettings ? 'Saving Changes...' : 'Save All Changes'}
                   </button>
                 </div>
@@ -1073,8 +1389,16 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
 
             {/* Danger Zone */}
             <div className="card" style={{ borderColor: 'var(--color-danger)' }}>
-              <h3 style={{ fontSize: '16px', color: 'var(--color-danger)', marginBottom: '6px' }}>Danger Zone</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '16px', color: 'var(--color-danger)', marginBottom: '6px' }}>
+                Danger Zone
+              </h3>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '14px',
+                }}
+              >
                 Soft-deleting this channel will remove it from all members' active channels list.
               </p>
 
@@ -1137,7 +1461,7 @@ const GroupDashboard = ({ groupId, onBack, onGroupDeleted, onSelectChatGroup, al
           onClose={() => setIsCreateTaskOpen(false)}
           initialData={{ groupId }}
           groups={[group]}
-          allUsers={allUsers.length > 0 ? allUsers : (group?.memberIds || [])}
+          allUsers={allUsers.length > 0 ? allUsers : group?.memberIds || []}
           onSubmit={async (formData) => {
             const { data } = await api.post('/tasks', { ...formData, groupId });
             if (data.success) {

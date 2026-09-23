@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  CheckSquare,
   Plus,
   Calendar,
-  Clock,
   AlertTriangle,
-  User,
   Trash2,
   List,
   Columns,
   Search,
-  Filter,
   Eye,
   Edit2,
   CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  Users,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
@@ -33,7 +26,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
   const { socket } = useSocket();
 
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
 
   // Filters
@@ -49,7 +41,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
 
   const fetchTasks = useCallback(async () => {
     try {
-      setLoading(true);
       const params = {};
       if (selectedGroupId) params.groupId = selectedGroupId;
       if (selectedAssigneeId) params.assignedTo = selectedAssigneeId;
@@ -60,7 +51,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
       if (data.success) {
         setTasks(data.tasks);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load tasks', 'error');
     } finally {
       setLoading(false);
@@ -78,9 +69,16 @@ const AdminTasks = ({ users = [], groups = [] }) => {
     const handleTaskNew = () => fetchTasks();
     const handleTaskUpdated = (updatedTask) => {
       setTasks((prev) =>
-        prev.map((t) => (t._id === updatedTask._id || t._id === updatedTask.task?._id ? updatedTask.task || updatedTask : t))
+        prev.map((t) =>
+          t._id === updatedTask._id || t._id === updatedTask.task?._id
+            ? updatedTask.task || updatedTask
+            : t
+        )
       );
-      if (activeTaskDetail && (activeTaskDetail._id === updatedTask._id || activeTaskDetail._id === updatedTask.task?._id)) {
+      if (
+        activeTaskDetail &&
+        (activeTaskDetail._id === updatedTask._id || activeTaskDetail._id === updatedTask.task?._id)
+      ) {
         setActiveTaskDetail(updatedTask.task || updatedTask);
       }
     };
@@ -130,9 +128,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       // Optimistic local update
-      setTasks((prev) =>
-        prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
-      );
+      setTasks((prev) => prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)));
 
       const { data } = await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
       if (data.success) {
@@ -142,7 +138,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         }
         fetchTasks();
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to update task status', 'error');
       fetchTasks();
     }
@@ -157,7 +153,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         setActiveTaskDetail(null);
         fetchTasks();
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to delete task', 'error');
     }
   };
@@ -191,7 +187,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         <div className="page-header-title">
           <h1>Work & Task Management</h1>
           <p>
-            Assign work deliverables, set priorities and deadlines, and manage live team velocity across Kanban stages.
+            Assign work deliverables, set priorities and deadlines, and manage live team velocity
+            across Kanban stages.
           </p>
         </div>
 
@@ -306,14 +303,28 @@ const AdminTasks = ({ users = [], groups = [] }) => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#94A3B8' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#94A3B8',
+                  }}
+                />
                 <span>To Do</span>
               </div>
               <Badge variant="neutral">{todoTasks.length}</Badge>
             </div>
 
             {todoTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No tasks in To Do
               </div>
             ) : (
@@ -328,27 +339,71 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '6px',
+                      }}
+                    >
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 600,
+                          }}
+                        >
                           #{task.groupId?.name}
                         </span>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       {task.title}
                     </div>
 
                     {isOverdue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          color: 'var(--color-danger)',
+                          fontWeight: 700,
+                        }}
+                      >
                         <AlertTriangle size={12} /> OVERDUE
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderTop: '1px solid var(--color-border)',
+                        paddingTop: '8px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11.5px',
+                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
+                        }}
+                      >
                         <Calendar size={12} />
                         <span>{new Date(task.deadline).toLocaleDateString()}</span>
                       </div>
@@ -362,11 +417,23 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginTop: '2px',
+                      }}
+                    >
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm"
-                        style={{ flex: 1, fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                        style={{
+                          flex: 1,
+                          fontSize: '11.5px',
+                          color: 'var(--color-text-secondary)',
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveTaskDetail(task);
@@ -398,14 +465,28 @@ const AdminTasks = ({ users = [], groups = [] }) => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F59E0B',
+                  }}
+                />
                 <span>In Progress</span>
               </div>
               <Badge variant="warning">{inProgressTasks.length}</Badge>
             </div>
 
             {inProgressTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No active work in progress
               </div>
             ) : (
@@ -420,27 +501,71 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '6px',
+                      }}
+                    >
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 600,
+                          }}
+                        >
                           #{task.groupId?.name}
                         </span>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       {task.title}
                     </div>
 
                     {isOverdue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          color: 'var(--color-danger)',
+                          fontWeight: 700,
+                        }}
+                      >
                         <AlertTriangle size={12} /> OVERDUE
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderTop: '1px solid var(--color-border)',
+                        paddingTop: '8px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11.5px',
+                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
+                        }}
+                      >
                         <Calendar size={12} />
                         <span>{new Date(task.deadline).toLocaleDateString()}</span>
                       </div>
@@ -454,11 +579,23 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginTop: '2px',
+                      }}
+                    >
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm"
-                        style={{ flex: 1, fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                        style={{
+                          flex: 1,
+                          fontSize: '11.5px',
+                          color: 'var(--color-text-secondary)',
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveTaskDetail(task);
@@ -490,14 +627,28 @@ const AdminTasks = ({ users = [], groups = [] }) => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#10B981',
+                  }}
+                />
                 <span>Completed</span>
               </div>
               <Badge variant="success">{completedTasks.length}</Badge>
             </div>
 
             {completedTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No completed deliverables
               </div>
             ) : (
@@ -511,21 +662,53 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: '6px',
+                    }}
+                  >
                     <Badge variant="success">DONE</Badge>
                     {task.groupId && (
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--color-text-secondary)',
+                          fontWeight: 600,
+                        }}
+                      >
                         #{task.groupId?.name}
                       </span>
                     )}
                   </div>
 
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)', textDecoration: 'line-through' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: 'var(--color-text-primary)',
+                      textDecoration: 'line-through',
+                    }}
+                  >
                     {task.title}
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}>Completed</span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderTop: '1px solid var(--color-border)',
+                      paddingTop: '8px',
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}
+                    >
+                      Completed
+                    </span>
 
                     <div style={{ display: 'flex', marginRight: '4px' }}>
                       {(task.assignedTo || []).slice(0, 3).map((u, i) => (
@@ -536,7 +719,15 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginTop: '2px',
+                    }}
+                  >
                     <button
                       type="button"
                       className="btn btn-ghost btn-sm"
@@ -551,7 +742,12 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <button
                       type="button"
                       className="btn btn-ghost btn-icon"
-                      style={{ width: '28px', height: '28px', fontSize: '11px', color: 'var(--color-danger)' }}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        fontSize: '11px',
+                        color: 'var(--color-danger)',
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         confirm({
@@ -590,7 +786,14 @@ const AdminTasks = ({ users = [], groups = [] }) => {
             <tbody>
               {filteredTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>
+                  <td
+                    colSpan={7}
+                    style={{
+                      textAlign: 'center',
+                      padding: '32px',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
                     No work items found matching filters.
                   </td>
                 </tr>
@@ -606,7 +809,13 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       <td>
                         <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{task.title}</div>
                         {isOverdue && (
-                          <span style={{ fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-danger)',
+                              fontWeight: 700,
+                            }}
+                          >
                             ⚠️ Overdue
                           </span>
                         )}
@@ -624,7 +833,12 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       </td>
                       <td>{task.groupId ? `#${task.groupId?.name}` : 'Workspace'}</td>
                       <td>
-                        <span style={{ color: isOverdue ? 'var(--color-danger)' : 'inherit', fontWeight: isOverdue ? 700 : 400 }}>
+                        <span
+                          style={{
+                            color: isOverdue ? 'var(--color-danger)' : 'inherit',
+                            fontWeight: isOverdue ? 700 : 400,
+                          }}
+                        >
                           {new Date(task.deadline).toLocaleDateString()}
                         </span>
                       </td>
@@ -634,8 +848,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                             task.status === 'completed'
                               ? 'success'
                               : task.status === 'inprogress'
-                              ? 'warning'
-                              : 'neutral'
+                                ? 'warning'
+                                : 'neutral'
                           }
                         >
                           {task.status.toUpperCase()}

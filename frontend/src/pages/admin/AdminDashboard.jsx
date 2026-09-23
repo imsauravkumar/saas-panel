@@ -1,33 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Users,
-  MessageSquare,
-  CheckSquare,
-  Video,
-  Activity,
-  Plus,
-  ArrowUpRight,
-  Clock,
-  Sparkles,
-  Calendar,
-  Megaphone,
-  Shield,
-  Layers,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, MessageSquare, CheckSquare, Video, Plus, Megaphone, Shield } from 'lucide-react';
 import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
 
 const AdminDashboard = ({
   setTab,
   onOpenCreateUser,
   onOpenCreateGroup,
-  onOpenCreateTask,
+  onOpenCreateTask: _onOpenCreateTask,
   onOpenCreateMeeting,
   onOpenCreateAnnouncement,
 }) => {
-  const { user } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +45,27 @@ const AdminDashboard = ({
   return (
     <div className="page-container">
       {/* Header Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '28px',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h1
+            style={{
+              fontSize: '26px',
+              fontWeight: 700,
+              color: 'var(--color-text)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
             <Shield size={28} color="var(--color-primary)" />
             Admin Command Center
           </h1>
@@ -243,13 +244,29 @@ const AdminDashboard = ({
       {/* Row 2 — Main Grid: Company-wide Activity Feed (65%) + Quick Actions Panel (35%) */}
       <div className="responsive-split">
         {/* Left Column: Live Company Activity Stream */}
-        <div className="card" style={{ background: 'var(--color-surface)', padding: '24px', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div
+          className="card"
+          style={{
+            background: 'var(--color-surface)',
+            padding: '24px',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}
+          >
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
                 Live Workspace Activity Feed
               </h3>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+              <p
+                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}
+              >
                 Real-time audit log of team and administrative events
               </p>
             </div>
@@ -259,11 +276,20 @@ const AdminDashboard = ({
           </div>
 
           {loading ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+            <div
+              style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-secondary)' }}
+            >
               Loading audit feed...
             </div>
           ) : summary?.recentActivity?.length === 0 ? (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+            <div
+              style={{
+                padding: '30px',
+                textAlign: 'center',
+                color: 'var(--color-text-secondary)',
+                fontSize: '13px',
+              }}
+            >
               No recorded events yet in this workspace.
             </div>
           ) : (
@@ -282,16 +308,37 @@ const AdminDashboard = ({
                     fontSize: '13px',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                    <Avatar name={log.actorId?.name || 'Admin'} src={log.actorId?.avatar} size="xs" />
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    <Avatar
+                      name={log.actorId?.name || 'Admin'}
+                      src={log.actorId?.avatar}
+                      size="xs"
+                    />
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                         {log.actorId?.name || 'System Administrator'}
                       </span>{' '}
-                      <span style={{ color: 'var(--color-text-secondary)' }}>{log.details || log.action}</span>
+                      <span style={{ color: 'var(--color-text-secondary)' }}>
+                        {log.details || log.action}
+                      </span>
                     </div>
                   </div>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', flexShrink: 0, marginLeft: '12px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-tertiary)',
+                      flexShrink: 0,
+                      marginLeft: '12px',
+                    }}
+                  >
                     {formatTime(log.createdAt)}
                   </span>
                 </div>
@@ -302,11 +349,31 @@ const AdminDashboard = ({
 
         {/* Right Column: Quick Actions Shortcuts Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="card" style={{ background: 'var(--color-surface)', padding: '24px', borderRadius: 'var(--radius-lg)' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '8px' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--color-surface)',
+              padding: '24px',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <h3
+              style={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: 'var(--color-text)',
+                marginBottom: '8px',
+              }}
+            >
               Quick Action Shortcuts
             </h3>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
+            <p
+              style={{
+                fontSize: '13px',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '20px',
+              }}
+            >
               Direct access to create and dispatch workspace resources
             </p>
 

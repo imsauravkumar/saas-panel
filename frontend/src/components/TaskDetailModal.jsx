@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  CheckSquare,
   Calendar,
-  Clock,
   AlertTriangle,
-  Users,
   Edit2,
   Trash2,
   MessageCircle,
   History,
   Send,
   CheckCircle2,
-  ArrowRight,
 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
@@ -51,7 +47,7 @@ const TaskDetailModal = ({
     if (!canModifyStatus || task.status === newStatus) return;
     try {
       await onStatusChange(task._id, newStatus);
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to update status', 'error');
     }
   };
@@ -67,7 +63,7 @@ const TaskDetailModal = ({
         setCommentText('');
         if (onTaskUpdated) onTaskUpdated(data.task);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to add comment', 'error');
     } finally {
       setSubmittingComment(false);
@@ -86,7 +82,15 @@ const TaskDetailModal = ({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {/* Header Summary */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '8px',
+              flexWrap: 'wrap',
+            }}
+          >
             {getPriorityBadge(task.priority)}
 
             {task.groupId && (
@@ -185,7 +189,10 @@ const TaskDetailModal = ({
               fontSize: '13px',
               cursor: canModifyStatus ? 'pointer' : 'default',
               backgroundColor: task.status === 'todo' ? 'var(--color-surface)' : 'transparent',
-              color: task.status === 'todo' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              color:
+                task.status === 'todo'
+                  ? 'var(--color-text-primary)'
+                  : 'var(--color-text-secondary)',
               boxShadow: task.status === 'todo' ? 'var(--shadow-sm)' : 'none',
               transition: 'all 150ms ease',
               display: 'flex',
@@ -194,7 +201,14 @@ const TaskDetailModal = ({
               gap: '6px',
             }}
           >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#94A3B8' }} />
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#94A3B8',
+              }}
+            />
             To Do
           </button>
 
@@ -210,8 +224,12 @@ const TaskDetailModal = ({
               fontWeight: 600,
               fontSize: '13px',
               cursor: canModifyStatus ? 'pointer' : 'default',
-              backgroundColor: task.status === 'inprogress' ? 'var(--color-surface)' : 'transparent',
-              color: task.status === 'inprogress' ? 'var(--color-warning)' : 'var(--color-text-secondary)',
+              backgroundColor:
+                task.status === 'inprogress' ? 'var(--color-surface)' : 'transparent',
+              color:
+                task.status === 'inprogress'
+                  ? 'var(--color-warning)'
+                  : 'var(--color-text-secondary)',
               boxShadow: task.status === 'inprogress' ? 'var(--shadow-sm)' : 'none',
               transition: 'all 150ms ease',
               display: 'flex',
@@ -220,7 +238,14 @@ const TaskDetailModal = ({
               gap: '6px',
             }}
           >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#F59E0B',
+              }}
+            />
             In Progress
           </button>
 
@@ -237,7 +262,10 @@ const TaskDetailModal = ({
               fontSize: '13px',
               cursor: canModifyStatus ? 'pointer' : 'default',
               backgroundColor: task.status === 'completed' ? 'var(--color-surface)' : 'transparent',
-              color: task.status === 'completed' ? 'var(--color-success)' : 'var(--color-text-secondary)',
+              color:
+                task.status === 'completed'
+                  ? 'var(--color-success)'
+                  : 'var(--color-text-secondary)',
               boxShadow: task.status === 'completed' ? 'var(--shadow-sm)' : 'none',
               transition: 'all 150ms ease',
               display: 'flex',
@@ -246,7 +274,14 @@ const TaskDetailModal = ({
               gap: '6px',
             }}
           >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#10B981',
+              }}
+            />
             Completed ✓
           </button>
         </div>
@@ -266,10 +301,21 @@ const TaskDetailModal = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Calendar size={18} color={isOverdue ? 'var(--color-danger)' : 'var(--color-primary)'} />
+            <Calendar
+              size={18}
+              color={isOverdue ? 'var(--color-danger)' : 'var(--color-primary)'}
+            />
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)' }}>DEADLINE</div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-primary)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                DEADLINE
+              </div>
+              <div
+                style={{
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-primary)',
+                }}
+              >
                 {deadlineDate.toLocaleDateString(undefined, {
                   weekday: 'short',
                   month: 'short',
@@ -283,7 +329,8 @@ const TaskDetailModal = ({
 
           {task.createdBy && (
             <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-              Assigned by <strong style={{ color: 'var(--color-text-primary)' }}>{task.createdBy.name}</strong>
+              Assigned by{' '}
+              <strong style={{ color: 'var(--color-text-primary)' }}>{task.createdBy.name}</strong>
             </div>
           )}
         </div>
@@ -301,8 +348,12 @@ const TaskDetailModal = ({
             className="btn btn-ghost btn-sm"
             style={{
               borderRadius: 0,
-              borderBottom: activeTab === 'overview' ? '2px solid var(--color-primary)' : '2px solid transparent',
-              color: activeTab === 'overview' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'overview'
+                  ? '2px solid var(--color-primary)'
+                  : '2px solid transparent',
+              color:
+                activeTab === 'overview' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'overview' ? 700 : 500,
               padding: '6px 4px',
             }}
@@ -316,8 +367,12 @@ const TaskDetailModal = ({
             className="btn btn-ghost btn-sm"
             style={{
               borderRadius: 0,
-              borderBottom: activeTab === 'history' ? '2px solid var(--color-primary)' : '2px solid transparent',
-              color: activeTab === 'history' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'history'
+                  ? '2px solid var(--color-primary)'
+                  : '2px solid transparent',
+              color:
+                activeTab === 'history' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'history' ? 700 : 500,
               padding: '6px 4px',
               display: 'flex',
@@ -334,8 +389,12 @@ const TaskDetailModal = ({
             className="btn btn-ghost btn-sm"
             style={{
               borderRadius: 0,
-              borderBottom: activeTab === 'comments' ? '2px solid var(--color-primary)' : '2px solid transparent',
-              color: activeTab === 'comments' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'comments'
+                  ? '2px solid var(--color-primary)'
+                  : '2px solid transparent',
+              color:
+                activeTab === 'comments' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'comments' ? 700 : 500,
               padding: '6px 4px',
               display: 'flex',
@@ -353,7 +412,14 @@ const TaskDetailModal = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Description */}
             <div>
-              <h4 style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <h4
+                style={{
+                  fontSize: '12.5px',
+                  color: 'var(--color-text-muted)',
+                  textTransform: 'uppercase',
+                  marginBottom: '6px',
+                }}
+              >
                 Instructions / Acceptance Criteria
               </h4>
               <div
@@ -374,10 +440,23 @@ const TaskDetailModal = ({
 
             {/* Assignees */}
             <div>
-              <h4 style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <h4
+                style={{
+                  fontSize: '12.5px',
+                  color: 'var(--color-text-muted)',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
                 Assigned Teammates ({task.assignedTo?.length || 0})
               </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '8px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+                  gap: '8px',
+                }}
+              >
                 {task.assignedTo?.map((u) => (
                   <div
                     key={u._id}
@@ -393,10 +472,26 @@ const TaskDetailModal = ({
                   >
                     <Avatar name={u.name} src={u.avatar} size="xs" />
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div
+                        style={{
+                          fontSize: '12.5px',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
                         {u.name}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--color-text-secondary)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
                         {u.post || u.department || 'Member'}
                       </div>
                     </div>
@@ -409,9 +504,24 @@ const TaskDetailModal = ({
 
         {/* Tab 2: Status History Timeline */}
         {activeTab === 'history' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '240px', overflowY: 'auto' }}>
-            {(!task.statusHistory || task.statusHistory.length === 0) ? (
-              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              maxHeight: '240px',
+              overflowY: 'auto',
+            }}
+          >
+            {!task.statusHistory || task.statusHistory.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '24px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '13px',
+                }}
+              >
                 No status transitions recorded yet.
               </div>
             ) : (
@@ -437,14 +547,14 @@ const TaskDetailModal = ({
                         item.status === 'completed'
                           ? 'var(--color-success-soft)'
                           : item.status === 'inprogress'
-                          ? 'var(--color-warning-soft)'
-                          : 'var(--color-surface)',
+                            ? 'var(--color-warning-soft)'
+                            : 'var(--color-surface)',
                       color:
                         item.status === 'completed'
                           ? 'var(--color-success)'
                           : item.status === 'inprogress'
-                          ? 'var(--color-warning)'
-                          : 'var(--color-text-secondary)',
+                            ? 'var(--color-warning)'
+                            : 'var(--color-text-secondary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -456,16 +566,31 @@ const TaskDetailModal = ({
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
                       <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                        Status set to <span style={{ textTransform: 'uppercase', color: 'var(--color-primary)' }}>{item.status}</span>
+                        Status set to{' '}
+                        <span style={{ textTransform: 'uppercase', color: 'var(--color-primary)' }}>
+                          {item.status}
+                        </span>
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
                         {new Date(item.changedAt).toLocaleString()}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                        marginTop: '2px',
+                      }}
+                    >
                       Updated by {item.changedBy?.name || 'Workspace User'}
                     </div>
                   </div>
@@ -498,9 +623,24 @@ const TaskDetailModal = ({
                 : 'Post progress updates here. Your manager/admin can see these updates.'}
             </div>
 
-            <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {(!task.comments || task.comments.length === 0) ? (
-                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+            <div
+              style={{
+                maxHeight: '220px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              {!task.comments || task.comments.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '24px',
+                    color: 'var(--color-text-muted)',
+                    fontSize: '13px',
+                  }}
+                >
                   No progress updates yet. Post the first update below.
                 </div>
               ) : (
@@ -511,36 +651,83 @@ const TaskDetailModal = ({
                       key={idx}
                       style={{
                         padding: '10px 12px',
-                        backgroundColor: isOwnComment ? 'var(--color-primary-soft)' : 'var(--color-surface-alt)',
+                        backgroundColor: isOwnComment
+                          ? 'var(--color-primary-soft)'
+                          : 'var(--color-surface-alt)',
                         borderRadius: 'var(--radius-sm)',
                         border: `1px solid ${isOwnComment ? 'var(--color-primary)' : 'var(--color-border)'}`,
                         fontSize: '12.5px',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '6px',
+                        }}
+                      >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Avatar name={c.user?.name || 'User'} src={c.user?.avatar} size="xs" />
-                          <span style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '13px' }}>
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              color: 'var(--color-text-primary)',
+                              fontSize: '13px',
+                            }}
+                          >
                             {c.user?.name || 'Teammate'}
                             {isOwnComment && (
-                              <span style={{ fontWeight: 400, color: 'var(--color-primary)', fontSize: '11px', marginLeft: '6px' }}>You</span>
+                              <span
+                                style={{
+                                  fontWeight: 400,
+                                  color: 'var(--color-primary)',
+                                  fontSize: '11px',
+                                  marginLeft: '6px',
+                                }}
+                              >
+                                You
+                              </span>
                             )}
                           </span>
                         </div>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-                          {new Date(c.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-muted)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {new Date(c.createdAt).toLocaleDateString([], {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
                           {' · '}
-                          {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(c.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </span>
                       </div>
-                      <div style={{ color: 'var(--color-text-primary)', lineHeight: 1.5, paddingLeft: '32px' }}>{c.text}</div>
+                      <div
+                        style={{
+                          color: 'var(--color-text-primary)',
+                          lineHeight: 1.5,
+                          paddingLeft: '32px',
+                        }}
+                      >
+                        {c.text}
+                      </div>
                     </div>
                   );
                 })
               )}
             </div>
 
-            <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <form
+              onSubmit={handleAddComment}
+              style={{ display: 'flex', gap: '8px', marginTop: '4px' }}
+            >
               <input
                 type="text"
                 placeholder={isAdmin ? 'Add a note or instruction...' : 'Post a progress update...'}
@@ -549,7 +736,11 @@ const TaskDetailModal = ({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <button type="submit" disabled={submittingComment || !commentText.trim()} className="btn btn-primary btn-sm">
+              <button
+                type="submit"
+                disabled={submittingComment || !commentText.trim()}
+                className="btn btn-primary btn-sm"
+              >
                 <Send size={14} /> Send
               </button>
             </form>
@@ -568,7 +759,9 @@ const TaskDetailModal = ({
               marginTop: '4px',
             }}
           >
-            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Admin Actions</span>
+            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              Admin Actions
+            </span>
 
             <div style={{ display: 'flex', gap: '8px' }}>
               {onEdit && (

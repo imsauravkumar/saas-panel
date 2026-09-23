@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +7,6 @@ import {
   Megaphone,
   Activity,
   FolderOpen,
-  Settings,
   LogOut,
   Hash,
   Lock,
@@ -80,16 +78,19 @@ const Sidebar = ({
             if (onClose) onClose();
           }}
         >
-          <div className="workspace-icon">
-            {user?.workspaceName?.[0]?.toUpperCase() || 'S'}
-          </div>
+          <div className="workspace-icon">{user?.workspaceName?.[0]?.toUpperCase() || 'S'}</div>
           <div className="workspace-info">
             <span className="workspace-title" title={user?.workspaceName || 'SAAS Nexus'}>
               {user?.workspaceName || 'SAAS Nexus'}
             </span>
-            <div className="workspace-role-pill" title={isAdmin ? 'Administrator' : (user?.post || 'Team Member')}>
+            <div
+              className="workspace-role-pill"
+              title={isAdmin ? 'Administrator' : user?.post || 'Team Member'}
+            >
               <span className="workspace-role-pill-icon">{isAdmin ? '🛡️' : '💼'}</span>
-              <span className="workspace-role-pill-text">{isAdmin ? 'Administrator' : (user?.post || 'Team Member')}</span>
+              <span className="workspace-role-pill-text">
+                {isAdmin ? 'Administrator' : user?.post || 'Team Member'}
+              </span>
             </div>
           </div>
         </div>
@@ -156,7 +157,9 @@ const Sidebar = ({
           </div>
           <ul className="sidebar-nav-list">
             {groups.map((group) => {
-              const isActive = (currentTab === 'chat' || currentTab === 'group-dashboard') && activeGroupId === group._id;
+              const isActive =
+                (currentTab === 'chat' || currentTab === 'group-dashboard') &&
+                activeGroupId === group._id;
               const isLocked = group.chatPermission === 'adminOnly';
               return (
                 <li
@@ -165,7 +168,9 @@ const Sidebar = ({
                   onClick={() => handleGroupClick(group._id)}
                 >
                   {isLocked ? <Lock size={16} color="#F59E0B" /> : <Hash size={16} />}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
                     {group.name}
                   </span>
                 </li>
@@ -191,15 +196,36 @@ const Sidebar = ({
             transition: 'background-color var(--transition-fast)',
           }}
           title="Open Profile & Settings"
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)')}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)')
+          }
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <Avatar name={user?.name} src={user?.avatar} isOnline={true} size="md" />
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-            <span style={{ color: '#F8FAFC', fontSize: '13px', fontWeight: 600, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}
+          >
+            <span
+              style={{
+                color: '#F8FAFC',
+                fontSize: '13px',
+                fontWeight: 600,
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+              }}
+            >
               {user?.name}
             </span>
-            <span style={{ color: '#94A3B8', fontSize: '11px', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+            <span
+              style={{
+                color: '#94A3B8',
+                fontSize: '11px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+              }}
+            >
               {user?.email}
             </span>
           </div>
@@ -220,7 +246,13 @@ const Sidebar = ({
             });
           }}
           className="btn btn-ghost btn-icon"
-          style={{ color: '#EF4444', width: '34px', height: '34px', flexShrink: 0, borderRadius: 'var(--radius-md)' }}
+          style={{
+            color: '#EF4444',
+            width: '34px',
+            height: '34px',
+            flexShrink: 0,
+            borderRadius: 'var(--radius-md)',
+          }}
           title="Sign Out / Logout"
         >
           <LogOut size={16} />

@@ -94,6 +94,7 @@ describe('Unit Test: Zod Schema Validation Suite', () => {
       const payload = {
         body: {
           title: 'Sprint Planning Meeting',
+          groupId: '65f000000000000000000001',
           dateTime: new Date(Date.now() + 86400000).toISOString(),
           durationMinutes: 45,
         },
@@ -105,6 +106,7 @@ describe('Unit Test: Zod Schema Validation Suite', () => {
       const payload = {
         body: {
           title: 'Overlong Meeting',
+          groupId: '65f000000000000000000001',
           dateTime: new Date().toISOString(),
           durationMinutes: 600,
         },
@@ -125,15 +127,26 @@ describe('Unit Test: Zod Schema Validation Suite', () => {
       };
       expect(() => createAnnouncementSchema.parse(payload)).not.toThrow();
     });
+  });
 
-    test('rejects missing scope', () => {
+  describe('changePasswordSchema', () => {
+    test('passes on valid password payload', () => {
       const payload = {
         body: {
-          title: 'Missing Scope',
-          body: 'Test body content',
+          currentPassword: 'oldPassword123',
+          newPassword: 'newSecurePassword456',
         },
       };
-      expect(() => createAnnouncementSchema.parse(payload)).toThrow();
+      expect(() => changePasswordSchema.parse(payload)).not.toThrow();
+    });
+
+    test('rejects password shorter than 6 characters', () => {
+      const payload = {
+        body: {
+          newPassword: '123',
+        },
+      };
+      expect(() => changePasswordSchema.parse(payload)).toThrow();
     });
   });
 });

@@ -5,7 +5,7 @@ const { logActivity } = require('../middleware/activityLogger');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '7d', // Reduced from 30d for security
+    expiresIn: '7d',
   });
 };
 
@@ -17,17 +17,21 @@ const registerAdmin = async (req, res) => {
     const { name, email, password, workspaceName, post } = req.body;
 
     if (!name || !email || !password || !workspaceName) {
+      const msg = 'Name, email, password, and workspace name are all required.';
       return res.status(400).json({
         success: false,
-        message: 'Name, email, password, and workspace name are all required.'
+        error: msg,
+        message: msg,
       });
     }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
+      const msg = 'An account with this email address already exists.';
       return res.status(400).json({
         success: false,
-        message: 'An account with this email address already exists.'
+        error: msg,
+        message: msg,
       });
     }
 
@@ -78,14 +82,20 @@ const registerAdmin = async (req, res) => {
         post: adminUser.post,
         department: adminUser.department,
         avatar: adminUser.avatar,
-        mustChangePassword: adminUser.mustChangePassword,
+        mustChangePassword: false,
+        mustResetPassword: false,
         workspaceId: workspace._id,
         workspaceName: workspace.name,
-      }
+      },
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Auth Register Admin Error]:', error);
-    return res.status(500).json({ success: false, message: error.message || 'Server error creating workspace' });
+    const msg = error.message || 'Server error creating workspace';
+    return res.status(500).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 };
 
@@ -97,29 +107,50 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide both email and password.' });
+      const msg = 'Please provide both email and password.';
+      return res.status(400).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password').populate('workspaceId');
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+      .select('+password')
+      .populate('workspaceId');
+
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials. Please check your email and password.' });
+      const msg = 'Invalid credentials. Please check your email and password.';
+      return res.status(401).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
     if (user.status === 'disabled') {
+      const msg = 'Your account has been deactivated. Please contact your workspace administrator.';
       return res.status(403).json({
         success: false,
-        message: 'Your account has been deactivated. Please contact your workspace administrator.'
+        error: msg,
+        message: msg,
       });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials. Please check your email and password.' });
+      const msg = 'Invalid credentials. Please check your email and password.';
+      return res.status(401).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
     await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
 
     const token = signToken(user._id);
+    const requiresReset = Boolean(user.mustChangePassword || user.mustResetPassword);
 
     return res.status(200).json({
       success: true,
@@ -134,14 +165,20 @@ const login = async (req, res) => {
         department: user.department,
         avatar: user.avatar,
         groupIds: user.groupIds,
-        mustChangePassword: user.mustChangePassword ?? user.mustResetPassword ?? false,
+        mustChangePassword: requiresReset,
+        mustResetPassword: requiresReset,
         workspaceId: user.workspaceId?._id || user.workspaceId,
         workspaceName: user.workspaceId?.name || 'SAAS Workspace',
-      }
+      },
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Auth Login Error]:', error);
-    return res.status(500).json({ success: false, message: error.message || 'Server error during login' });
+    const msg = error.message || 'Server error during login';
+    return res.status(500).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 };
 
@@ -150,7 +187,12 @@ const login = async (req, res) => {
  */
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('workspaceId').populate('groupIds', 'name avatar chatPermission');
+    const user = await User.findById(req.user._id)
+      .populate('workspaceId')
+      .populate('groupIds', 'name avatar chatPermission');
+
+    const requiresReset = Boolean(user.mustChangePassword || user.mustResetPassword);
+
     return res.status(200).json({
       success: true,
       user: {
@@ -163,13 +205,19 @@ const getMe = async (req, res) => {
         avatar: user.avatar,
         phone: user.phone,
         groupIds: user.groupIds,
-        mustChangePassword: user.mustChangePassword,
+        mustChangePassword: requiresReset,
+        mustResetPassword: requiresReset,
         workspaceId: user.workspaceId?._id || user.workspaceId,
         workspaceName: user.workspaceId?.name || 'SAAS Workspace',
-      }
+      },
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch user profile' });
+  } catch (_error) {
+    const msg = 'Failed to fetch user profile';
+    return res.status(500).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 };
 
@@ -180,16 +228,26 @@ const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters.' });
+      const msg = 'New password must be at least 6 characters.';
+      return res.status(400).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
     const user = await User.findById(req.user._id).select('+password');
 
     // If user is not in forced reset state, verify current password
-    if (!user.mustChangePassword && currentPassword) {
+    if (!user.mustChangePassword && !user.mustResetPassword && currentPassword) {
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {
-        return res.status(400).json({ success: false, message: 'Current password does not match.' });
+        const msg = 'Current password does not match.';
+        return res.status(400).json({
+          success: false,
+          error: msg,
+          message: msg,
+        });
       }
     }
 
@@ -211,8 +269,13 @@ const updatePassword = async (req, res) => {
       success: true,
       message: 'Password updated successfully!',
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message || 'Failed to update password' });
+  } catch (_error) {
+    const msg = error.message || 'Failed to update password';
+    return res.status(500).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 };
 

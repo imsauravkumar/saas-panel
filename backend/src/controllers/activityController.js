@@ -28,8 +28,12 @@ const getActivityLogs = async (req, res) => {
       count: logs.length,
       logs,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch activity logs' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch activity logs',
+      message: 'Failed to fetch activity logs',
+    });
   }
 };
 

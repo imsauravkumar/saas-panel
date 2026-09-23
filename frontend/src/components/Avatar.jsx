@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #4f46e5, #6366f1)',
@@ -20,7 +20,15 @@ const getGradient = (str) => {
   return AVATAR_GRADIENTS[index];
 };
 
-const Avatar = ({ name = 'User', src = '', size = 'md', isOnline = false, className = '', style = {}, imgStyle = {} }) => {
+const Avatar = ({
+  name = 'User',
+  src = '',
+  size = 'md',
+  isOnline = false,
+  className = '',
+  style = {},
+  imgStyle = {},
+}) => {
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
@@ -47,7 +55,15 @@ const Avatar = ({ name = 'User', src = '', size = 'md', isOnline = false, classN
   const showImage = Boolean(src && !imgError);
 
   return (
-    <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, borderRadius: 'var(--radius-full)', ...style }}>
+    <div
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        flexShrink: 0,
+        borderRadius: 'var(--radius-full)',
+        ...style,
+      }}
+    >
       {showImage ? (
         <img
           src={src}

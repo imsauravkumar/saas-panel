@@ -22,7 +22,9 @@ const getDashboardSummary = async (req, res) => {
       workspaceId,
       isDeleted: false,
     })
-      .select('name description avatar chatPermission memberIds lastMessageAt lastMessagePreview createdAt')
+      .select(
+        'name description avatar chatPermission memberIds lastMessageAt lastMessagePreview createdAt'
+      )
       .sort({ lastMessageAt: -1, createdAt: -1 })
       .lean();
 
@@ -132,7 +134,9 @@ const getDashboardSummary = async (req, res) => {
     });
   } catch (error) {
     console.error('[Dashboard Summary Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to generate dashboard summary' });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to generate dashboard summary' });
   }
 };
 
@@ -151,22 +155,27 @@ const getAdminDashboardSummary = async (req, res) => {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 7);
 
-    const [userCount, activeGroupCount, tasksInProgressCount, meetingsThisWeekCount, recentActivity] =
-      await Promise.all([
-        User.countDocuments({ workspaceId, status: { $ne: 'disabled' } }),
-        Group.countDocuments({ workspaceId, isDeleted: false }),
-        Task.countDocuments({ workspaceId, isDeleted: false, status: 'inprogress' }),
-        Meeting.countDocuments({
-          workspaceId,
-          dateTime: { $gte: startOfWeek, $lte: endOfWeek },
-          status: { $ne: 'cancelled' },
-        }),
-        ActivityLog.find({ workspaceId })
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .populate('actorId', 'name email avatar role post')
-          .lean(),
-      ]);
+    const [
+      userCount,
+      activeGroupCount,
+      tasksInProgressCount,
+      meetingsThisWeekCount,
+      recentActivity,
+    ] = await Promise.all([
+      User.countDocuments({ workspaceId, status: { $ne: 'disabled' } }),
+      Group.countDocuments({ workspaceId, isDeleted: false }),
+      Task.countDocuments({ workspaceId, isDeleted: false, status: 'inprogress' }),
+      Meeting.countDocuments({
+        workspaceId,
+        dateTime: { $gte: startOfWeek, $lte: endOfWeek },
+        status: { $ne: 'cancelled' },
+      }),
+      ActivityLog.find({ workspaceId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('actorId', 'name email avatar role post')
+        .lean(),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -180,7 +189,9 @@ const getAdminDashboardSummary = async (req, res) => {
     });
   } catch (error) {
     console.error('[Admin Dashboard Summary Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to generate admin dashboard summary' });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to generate admin dashboard summary' });
   }
 };
 

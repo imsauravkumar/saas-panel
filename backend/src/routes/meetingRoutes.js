@@ -8,7 +8,7 @@ const {
   cancelMeeting,
   deleteMeeting,
 } = require('../controllers/meetingController');
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const { validate, createMeetingSchema } = require('../middleware/validate');
 
 router.use(authenticate);

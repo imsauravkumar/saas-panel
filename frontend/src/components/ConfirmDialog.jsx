@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { AlertTriangle, Trash2, Info, LogOut, X } from 'lucide-react';
 
 const ConfirmDialog = ({
@@ -81,13 +81,13 @@ const ConfirmDialog = ({
               backgroundColor: isDanger
                 ? 'var(--color-danger-soft)'
                 : isWarning
-                ? 'var(--color-warning-soft)'
-                : 'var(--color-primary-soft)',
+                  ? 'var(--color-warning-soft)'
+                  : 'var(--color-primary-soft)',
               color: isDanger
                 ? 'var(--color-danger)'
                 : isWarning
-                ? 'var(--color-warning)'
-                : 'var(--color-primary)',
+                  ? 'var(--color-warning)'
+                  : 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -101,7 +101,14 @@ const ConfirmDialog = ({
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
               {title}
             </h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+            <p
+              style={{
+                fontSize: '13.5px',
+                color: 'var(--color-text-secondary)',
+                marginTop: '6px',
+                lineHeight: 1.5,
+              }}
+            >
               {message}
             </p>
           </div>

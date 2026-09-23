@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Video,
   Calendar,
@@ -9,18 +9,14 @@ import {
   Copy,
   Check,
   Eye,
-  Plus,
   Zap,
   Edit2,
-  Trash2,
-  Tag,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../components/Badge';
-import Avatar from '../../components/Avatar';
 import MeetingDetailModal from '../../components/MeetingDetailModal';
 import CreateMeetingModal from '../../components/CreateMeetingModal';
 
@@ -63,7 +59,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
       if (data.success) {
         setMeetings(data.meetings);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load your meetings', 'error');
     } finally {
       setLoading(false);
@@ -151,7 +147,8 @@ const UserMeetings = ({ groups = [], users = [] }) => {
         <div className="page-header-title">
           <h1>Google Meet Video Calls</h1>
           <p>
-            Join upcoming team video conferences, launch instant Google Meet sessions, or schedule calls with your teammates.
+            Join upcoming team video conferences, launch instant Google Meet sessions, or schedule
+            calls with your teammates.
           </p>
         </div>
 
@@ -199,7 +196,8 @@ const UserMeetings = ({ groups = [], users = [] }) => {
             className={`btn btn-ghost btn-sm ${activeTab === 'upcoming' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'upcoming' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color:
+                activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'upcoming' ? 700 : 500,
             }}
             onClick={() => setActiveTab('upcoming')}
@@ -237,7 +235,10 @@ const UserMeetings = ({ groups = [], users = [] }) => {
           </select>
         )}
 
-        <div className="search-input-box" style={{ flex: '1 1 200px', maxWidth: '320px', minWidth: '160px' }}>
+        <div
+          className="search-input-box"
+          style={{ flex: '1 1 200px', maxWidth: '320px', minWidth: '160px' }}
+        >
           <Search size={15} className="search-icon" />
           <input
             type="text"
@@ -295,7 +296,14 @@ const UserMeetings = ({ groups = [], users = [] }) => {
           <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>
             {activeTab === 'upcoming' ? 'No Upcoming Video Calls' : 'No Past Meetings'}
           </h3>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px', maxWidth: '420px', margin: '0 auto 18px' }}>
+          <p
+            style={{
+              color: 'var(--color-text-secondary)',
+              fontSize: '13px',
+              maxWidth: '420px',
+              margin: '0 auto 18px',
+            }}
+          >
             {activeTab === 'upcoming'
               ? 'You have no scheduled Google Meet video conferences right now. Start an instant call or schedule one for your channel.'
               : 'Past video sessions and recordings will appear here.'}
@@ -343,7 +351,14 @@ const UserMeetings = ({ groups = [], users = [] }) => {
               >
                 <div>
                   {/* Card Header Top */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '10px',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span
                         style={{
@@ -359,13 +374,23 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                       </span>
 
                       {m.groupId && (
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: 'var(--color-primary)',
+                          }}
+                        >
                           #{m.groupId.name}
                         </span>
                       )}
                     </div>
 
-                    <Badge variant={isCancelled ? 'danger' : activeTab === 'upcoming' ? 'primary' : 'neutral'}>
+                    <Badge
+                      variant={
+                        isCancelled ? 'danger' : activeTab === 'upcoming' ? 'primary' : 'neutral'
+                      }
+                    >
                       {m.status?.toUpperCase()}
                     </Badge>
                   </div>
@@ -402,23 +427,59 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                   )}
 
                   {/* Date & Time Info */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      marginBottom: '14px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       <Calendar size={14} color="var(--color-primary)" />
                       <span>
-                        {meetDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                        {meetDate.toLocaleDateString(undefined, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       <Clock size={14} color="var(--color-primary)" />
                       <span>
-                        {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({m.durationMinutes} mins)
+                        {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (
+                        {m.durationMinutes} mins)
                       </span>
                     </div>
 
                     {m.attendeeIds && m.attendeeIds.length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '12px',
+                          color: 'var(--color-text-secondary)',
+                        }}
+                      >
                         <Users size={14} />
                         <span>{m.attendeeIds.length} invited attendees</span>
                       </div>
@@ -456,7 +517,11 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                         title="Copy Google Meet Link"
                         style={{ padding: '4px 8px', fontSize: '12px' }}
                       >
-                        {copiedId === m._id ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
+                        {copiedId === m._id ? (
+                          <Check size={14} color="var(--color-success)" />
+                        ) : (
+                          <Copy size={14} />
+                        )}
                       </button>
                     )}
 

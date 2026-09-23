@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { X, Image, FileText, Video, Mic, Pin, Download, ExternalLink, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Image, FileText, Mic, Pin, Download, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import AudioMessagePlayer from './AudioMessagePlayer';
 import PhotoLightbox from './PhotoLightbox';
 
-const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', targetId, title = 'Shared Media & Files' }) => {
+const SharedMediaDrawer = ({
+  isOpen,
+  onClose,
+  conversationType = 'group',
+  targetId,
+  title = 'Shared Media & Files',
+}) => {
   const [activeTab, setActiveTab] = useState('media'); // 'media' | 'docs' | 'audio' | 'pinned'
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,16 +26,20 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
     setLoading(true);
     try {
       if (activeTab === 'pinned') {
-        const url = conversationType === 'group'
-          ? `/messages/group/${targetId}`
-          : `/messages/direct/${targetId}`;
+        const url =
+          conversationType === 'group'
+            ? `/messages/group/${targetId}`
+            : `/messages/direct/${targetId}`;
         const { data } = await api.get(url);
         if (data.success) {
           setItems(data.pinnedMessages || []);
         }
       } else {
-        const mediaType = activeTab === 'media' ? 'photo' : activeTab === 'docs' ? 'document' : 'audio';
-        const { data } = await api.get(`/messages/media?conversationType=${conversationType}&targetId=${targetId}&mediaType=${mediaType}`);
+        const mediaType =
+          activeTab === 'media' ? 'photo' : activeTab === 'docs' ? 'document' : 'audio';
+        const { data } = await api.get(
+          `/messages/media?conversationType=${conversationType}&targetId=${targetId}&mediaType=${mediaType}`
+        );
         if (data.success) {
           setItems(data.media || []);
         }
@@ -76,9 +86,19 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
         }}
       >
         {/* Header */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>{title}</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              {title}
+            </h3>
             <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
               Files and bookmarks in this chat
             </p>
@@ -94,7 +114,15 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '4px 8px', gap: '4px', backgroundColor: 'var(--color-surface-alt)' }}>
+        <div
+          style={{
+            display: 'flex',
+            borderBottom: '1px solid var(--color-border)',
+            padding: '4px 8px',
+            gap: '4px',
+            backgroundColor: 'var(--color-surface-alt)',
+          }}
+        >
           <button
             type="button"
             onClick={() => setActiveTab('media')}
@@ -152,7 +180,8 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
               fontSize: '11.5px',
               padding: '6px',
               fontWeight: activeTab === 'pinned' ? 700 : 500,
-              color: activeTab === 'pinned' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color:
+                activeTab === 'pinned' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               backgroundColor: activeTab === 'pinned' ? 'var(--color-surface)' : 'transparent',
             }}
           >
@@ -163,11 +192,25 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
         {/* Tab Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px' }}>
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px', color: 'var(--color-primary)' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '40px',
+                color: 'var(--color-primary)',
+              }}
+            >
               <Loader2 size={24} className="spin" />
             </div>
           ) : items.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '48px 16px',
+                color: 'var(--color-text-muted)',
+                fontSize: '13px',
+              }}
+            >
               No {activeTab} shared in this conversation yet.
             </div>
           ) : activeTab === 'media' ? (
@@ -210,14 +253,41 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
                     border: '1px solid var(--color-border)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
                     <FileText size={20} color="var(--color-primary)" style={{ flexShrink: 0 }} />
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: 'var(--color-text-primary)',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {doc.fileName || 'Document'}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                        {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : 'File'} · {new Date(doc.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--color-text-secondary)',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : 'File'} ·{' '}
+                        {new Date(doc.createdAt).toLocaleDateString([], {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </div>
                     </div>
                   </div>
@@ -228,7 +298,12 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-ghost btn-icon"
-                    style={{ width: '30px', height: '30px', color: 'var(--color-primary)', flexShrink: 0 }}
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      color: 'var(--color-primary)',
+                      flexShrink: 0,
+                    }}
                     title="Download document"
                   >
                     <Download size={14} />
@@ -249,8 +324,18 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
                     border: '1px solid var(--color-border)',
                   }}
                 >
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                    Sent by {audio.senderId?.name || 'Teammate'} on {new Date(audio.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Sent by {audio.senderId?.name || 'Teammate'} on{' '}
+                    {new Date(audio.createdAt).toLocaleDateString([], {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </div>
                   <AudioMessagePlayer src={audio.fileUrl} duration={audio.duration} />
                 </div>
@@ -269,13 +354,39 @@ const SharedMediaDrawer = ({ isOpen, onClose, conversationType = 'group', target
                     borderLeft: '3px solid var(--color-warning)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '4px',
+                    }}
+                  >
                     <Pin size={12} color="var(--color-warning)" />
                     <span>{pinned.senderId?.name || 'Teammate'}</span>
-                    <span style={{ fontSize: '10.5px', opacity: 0.7 }}>{new Date(pinned.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span style={{ fontSize: '10.5px', opacity: 0.7 }}>
+                      {new Date(pinned.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--color-text-primary)', lineHeight: 1.4 }}>
-                    {pinned.content || (pinned.type === 'photo' ? '📷 Photo' : pinned.type === 'video' ? '🎥 Video' : '📄 Document')}
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--color-text-primary)',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {pinned.content ||
+                      (pinned.type === 'photo'
+                        ? '📷 Photo'
+                        : pinned.type === 'video'
+                          ? '🎥 Video'
+                          : '📄 Document')}
                   </div>
                 </div>
               ))}

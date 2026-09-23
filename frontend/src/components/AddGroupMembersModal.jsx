@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, UserPlus, Check, User, Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, UserPlus } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import api from '../services/api';
@@ -11,29 +11,25 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchedUsers, setFetchedUsers] = useState([]);
-  const [usersLoading, setUsersLoading] = useState(false);
 
   // If allUsers was not passed from parent or is empty, fetch workspace users directly
   useEffect(() => {
     if (isOpen && (!allUsers || allUsers.length === 0)) {
       const loadWorkspaceUsers = async () => {
         try {
-          setUsersLoading(true);
           const { data } = await api.get('/users');
           if (data.success) {
             setFetchedUsers(data.users || []);
           }
         } catch (err) {
           console.warn('Failed to fetch workspace users:', err);
-        } finally {
-          setUsersLoading(false);
         }
       };
       loadWorkspaceUsers();
     }
   }, [isOpen, allUsers]);
 
-  const effectiveUsers = (allUsers && allUsers.length > 0) ? allUsers : fetchedUsers;
+  const effectiveUsers = allUsers && allUsers.length > 0 ? allUsers : fetchedUsers;
 
   // Users in the workspace who are NOT already in the group
   const existingMemberIds = useMemo(() => {
@@ -41,7 +37,9 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
   }, [group]);
 
   const availableUsers = useMemo(() => {
-    return effectiveUsers.filter((u) => !existingMemberIds.has(u._id ? u._id.toString() : u.toString()));
+    return effectiveUsers.filter(
+      (u) => !existingMemberIds.has(u._id ? u._id.toString() : u.toString())
+    );
   }, [effectiveUsers, existingMemberIds]);
 
   const filteredUsers = useMemo(() => {
@@ -90,7 +88,10 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
       title={`Add Members to #${group?.name || 'Channel'}`}
       maxWidth="500px"
     >
-      <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form
+        onSubmit={handleAddSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+      >
         <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
           Search and select team members to invite to this channel.
         </p>
@@ -107,18 +108,27 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
         </div>
 
         {/* Available Users List */}
-        <div style={{
-          maxHeight: '260px',
-          overflowY: 'auto',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-md)',
-          padding: '6px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-        }}>
+        <div
+          style={{
+            maxHeight: '260px',
+            overflowY: 'auto',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '6px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
           {filteredUsers.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '24px',
+                fontSize: '13px',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               {availableUsers.length === 0
                 ? 'All workspace team members are already in this channel!'
                 : 'No users matching your search.'}
@@ -150,7 +160,13 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
                   />
                   <Avatar name={u.name} src={u.avatar} size="sm" />
                   <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       {u.name}
                     </div>
                     <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
@@ -163,9 +179,17 @@ const AddGroupMembersModal = ({ isOpen, onClose, group, allUsers = [], onMembers
           )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '8px',
+          }}
+        >
           <span style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
-            <strong>{selectedUserIds.length}</strong> {selectedUserIds.length === 1 ? 'user' : 'users'} selected
+            <strong>{selectedUserIds.length}</strong>{' '}
+            {selectedUserIds.length === 1 ? 'user' : 'users'} selected
           </span>
 
           <div style={{ display: 'flex', gap: '8px' }}>

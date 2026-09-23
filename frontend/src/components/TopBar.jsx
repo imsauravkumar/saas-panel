@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Bell,
   Users,
@@ -7,8 +7,6 @@ import {
   CheckSquare,
   Megaphone,
   MessageSquare,
-  ExternalLink,
-  ChevronRight,
   Menu,
   Settings,
 } from 'lucide-react';
@@ -20,22 +18,17 @@ import NotificationPreferencesModal from './NotificationPreferencesModal';
 
 const TopBar = ({
   currentTab,
-  searchTerm,
-  setSearchTerm,
-  onToggleTheme,
-  isDarkTheme,
+  searchTerm: _searchTerm,
+  setSearchTerm: _setSearchTerm,
+  onToggleTheme: _onToggleTheme,
+  isDarkTheme: _isDarkTheme,
   onNavigateTab = null,
   onToggleMobileSidebar,
 }) => {
   const { user } = useAuth();
   const { onlineUsers } = useSocket();
-  const {
-    notifications,
-    unreadCount,
-    fetchNotifications,
-    markAsRead,
-    markAllAsRead,
-  } = useNotification();
+  const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
+    useNotification();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showPrefsModal, setShowPrefsModal] = useState(false);
@@ -114,18 +107,26 @@ const TopBar = ({
         )}
 
         <div className="topbar-company-badge" title={user?.workspaceName || 'SAAS Nexus'}>
-          <span className="topbar-company-name">
-            {user?.workspaceName || 'SAAS Nexus'}
-          </span>
+          <span className="topbar-company-name">{user?.workspaceName || 'SAAS Nexus'}</span>
         </div>
       </div>
 
       <div className="topbar-right">
         {/* Live Online Badge */}
-        <div className="topbar-online-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
+        <div
+          className="topbar-online-badge"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12.5px',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
           <Users size={15} color="var(--color-success)" />
           <span>
-            <strong>{Math.max(1, onlineUsers.length)}</strong> <span className="online-indicator-text">Online</span>
+            <strong>{Math.max(1, onlineUsers.length)}</strong>{' '}
+            <span className="online-indicator-text">Online</span>
           </span>
         </div>
 
@@ -177,7 +178,13 @@ const TopBar = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     Notifications
                   </span>
                   {unreadCount > 0 && (
@@ -201,7 +208,13 @@ const TopBar = ({
                     <button
                       type="button"
                       className="btn btn-ghost btn-sm"
-                      style={{ padding: '3px 8px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: '11.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
                       onClick={markAllAsRead}
                       title="Mark all as read"
                     >
@@ -269,9 +282,23 @@ const TopBar = ({
               </div>
 
               {/* Notifications List */}
-              <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div
+                style={{
+                  maxHeight: '360px',
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 {displayedNotifications.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '40px 16px',
+                      color: 'var(--color-text-muted)',
+                      fontSize: '13px',
+                    }}
+                  >
                     <Bell size={28} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
                     <div>No {filterUnread ? 'unread ' : ''}notifications</div>
                   </div>
@@ -306,7 +333,9 @@ const TopBar = ({
                               backgroundColor: n.isRead ? 'transparent' : 'rgba(79, 70, 229, 0.05)',
                               transition: 'background-color 120ms ease',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)')}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)')
+                            }
                             onMouseLeave={(e) =>
                               (e.currentTarget.style.backgroundColor = n.isRead
                                 ? 'transparent'
@@ -340,8 +369,17 @@ const TopBar = ({
                                   {n.body}
                                 </div>
                               )}
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                                {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              <div
+                                style={{
+                                  fontSize: '10.5px',
+                                  color: 'var(--color-text-muted)',
+                                  marginTop: '4px',
+                                }}
+                              >
+                                {new Date(n.createdAt).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
                               </div>
                             </div>
                             {!n.isRead && (
@@ -390,7 +428,9 @@ const TopBar = ({
                               backgroundColor: n.isRead ? 'transparent' : 'rgba(79, 70, 229, 0.05)',
                               transition: 'background-color 120ms ease',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)')}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)')
+                            }
                             onMouseLeave={(e) =>
                               (e.currentTarget.style.backgroundColor = n.isRead
                                 ? 'transparent'
@@ -424,8 +464,17 @@ const TopBar = ({
                                   {n.body}
                                 </div>
                               )}
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                                {new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                              <div
+                                style={{
+                                  fontSize: '10.5px',
+                                  color: 'var(--color-text-muted)',
+                                  marginTop: '4px',
+                                }}
+                              >
+                                {new Date(n.createdAt).toLocaleDateString([], {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })}
                               </div>
                             </div>
                             {!n.isRead && (
@@ -471,14 +520,39 @@ const TopBar = ({
           }}
           title="Open Profile & Settings"
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = currentTab === 'settings' ? 'var(--color-surface-alt)' : 'transparent')}
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              currentTab === 'settings' ? 'var(--color-surface-alt)' : 'transparent')
+          }
         >
           <Avatar name={user?.name} src={user?.avatar} size="md" isOnline={true} />
-          <div className="topbar-user-info" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, minWidth: 0 }}>
-            <span style={{ fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
+          <div
+            className="topbar-user-info"
+            style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, minWidth: 0 }}
+          >
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '13px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '140px',
+              }}
+            >
               {user?.name}
             </span>
-            <span className="user-subtext" style={{ fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
+            <span
+              className="user-subtext"
+              style={{
+                fontSize: '11px',
+                color: 'var(--color-text-muted)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '140px',
+              }}
+            >
               {user?.post || (user?.role === 'admin' ? 'Administrator' : 'Team Member')}
             </span>
           </div>

@@ -1,23 +1,94 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, Smile, Heart, ThumbsUp, Sparkles, Coffee } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, Smile, Heart, ThumbsUp, Sparkles, Coffee } from 'lucide-react';
 
 const EMOJI_CATEGORIES = [
   {
     id: 'frequently',
     label: 'Popular',
     icon: Sparkles,
-    emojis: ['👍', '❤️', '😂', '🔥', '🎉', '🙏', '👏', '😍', '✨', '💯', '🚀', '🙌', '😊', '🥳', '😎'],
+    emojis: [
+      '👍',
+      '❤️',
+      '😂',
+      '🔥',
+      '🎉',
+      '🙏',
+      '👏',
+      '😍',
+      '✨',
+      '💯',
+      '🚀',
+      '🙌',
+      '😊',
+      '🥳',
+      '😎',
+    ],
   },
   {
     id: 'smileys',
     label: 'Smileys',
     icon: Smile,
     emojis: [
-      '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊',
-      '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪',
-      '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏',
-      '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕',
-      '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓',
+      '😀',
+      '😃',
+      '😄',
+      '😁',
+      '😆',
+      '😅',
+      '🤣',
+      '😂',
+      '🙂',
+      '🙃',
+      '😉',
+      '😊',
+      '😇',
+      '🥰',
+      '😍',
+      '🤩',
+      '😘',
+      '😗',
+      '😚',
+      '😙',
+      '😋',
+      '😛',
+      '😜',
+      '🤪',
+      '😝',
+      '🤑',
+      '🤗',
+      '🤭',
+      '🤫',
+      '🤔',
+      '🤐',
+      '🤨',
+      '😐',
+      '😑',
+      '😶',
+      '😏',
+      '😒',
+      '🙄',
+      '😬',
+      '🤥',
+      '😌',
+      '😔',
+      '😪',
+      '🤤',
+      '😴',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤢',
+      '🤮',
+      '🤧',
+      '🥵',
+      '🥶',
+      '🥴',
+      '😵',
+      '🤯',
+      '🤠',
+      '🥳',
+      '😎',
+      '🤓',
     ],
   },
   {
@@ -25,8 +96,30 @@ const EMOJI_CATEGORIES = [
     label: 'Gestures',
     icon: ThumbsUp,
     emojis: [
-      '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇',
-      '☝️', '✋', '🤚', '🖐️', '🖖', '👋', '🤝', '💪', '🙏', '✍️', '👏', '🙌',
+      '👍',
+      '👎',
+      '👌',
+      '✌️',
+      '🤞',
+      '🤟',
+      '🤘',
+      '🤙',
+      '👈',
+      '👉',
+      '👆',
+      '👇',
+      '☝️',
+      '✋',
+      '🤚',
+      '🖐️',
+      '🖖',
+      '👋',
+      '🤝',
+      '💪',
+      '🙏',
+      '✍️',
+      '👏',
+      '🙌',
     ],
   },
   {
@@ -34,8 +127,30 @@ const EMOJI_CATEGORIES = [
     label: 'Hearts & Emotions',
     icon: Heart,
     emojis: [
-      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕',
-      '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💯', '💢', '💥', '💫', '💨',
+      '❤️',
+      '🧡',
+      '💛',
+      '💚',
+      '💙',
+      '💜',
+      '🖤',
+      '🤍',
+      '🤎',
+      '💔',
+      '❣️',
+      '💕',
+      '💞',
+      '💓',
+      '💗',
+      '💖',
+      '💘',
+      '💝',
+      '💟',
+      '💯',
+      '💢',
+      '💥',
+      '💫',
+      '💨',
     ],
   },
   {
@@ -43,8 +158,30 @@ const EMOJI_CATEGORIES = [
     label: 'Work & Objects',
     icon: Coffee,
     emojis: [
-      '💼', '📁', '📄', '📊', '📈', '📌', '📎', '💻', '🖥️', '📱', '💡', '⏰',
-      '☕', '🍕', '🎯', '🏆', '⭐', '🌟', '⚡', '🔥', '🚀', '✅', '❌', '⚠️',
+      '💼',
+      '📁',
+      '📄',
+      '📊',
+      '📈',
+      '📌',
+      '📎',
+      '💻',
+      '🖥️',
+      '📱',
+      '💡',
+      '⏰',
+      '☕',
+      '🍕',
+      '🎯',
+      '🏆',
+      '⭐',
+      '🌟',
+      '⚡',
+      '🔥',
+      '🚀',
+      '✅',
+      '❌',
+      '⚠️',
     ],
   },
 ];
@@ -96,7 +233,15 @@ const EmojiPickerPopover = ({ isOpen, onClose, onSelectEmoji, position = 'top' }
       }}
     >
       {/* Header Search & Category Nav */}
-      <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div
+        style={{
+          padding: '8px 10px',
+          borderBottom: '1px solid var(--color-border)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
         <div className="search-input-box" style={{ width: '100%' }}>
           <Search size={14} className="search-icon" />
           <input
@@ -155,7 +300,15 @@ const EmojiPickerPopover = ({ isOpen, onClose, onSelectEmoji, position = 'top' }
       >
         {filteredEmojis ? (
           filteredEmojis.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '20px',
+                fontSize: '12px',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               No emoji found
             </div>
           ) : (
@@ -179,7 +332,9 @@ const EmojiPickerPopover = ({ isOpen, onClose, onSelectEmoji, position = 'top' }
                   justifyContent: 'center',
                   transition: 'background-color 0.1s ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                }
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 {emoji}
@@ -207,7 +362,9 @@ const EmojiPickerPopover = ({ isOpen, onClose, onSelectEmoji, position = 'top' }
                 justifyContent: 'center',
                 transition: 'background-color 0.1s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+              }
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               {emoji}

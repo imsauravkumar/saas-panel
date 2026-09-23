@@ -2,13 +2,22 @@
   "name": "saas-nexus",
   "version": "1.0.0",
   "description": "SAAS Nexus - Internal Company Workspace Platform",
+  "type": "module",
   "scripts": {
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "seed": "cd backend && npm run seed"
+    "seed": "cd backend && npm run seed",
+    "test": "cd backend && npm test",
+    "lint": "npx eslint \"backend/src/**/*.js\" \"frontend/src/**/*.{js,jsx}\"",
+    "format": "npx prettier --write \"backend/server.js\" \"backend/src/**/*.{js,json}\" \"frontend/src/**/*.{js,jsx,css}\" \"*.{json,md}\""
   },
-  "keywords": ["saas", "workspace", "slack-alternative", "mern"],
+  "keywords": [
+    "saas",
+    "workspace",
+    "slack-alternative",
+    "mern"
+  ],
   "author": "SAAS Nexus Team",
   "license": "MIT"
 }

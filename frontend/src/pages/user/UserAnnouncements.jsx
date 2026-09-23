@@ -1,12 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Megaphone,
-  Pin,
-  Calendar,
-  Search,
-  Globe,
-  Users,
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Megaphone, Pin, Calendar, Search, Globe, Users } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
@@ -28,7 +21,7 @@ const UserAnnouncements = () => {
       if (data.success) {
         setAnnouncements(data.announcements);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load announcements', 'error');
     } finally {
       setLoading(false);
@@ -106,12 +99,20 @@ const UserAnnouncements = () => {
       {/* Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}>
+          <div
+            style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}
+          >
             Loading bulletins...
           </div>
         ) : filteredAnnouncements.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '56px 24px', color: 'var(--color-text-muted)' }}>
-            <Megaphone size={36} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }} />
+          <div
+            className="card"
+            style={{ textAlign: 'center', padding: '56px 24px', color: 'var(--color-text-muted)' }}
+          >
+            <Megaphone
+              size={36}
+              style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }}
+            />
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
               No bulletins published
             </div>
@@ -136,13 +137,15 @@ const UserAnnouncements = () => {
                   borderLeft: isPinned
                     ? '4px solid var(--color-warning)'
                     : isUrgent
-                    ? '4px solid var(--color-danger)'
-                    : '4px solid var(--color-primary)',
+                      ? '4px solid var(--color-danger)'
+                      : '4px solid var(--color-primary)',
                   backgroundColor: isPinned ? 'rgba(245, 158, 11, 0.03)' : 'var(--color-surface)',
                 }}
               >
                 {/* Meta Top Bar */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {isPinned && (
                       <span
@@ -175,9 +178,23 @@ const UserAnnouncements = () => {
                     {isUrgent && <Badge variant="danger">URGENT</Badge>}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
                     <Calendar size={13} />
-                    <span>{new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span>
+                      {new Date(a.createdAt).toLocaleDateString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </div>
                 </div>
 

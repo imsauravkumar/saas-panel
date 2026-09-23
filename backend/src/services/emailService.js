@@ -41,8 +41,8 @@ const sendMeetingEmail = async ({ to, subject, meeting, action = 'scheduled' }) 
     action === 'scheduled'
       ? 'You have been invited to a new Google Meet session'
       : action === 'updated'
-      ? 'A Google Meet session has been updated'
-      : 'A Google Meet session has been cancelled';
+        ? 'A Google Meet session has been updated'
+        : 'A Google Meet session has been cancelled';
 
   const actionColor = action === 'cancelled' ? '#EF4444' : '#4F46E5';
 
@@ -101,7 +101,8 @@ const sendMeetingEmail = async ({ to, subject, meeting, action = 'scheduled' }) 
       await transport.sendMail({
         from: process.env.SMTP_FROM || '"SAAS Nexus Workspace" <no-reply@nexus.corp>',
         to: recipients,
-        subject: subject || `[SAAS Nexus] ${action === 'cancelled' ? 'Cancelled: ' : ''}${meeting.title}`,
+        subject:
+          subject || `[SAAS Nexus] ${action === 'cancelled' ? 'Cancelled: ' : ''}${meeting.title}`,
         html,
       });
     } catch (err) {

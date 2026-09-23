@@ -1,6 +1,5 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
-const Group = require('../models/Group');
 const ActivityLog = require('../models/ActivityLog');
 const { notify } = require('../services/notify');
 
@@ -14,10 +13,7 @@ const getTasks = async (req, res) => {
     let query = { workspaceId: req.user.workspaceId, isDeleted: false };
 
     if (req.user.role !== 'admin') {
-      query.$or = [
-        { assignedTo: req.user._id },
-        { groupId: { $in: req.user.groupIds || [] } },
-      ];
+      query.$or = [{ assignedTo: req.user._id }, { groupId: { $in: req.user.groupIds || [] } }];
     } else if (assignedTo) {
       query.assignedTo = assignedTo;
     }
@@ -58,10 +54,7 @@ const getTaskSummary = async (req, res) => {
   try {
     let query = { workspaceId: req.user.workspaceId, isDeleted: false };
     if (req.user.role !== 'admin') {
-      query.$or = [
-        { assignedTo: req.user._id },
-        { groupId: { $in: req.user.groupIds || [] } },
-      ];
+      query.$or = [{ assignedTo: req.user._id }, { groupId: { $in: req.user.groupIds || [] } }];
     }
 
     const tasks = await Task.find(query);
@@ -91,7 +84,11 @@ const getTaskSummary = async (req, res) => {
 const getTaskById = async (req, res) => {
   try {
     const { id } = req.params;
-    const task = await Task.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false })
+    const task = await Task.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    })
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar memberIds')
       .populate('createdBy', 'name email avatar post')
@@ -104,9 +101,13 @@ const getTaskById = async (req, res) => {
 
     if (req.user.role !== 'admin') {
       const isAssigned = task.assignedTo.some((u) => u._id.toString() === req.user._id.toString());
-      const isGroupMember = task.groupId?.memberIds?.some((m) => m.toString() === req.user._id.toString());
+      const isGroupMember = task.groupId?.memberIds?.some(
+        (m) => m.toString() === req.user._id.toString()
+      );
       if (!isAssigned && !isGroupMember) {
-        return res.status(403).json({ success: false, message: 'Access denied: You are not assigned to this task' });
+        return res
+          .status(403)
+          .json({ success: false, message: 'Access denied: You are not assigned to this task' });
       }
     }
 
@@ -125,14 +126,25 @@ const getTaskById = async (req, res) => {
  */
 const createTask = async (req, res) => {
   try {
-    const { title, description = '', assignedTo = [], groupId = null, priority = 'medium', deadline } = req.body;
+    const {
+      title,
+      description = '',
+      assignedTo = [],
+      groupId = null,
+      priority = 'medium',
+      deadline,
+    } = req.body;
 
     if (!title || !deadline) {
-      return res.status(400).json({ success: false, message: 'Task title and deadline are required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Task title and deadline are required.' });
     }
 
     if (!assignedTo || !Array.isArray(assignedTo) || assignedTo.length === 0) {
-      return res.status(400).json({ success: false, message: 'At least one assignee must be selected.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'At least one assignee must be selected.' });
     }
 
     const task = await Task.create({
@@ -203,7 +215,9 @@ const createTask = async (req, res) => {
     });
   } catch (error) {
     console.error('[Create Task Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to create task: ' + error.message });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to create task: ' + error.message });
   }
 };
 
@@ -219,7 +233,11 @@ const updateTaskStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid status value.' });
     }
 
-    const task = await Task.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const task = await Task.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
@@ -227,7 +245,9 @@ const updateTaskStatus = async (req, res) => {
     // Check authorization: must be admin or in assignedTo
     const isAssigned = task.assignedTo.some((u) => u.toString() === req.user._id.toString());
     if (req.user.role !== 'admin' && !isAssigned) {
-      return res.status(403).json({ success: false, message: 'You are not authorized to update this task.' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'You are not authorized to update this task.' });
     }
 
     const previousStatus = task.status;
@@ -290,7 +310,12 @@ const updateTaskStatus = async (req, res) => {
 
         if (admins.length > 0) {
           const adminIds = admins.map((a) => a._id);
-          const statusLabel = status === 'completed' ? '✅ Completed' : status === 'inprogress' ? '🔄 In Progress' : '📋 To Do';
+          const statusLabel =
+            status === 'completed'
+              ? '✅ Completed'
+              : status === 'inprogress'
+                ? '🔄 In Progress'
+                : '📋 To Do';
           await notify({
             userIds: adminIds,
             type: 'task',
@@ -326,7 +351,11 @@ const updateTask = async (req, res) => {
     const { id } = req.params;
     const { title, description, assignedTo, groupId, priority, deadline, status } = req.body;
 
-    const task = await Task.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const task = await Task.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
@@ -394,7 +423,11 @@ const addTaskComment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Comment text is required' });
     }
 
-    const task = await Task.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const task = await Task.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
@@ -463,7 +496,6 @@ const addTaskComment = async (req, res) => {
       message: 'Comment added',
       task: populatedTask,
     });
-
   } catch (error) {
     console.error('[Add Task Comment Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to add comment' });
@@ -476,7 +508,11 @@ const addTaskComment = async (req, res) => {
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const task = await Task.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const task = await Task.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });

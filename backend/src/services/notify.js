@@ -1,6 +1,5 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
-const { sendMeetingEmail } = require('./emailService');
 
 const prefKeyMap = {
   message: 'newMessage',
@@ -13,7 +12,16 @@ const prefKeyMap = {
  * Centralized notification dispatcher
  * Inserts in-app notifications, emits real-time Socket.IO events, and dispatches emails per user preferences
  */
-const notify = async ({ userIds = [], type, title, body = '', linkTo = '', refId = null, workspaceId, io = null }) => {
+const notify = async ({
+  userIds = [],
+  type,
+  title,
+  body = '',
+  linkTo = '',
+  refId = null,
+  workspaceId,
+  io = null,
+}) => {
   if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
     return [];
   }

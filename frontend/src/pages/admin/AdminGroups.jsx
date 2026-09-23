@@ -1,10 +1,8 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
-  MessageSquare,
   Plus,
   Users,
   Trash2,
-  Edit2,
   ExternalLink,
   Search,
   Layers,
@@ -14,7 +12,6 @@ import {
   Camera,
   Upload,
   Hash,
-  Loader2,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
@@ -29,7 +26,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
   const { user } = useAuth();
   const { addToast, confirm } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Group Info / Settings Modal State
   const [infoModalGroup, setInfoModalGroup] = useState(null);
 
@@ -69,7 +66,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
             await api.put(`/groups/${data.group._id}/avatar`, avatarFormData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
-          } catch (avatarErr) {
+          } catch (_avatarErr) {
             console.warn('Avatar upload failed on creation:', avatarErr);
           }
         }
@@ -117,9 +114,10 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
     });
   };
 
-  const filteredGroups = groups.filter((g) =>
-    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredGroups = groups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -128,7 +126,10 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
       <div className="page-header">
         <div className="page-header-title">
           <h1>Channels & Group Management</h1>
-          <p>Create collaboration spaces, adjust settings anytime, add team members, and configure permissions.</p>
+          <p>
+            Create collaboration spaces, adjust settings anytime, add team members, and configure
+            permissions.
+          </p>
         </div>
 
         <button
@@ -162,13 +163,18 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
 
       {/* Groups Grid */}
       {filteredGroups.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--color-text-muted)' }}>
+        <div
+          className="card"
+          style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--color-text-muted)' }}
+        >
           <Layers size={42} style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
           <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-text-primary)' }}>
             No channels found
           </div>
           <p style={{ fontSize: '13px', maxWidth: '360px', margin: '6px auto 16px auto' }}>
-            {searchTerm ? 'No channels matched your search term.' : 'Group channels allow your workspace members to collaborate in dedicated rooms.'}
+            {searchTerm
+              ? 'No channels matched your search term.'
+              : 'Group channels allow your workspace members to collaborate in dedicated rooms.'}
           </p>
           <button
             className="btn btn-primary btn-sm"
@@ -186,7 +192,13 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: '20px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: '20px',
+          }}
+        >
           {filteredGroups.map((group) => {
             const isLocked = group.chatPermission === 'adminOnly';
 
@@ -204,36 +216,68 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                 }}
               >
                 {/* Header Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <div
                     onClick={() => handleOpenEdit(group)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                    title="Click to view/edit channel details & photo"
-                  >
-                    <div style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'var(--color-primary-soft)',
-                      color: 'var(--color-primary)',
+                    style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      overflow: 'hidden',
-                    }}>
+                      gap: '12px',
+                      cursor: 'pointer',
+                    }}
+                    title="Click to view/edit channel details & photo"
+                  >
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: 'var(--color-primary-soft)',
+                        color: 'var(--color-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        overflow: 'hidden',
+                      }}
+                    >
                       {group.avatar ? (
-                        <img src={group.avatar} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img
+                          src={group.avatar}
+                          alt={group.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       ) : (
                         <Hash size={20} />
                       )}
                     </div>
 
                     <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      <h3
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
                         #{group.name}
                       </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                          color: 'var(--color-text-secondary)',
+                          marginTop: '2px',
+                        }}
+                      >
                         <Users size={13} />
                         <span>{group.memberIds?.length || 0} members</span>
                       </div>
@@ -246,20 +290,47 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                 </div>
 
                 {/* Description */}
-                <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', flex: 1, minHeight: '38px', lineHeight: 1.5 }}>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--color-text-secondary)',
+                    flex: 1,
+                    minHeight: '38px',
+                    lineHeight: 1.5,
+                  }}
+                >
                   {group.description || 'No description provided for this channel.'}
                 </p>
 
                 {/* Member Preview Avatars */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderTop: '1px solid var(--color-border)',
+                    paddingTop: '12px',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ display: 'flex', gap: '-6px' }}>
                       {group.memberIds?.slice(0, 4).map((m) => (
-                        <Avatar key={m._id || m} name={m.name || 'Member'} src={m.avatar} size="sm" />
+                        <Avatar
+                          key={m._id || m}
+                          name={m.name || 'Member'}
+                          src={m.avatar}
+                          size="sm"
+                        />
                       ))}
                     </div>
                     {group.memberIds?.length > 4 && (
-                      <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginLeft: '4px' }}>
+                      <span
+                        style={{
+                          fontSize: '11.5px',
+                          color: 'var(--color-text-muted)',
+                          marginLeft: '4px',
+                        }}
+                      >
                         +{group.memberIds.length - 4} more
                       </span>
                     )}
@@ -303,7 +374,13 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                     <button
                       type="button"
                       className="btn btn-primary btn-sm"
-                      style={{ fontSize: '12px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{
+                        fontSize: '12px',
+                        padding: '6px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
                       onClick={() => onSelectGroupDashboard && onSelectGroupDashboard(group._id)}
                       title="Open Channel Space"
                     >
@@ -329,7 +406,10 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
         title="Create New Channel"
         maxWidth="540px"
       >
-        <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form
+          onSubmit={handleCreateSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           {formError && (
             <div
               style={{
@@ -372,7 +452,11 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                 title="Upload Photo"
               >
                 {createAvatarPreview ? (
-                  <img src={createAvatarPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img
+                    src={createAvatarPreview}
+                    alt="Preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 ) : (
                   <Camera size={20} />
                 )}
@@ -382,7 +466,14 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                   type="button"
                   className="btn btn-secondary btn-sm"
                   onClick={() => createAvatarInputRef.current?.click()}
-                  style={{ alignSelf: 'flex-start', fontSize: '12px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  style={{
+                    alignSelf: 'flex-start',
+                    fontSize: '12px',
+                    padding: '4px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
                 >
                   <Upload size={13} /> {createAvatarFile ? 'Change Photo' : 'Upload Photo'}
                 </button>
@@ -444,7 +535,10 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                   padding: '10px 12px',
                   borderRadius: 'var(--radius-md)',
                   border: `1px solid ${formData.chatPermission === 'everyone' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  backgroundColor: formData.chatPermission === 'everyone' ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                  backgroundColor:
+                    formData.chatPermission === 'everyone'
+                      ? 'var(--color-primary-soft)'
+                      : 'var(--color-surface)',
                   cursor: 'pointer',
                 }}
               >
@@ -456,7 +550,13 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                   style={{ marginTop: '2px' }}
                 />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     Everyone Can Chat
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -474,7 +574,10 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                   padding: '10px 12px',
                   borderRadius: 'var(--radius-md)',
                   border: `1px solid ${formData.chatPermission === 'adminOnly' ? 'var(--color-warning)' : 'var(--color-border)'}`,
-                  backgroundColor: formData.chatPermission === 'adminOnly' ? 'var(--color-warning-soft)' : 'var(--color-surface)',
+                  backgroundColor:
+                    formData.chatPermission === 'adminOnly'
+                      ? 'var(--color-warning-soft)'
+                      : 'var(--color-surface)',
                   cursor: 'pointer',
                 }}
               >
@@ -486,7 +589,13 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                   style={{ marginTop: '2px' }}
                 />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     Only Admin Can Chat (Broadcast Mode)
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -500,7 +609,9 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
           {/* Select Initial Users */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label className="form-label">Initial Members ({formData.memberIds.length} selected)</label>
+              <label className="form-label">
+                Initial Members ({formData.memberIds.length} selected)
+              </label>
               <button
                 type="button"
                 onClick={() => {
@@ -510,17 +621,43 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                     setFormData({ ...formData, memberIds: users.map((u) => u._id) });
                   }
                 }}
-                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-primary)',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
               >
                 {formData.memberIds.length === users.length ? 'Deselect All' : 'Select All'}
               </button>
             </div>
 
-            <div style={{ maxHeight: '140px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '6px' }}>
+            <div
+              style={{
+                maxHeight: '140px',
+                overflowY: 'auto',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '6px',
+              }}
+            >
               {users.map((u) => {
                 const isChecked = formData.memberIds.includes(u._id);
                 return (
-                  <label key={u._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 8px', cursor: 'pointer', fontSize: '13px', borderRadius: 'var(--radius-sm)' }}>
+                  <label
+                    key={u._id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '5px 8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      borderRadius: 'var(--radius-sm)',
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={isChecked}
@@ -528,19 +665,26 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                         if (e.target.checked) {
                           setFormData({ ...formData, memberIds: [...formData.memberIds, u._id] });
                         } else {
-                          setFormData({ ...formData, memberIds: formData.memberIds.filter((id) => id !== u._id) });
+                          setFormData({
+                            ...formData,
+                            memberIds: formData.memberIds.filter((id) => id !== u._id),
+                          });
                         }
                       }}
                     />
                     <Avatar name={u.name} src={u.avatar} size="sm" />
-                    <span>{u.name} ({u.post || 'Member'})</span>
+                    <span>
+                      {u.name} ({u.post || 'Member'})
+                    </span>
                   </label>
                 );
               })}
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+          <div
+            style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}
+          >
             <button
               type="button"
               className="btn btn-secondary"
@@ -553,11 +697,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn btn-primary"
-            >
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
               {isSubmitting ? 'Creating Channel...' : 'Create Channel'}
             </button>
           </div>

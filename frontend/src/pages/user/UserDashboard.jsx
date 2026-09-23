@@ -1,28 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  LayoutDashboard,
   Users,
   Video,
   CheckSquare,
   Megaphone,
-  ArrowUpRight,
   Clock,
   Calendar,
-  ExternalLink,
   MessageSquare,
   Sparkles,
   Pin,
-  ChevronRight,
   Hash,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
   Bell,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
-import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
 
 const UserDashboard = ({ setTab, onSelectGroup }) => {
@@ -156,26 +148,80 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
     return (
       <div className="page-container">
         {/* Header Skeleton */}
-        <div style={{ height: '40px', width: '280px', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', marginBottom: '12px' }} />
-        <div style={{ height: '20px', width: '180px', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', marginBottom: '28px' }} />
+        <div
+          style={{
+            height: '40px',
+            width: '280px',
+            background: 'var(--color-surface)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '12px',
+          }}
+        />
+        <div
+          style={{
+            height: '20px',
+            width: '180px',
+            background: 'var(--color-surface)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '28px',
+          }}
+        />
 
         {/* Stats Chips Skeleton */}
         <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
           {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: '48px', width: '160px', background: 'var(--color-surface)', borderRadius: 'var(--radius-full)' }} />
+            <div
+              key={i}
+              style={{
+                height: '48px',
+                width: '160px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-full)',
+              }}
+            />
           ))}
         </div>
 
         {/* 65/35 Grid Skeleton */}
         <div className="responsive-split">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ height: '180px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }} />
-            <div style={{ height: '220px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }} />
-            <div style={{ height: '200px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }} />
+            <div
+              style={{
+                height: '180px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            />
+            <div
+              style={{
+                height: '220px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            />
+            <div
+              style={{
+                height: '200px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ height: '280px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }} />
-            <div style={{ height: '280px', background: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }} />
+            <div
+              style={{
+                height: '280px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            />
+            <div
+              style={{
+                height: '280px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            />
           </div>
         </div>
       </div>
@@ -194,9 +240,28 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
   return (
     <div className="page-container">
       {/* ROW 1 — Greeting & Quick Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '16px',
+          marginBottom: '24px',
+        }}
+      >
         <div>
-          <h1 style={{ fontSize: 'clamp(20px, 4.5vw, 26px)', fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <h1
+            style={{
+              fontSize: 'clamp(20px, 4.5vw, 26px)',
+              fontWeight: 700,
+              color: 'var(--color-text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexWrap: 'wrap',
+            }}
+          >
             {getGreeting()}, {user?.name?.split(' ')[0] || 'Teammate'} 👋
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px', marginTop: '4px' }}>
@@ -222,7 +287,9 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
             }}
           >
             <Users size={15} color="var(--color-primary)" />
-            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            <span
+              style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+            >
               {groupCount}
             </span>
             <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -246,7 +313,9 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
             }}
           >
             <CheckSquare size={15} color="#F59E0B" />
-            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            <span
+              style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+            >
               {taskCounts.dueThisWeek || taskCounts.todo}
             </span>
             <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -295,29 +364,76 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
               overflow: 'hidden',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Video size={17} color="var(--color-primary)" />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: 'var(--color-primary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
                   Next Upcoming Meeting
                 </span>
               </div>
               <button
                 onClick={() => setTab('meetings')}
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '2px 8px', height: '28px', whiteSpace: 'nowrap' }}
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  padding: '2px 8px',
+                  height: '28px',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 View all →
               </button>
             </div>
 
             {nextMeeting ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                }}
+              >
                 <div style={{ flex: '1 1 220px', minWidth: '200px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '6px' }}>
+                  <h3
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: 'var(--color-text-primary)',
+                      marginBottom: '6px',
+                    }}
+                  >
                     {nextMeeting.title}
                   </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12.5px', color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      fontSize: '12.5px',
+                      color: 'var(--color-text-secondary)',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Calendar size={13} color="var(--color-text-muted)" />
                       {new Date(nextMeeting.dateTime).toLocaleDateString('en-US', {
@@ -341,7 +457,16 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', width: '100%', marginTop: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    width: '100%',
+                    marginTop: '4px',
+                  }}
+                >
                   {nextMeetingCountdown && (
                     <div
                       style={{
@@ -364,7 +489,16 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-primary btn-sm"
-                      style={{ gap: '6px', padding: '0 16px', fontWeight: 600, fontSize: '13px', height: '36px', flex: '1 1 auto', minWidth: '160px', justifyContent: 'center' }}
+                      style={{
+                        gap: '6px',
+                        padding: '0 16px',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        height: '36px',
+                        flex: '1 1 auto',
+                        minWidth: '160px',
+                        justifyContent: 'center',
+                      }}
                     >
                       <Video size={15} /> Join Google Meet
                     </a>
@@ -381,7 +515,9 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
               </div>
             ) : (
               /* Designed Friendly Empty State */
-              <div style={{ padding: '16px 0', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div
+                style={{ padding: '16px 0', display: 'flex', alignItems: 'center', gap: '16px' }}
+              >
                 <div
                   style={{
                     width: '44px',
@@ -399,7 +535,13 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                   <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
                     Your Schedule is Completely Clear!
                   </h4>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '2px',
+                    }}
+                  >
                     No upcoming meetings scheduled for today. Take time to focus on deep work!
                   </p>
                 </div>
@@ -408,27 +550,64 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
           </div>
 
           {/* 2. My Work Snapshot (Mini-Kanban with nearest deadlines) */}
-          <div className="card" style={{ background: 'var(--color-surface)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--color-surface)',
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '16px',
+              }}
+            >
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <h3
+                  style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+                >
                   My Work Snapshot
                 </h3>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '2px',
+                  }}
+                >
                   Progress overview across your active deliverables
                 </p>
               </div>
               <button
                 onClick={() => setTab('tasks')}
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '2px 8px', height: '28px', whiteSpace: 'nowrap' }}
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  padding: '2px 8px',
+                  height: '28px',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 View all tasks →
               </button>
             </div>
 
             {/* 3 Mini-Columns */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px',
+                marginBottom: '16px',
+              }}
+            >
               {/* To Do */}
               <div
                 onClick={() => setTab('tasks')}
@@ -442,10 +621,25 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: 'var(--color-text-secondary)',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   To Do
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '2px' }}>
+                <div
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    marginTop: '2px',
+                  }}
+                >
                   {taskCounts.todo}
                 </div>
               </div>
@@ -463,10 +657,25 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#3B82F6', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#3B82F6',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   In Progress
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '2px' }}>
+                <div
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    marginTop: '2px',
+                  }}
+                >
                   {taskCounts.inprogress}
                 </div>
               </div>
@@ -484,10 +693,25 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#10B981', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#10B981',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   Completed
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '2px' }}>
+                <div
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: 'var(--color-text-primary)',
+                    marginTop: '2px',
+                  }}
+                >
                   {taskCounts.completed}
                 </div>
               </div>
@@ -495,13 +719,23 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
 
             {/* Nearest Task Items List */}
             {topTasks.length === 0 ? (
-              <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+              <div
+                style={{
+                  padding: '20px 0',
+                  textAlign: 'center',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '13px',
+                }}
+              >
                 🎉 No active tasks assigned yet — nice and clear!
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {topTasks.slice(0, 3).map((task) => {
-                  const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'completed';
+                  const isOverdue =
+                    task.deadline &&
+                    new Date(task.deadline) < new Date() &&
+                    task.status !== 'completed';
                   return (
                     <div
                       key={task._id}
@@ -518,13 +752,26 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                         transition: 'background var(--transition-fast)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
                         <div
                           style={{
                             width: '8px',
                             height: '8px',
                             borderRadius: '50%',
-                            background: task.status === 'completed' ? '#10B981' : task.status === 'inprogress' ? '#3B82F6' : '#94A3B8',
+                            background:
+                              task.status === 'completed'
+                                ? '#10B981'
+                                : task.status === 'inprogress'
+                                  ? '#3B82F6'
+                                  : '#94A3B8',
                           }}
                         />
                         <span
@@ -554,10 +801,21 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                             }}
                           >
                             <Clock size={12} />
-                            {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {new Date(task.deadline).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
                           </span>
                         )}
-                        <Badge variant={task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'neutral'}>
+                        <Badge
+                          variant={
+                            task.priority === 'high'
+                              ? 'danger'
+                              : task.priority === 'medium'
+                                ? 'warning'
+                                : 'neutral'
+                          }
+                        >
                           {task.priority}
                         </Badge>
                       </div>
@@ -569,25 +827,56 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
           </div>
 
           {/* 3. Recent Announcements (Top 3 pinned first) */}
-          <div className="card" style={{ background: 'var(--color-surface)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--color-surface)',
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '16px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Megaphone size={17} color="var(--color-primary)" />
-                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <h3
+                  style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+                >
                   Recent Announcements
                 </h3>
               </div>
               <button
                 onClick={() => setTab('announcements')}
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '2px 8px', height: '28px', whiteSpace: 'nowrap' }}
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  padding: '2px 8px',
+                  height: '28px',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 View all →
               </button>
             </div>
 
             {recentAnnouncements.length === 0 ? (
-              <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+              <div
+                style={{
+                  padding: '24px 0',
+                  textAlign: 'center',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '13px',
+                }}
+              >
                 No announcements posted yet.
               </div>
             ) : (
@@ -602,30 +891,67 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                       borderRadius: 'var(--radius-md)',
                       border: '1px solid var(--color-border)',
                       cursor: 'pointer',
-                      borderLeft: ann.pinned ? '3px solid #F59E0B' : '1px solid var(--color-border)',
+                      borderLeft: ann.pinned
+                        ? '3px solid #F59E0B'
+                        : '1px solid var(--color-border)',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '6px',
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {ann.pinned && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F59E0B', fontSize: '11px', fontWeight: 600 }}>
+                          <span
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: '#F59E0B',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                            }}
+                          >
                             <Pin size={12} /> PINNED
                           </span>
                         )}
-                        <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
+                        <h4
+                          style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}
+                        >
                           {ann.title}
                         </h4>
                       </div>
                       <Badge variant={ann.scope === 'company' ? 'primary' : 'neutral'}>
-                        {ann.scope === 'company' ? '🌐 Company' : `#${ann.groupId?.name || 'Group'}`}
+                        {ann.scope === 'company'
+                          ? '🌐 Company'
+                          : `#${ann.groupId?.name || 'Group'}`}
                       </Badge>
                     </div>
 
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px', lineHeight: 1.4 }}>
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '8px',
+                        lineHeight: 1.4,
+                      }}
+                    >
                       {ann.body?.length > 120 ? `${ann.body.slice(0, 120)}...` : ann.body}
                     </p>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '11px',
+                        color: 'var(--color-text-tertiary)',
+                      }}
+                    >
                       <span>By {ann.createdBy?.name || 'Admin'}</span>
                       <span>•</span>
                       <span>{formatRelativeTime(ann.createdAt)}</span>
@@ -640,25 +966,56 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
         {/* RIGHT COLUMN (SIDEBAR - 35%) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* 1. My Groups Compact List */}
-          <div className="card" style={{ background: 'var(--color-surface)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--color-surface)',
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MessageSquare size={17} color="var(--color-primary)" />
-                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <h3
+                  style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+                >
                   My Channels
                 </h3>
               </div>
               <button
                 onClick={() => setTab('groups')}
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '2px 8px', height: '28px', whiteSpace: 'nowrap' }}
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  padding: '2px 8px',
+                  height: '28px',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 All channels →
               </button>
             </div>
 
             {myGroups.length === 0 ? (
-              <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+              <div
+                style={{
+                  padding: '20px 0',
+                  textAlign: 'center',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '13px',
+                }}
+              >
                 You haven't been added to any channels yet.
               </div>
             ) : (
@@ -684,7 +1041,15 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                         transition: 'all var(--transition-fast)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
                         <div
                           style={{
                             width: '30px',
@@ -730,7 +1095,9 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                           <div
                             style={{
                               fontSize: '12px',
-                              color: hasUnread ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                              color: hasUnread
+                                ? 'var(--color-text-primary)'
+                                : 'var(--color-text-secondary)',
                               fontWeight: hasUnread ? 500 : 400,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -744,7 +1111,14 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                       </div>
 
                       {g.lastMessageAt && (
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', flexShrink: 0, marginLeft: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-muted)',
+                            flexShrink: 0,
+                            marginLeft: '8px',
+                          }}
+                        >
                           {formatRelativeTime(g.lastMessageAt)}
                         </span>
                       )}
@@ -756,18 +1130,43 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
           </div>
 
           {/* 2. Recent Activity Feed (Notifications Stream) */}
-          <div className="card" style={{ background: 'var(--color-surface)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--color-surface)',
+              padding: '20px',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Bell size={17} color="var(--color-primary)" />
-                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <h3
+                  style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+                >
                   Recent Notifications
                 </h3>
               </div>
             </div>
 
             {recentActivity.length === 0 ? (
-              <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+              <div
+                style={{
+                  padding: '20px 0',
+                  textAlign: 'center',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '13px',
+                }}
+              >
                 No recent notifications.
               </div>
             ) : (
@@ -790,11 +1189,17 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                     <div
                       key={notif._id}
                       onClick={() => {
-                        if (notif.linkTo?.startsWith('/groups') || notif.linkTo?.startsWith('/chat')) {
+                        if (
+                          notif.linkTo?.startsWith('/groups') ||
+                          notif.linkTo?.startsWith('/chat')
+                        ) {
                           setTab('chat');
                         } else if (notif.linkTo?.startsWith('/meetings')) {
                           setTab('meetings');
-                        } else if (notif.linkTo?.startsWith('/work') || notif.linkTo?.startsWith('/tasks')) {
+                        } else if (
+                          notif.linkTo?.startsWith('/work') ||
+                          notif.linkTo?.startsWith('/tasks')
+                        ) {
                           setTab('tasks');
                         } else if (notif.linkTo?.startsWith('/announcements')) {
                           setTab('announcements');
@@ -849,7 +1254,14 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                             {notif.body}
                           </div>
                         )}
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '2px', display: 'block' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-tertiary)',
+                            marginTop: '2px',
+                            display: 'block',
+                          }}
+                        >
                           {formatRelativeTime(notif.createdAt)}
                         </span>
                       </div>

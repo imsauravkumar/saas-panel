@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, Mail, Check, Shield, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Check, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
@@ -58,7 +58,7 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
         addToast('Notification preferences updated!', 'success');
         onClose();
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to save preferences', 'error');
     } finally {
       setSaving(false);
@@ -66,17 +66,32 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Notification Settings & Preferences" maxWidth="520px">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Notification Settings & Preferences"
+      maxWidth="520px"
+    >
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         <div>
           <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
-            Configure where and how you receive workspace alerts. In-app notifications are always enabled in your top bar.
+            Configure where and how you receive workspace alerts. In-app notifications are always
+            enabled in your top bar.
           </p>
         </div>
 
         {/* Section: Email Notifications */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              color: 'var(--color-text-primary)',
+            }}
+          >
             <Mail size={16} color="var(--color-primary)" />
             <span>Email Delivery Channels</span>
           </div>
@@ -150,7 +165,9 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
               }}
             >
               <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 600 }}>Company & Channel Bulletins</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600 }}>
+                  Company & Channel Bulletins
+                </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                   Important workspace broadcasts and administrative updates.
                 </div>
@@ -193,7 +210,16 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '10px',
+            marginTop: '8px',
+            borderTop: '1px solid var(--color-border)',
+            paddingTop: '14px',
+          }}
+        >
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>
             Cancel
           </button>

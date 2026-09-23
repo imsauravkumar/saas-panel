@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import api from '../services/api';
 import { getSocket } from '../services/socket';
@@ -22,26 +22,29 @@ export const NotificationProvider = ({ children }) => {
     onConfirm: null,
   });
 
-  const confirm = useCallback(({
-    title = 'Confirm Action',
-    message = 'Are you sure you want to proceed?',
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
-    type = 'danger',
-    icon = null,
-    onConfirm,
-  }) => {
-    setConfirmState({
-      isOpen: true,
-      title,
-      message,
-      confirmText,
-      cancelText,
-      type,
-      icon,
+  const confirm = useCallback(
+    ({
+      title = 'Confirm Action',
+      message = 'Are you sure you want to proceed?',
+      confirmText = 'Confirm',
+      cancelText = 'Cancel',
+      type = 'danger',
+      icon = null,
       onConfirm,
-    });
-  }, []);
+    }) => {
+      setConfirmState({
+        isOpen: true,
+        title,
+        message,
+        confirmText,
+        cancelText,
+        type,
+        icon,
+        onConfirm,
+      });
+    },
+    []
+  );
 
   const closeConfirm = useCallback(() => {
     setConfirmState((prev) => ({ ...prev, isOpen: false }));
@@ -50,7 +53,12 @@ export const NotificationProvider = ({ children }) => {
   // Toast functions
   const addToast = useCallback((message, type = 'info', duration = 4000) => {
     const id = Date.now() + Math.random();
-    const msgText = typeof message === 'string' ? message : (message?.title ? `${message.title}${message.body ? ' — ' + message.body : ''}` : message?.body || message?.message || 'Notification');
+    const msgText =
+      typeof message === 'string'
+        ? message
+        : message?.title
+          ? `${message.title}${message.body ? ' — ' + message.body : ''}`
+          : message?.body || message?.message || 'Notification';
     const msgType = typeof message === 'object' && message?.type ? message.type : type;
     setToasts((prev) => [...prev, { id, message: msgText, type: msgType }]);
 
@@ -74,7 +82,7 @@ export const NotificationProvider = ({ children }) => {
       if (data.success) {
         setUnreadCount(data.unreadCount);
       }
-    } catch (err) {
+    } catch (_err) {
       // session might be initializing
     }
   }, []);
@@ -84,7 +92,9 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('nexus_token');
       if (!token) return;
       setLoading(true);
-      const { data } = await api.get(`/notifications?limit=30${unreadOnly ? '&unreadOnly=true' : ''}`);
+      const { data } = await api.get(
+        `/notifications?limit=30${unreadOnly ? '&unreadOnly=true' : ''}`
+      );
       if (data.success) {
         setNotifications(data.notifications);
         setUnreadCount(data.unreadCount);
@@ -100,9 +110,7 @@ export const NotificationProvider = ({ children }) => {
   const markAsRead = useCallback(async (id) => {
     try {
       // Optimistic update
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-      );
+      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
       await api.patch(`/notifications/${id}/read`);
@@ -158,10 +166,12 @@ export const NotificationProvider = ({ children }) => {
 
     // Try immediately, then retry every 500ms until socket is available
     attach();
-    const retryInterval = attached ? null : setInterval(() => {
-      if (!attached) attach();
-      if (attached) clearInterval(retryInterval);
-    }, 500);
+    const retryInterval = attached
+      ? null
+      : setInterval(() => {
+          if (!attached) attach();
+          if (attached) clearInterval(retryInterval);
+        }, 500);
 
     return () => {
       if (retryInterval) clearInterval(retryInterval);
@@ -172,7 +182,6 @@ export const NotificationProvider = ({ children }) => {
       }
     };
   }, [addToast]);
-
 
   // Initial load
   useEffect(() => {

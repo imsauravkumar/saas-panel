@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = '560px' }) => {
@@ -14,11 +14,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = '560px' })
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal-panel"
-        style={{ maxWidth }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-panel" style={{ maxWidth }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 style={{ fontSize: '18px', fontWeight: 600 }}>{title}</h2>
           <button

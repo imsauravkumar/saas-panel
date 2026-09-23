@@ -44,7 +44,16 @@ const getAnnouncements = async (req, res) => {
  */
 const createAnnouncement = async (req, res) => {
   try {
-    const { title, body, scope = 'company', target, groupId = null, priority = 'normal', pinned = false, isPinned } = req.body;
+    const {
+      title,
+      body,
+      scope = 'company',
+      target,
+      groupId = null,
+      priority = 'normal',
+      pinned = false,
+      isPinned,
+    } = req.body;
 
     if (!title || !body) {
       return res.status(400).json({ success: false, message: 'Title and content are required.' });
@@ -56,9 +65,16 @@ const createAnnouncement = async (req, res) => {
     let targetGroup = null;
     if (finalScope === 'group') {
       if (!groupId) {
-        return res.status(400).json({ success: false, message: 'A channel must be selected for group-scoped announcements.' });
+        return res.status(400).json({
+          success: false,
+          message: 'A channel must be selected for group-scoped announcements.',
+        });
       }
-      targetGroup = await Group.findOne({ _id: groupId, workspaceId: req.user.workspaceId, isDeleted: false });
+      targetGroup = await Group.findOne({
+        _id: groupId,
+        workspaceId: req.user.workspaceId,
+        isDeleted: false,
+      });
       if (!targetGroup) {
         return res.status(404).json({ success: false, message: 'Selected channel not found.' });
       }
@@ -106,7 +122,10 @@ const createAnnouncement = async (req, res) => {
     // Determine notification audience
     let audienceUserIds = [];
     if (finalScope === 'company') {
-      const allActive = await User.find({ workspaceId: req.user.workspaceId, status: 'active' }).select('_id');
+      const allActive = await User.find({
+        workspaceId: req.user.workspaceId,
+        status: 'active',
+      }).select('_id');
       audienceUserIds = allActive.map((u) => u._id);
     } else if (targetGroup) {
       audienceUserIds = targetGroup.memberIds || [];
@@ -143,7 +162,11 @@ const updateAnnouncement = async (req, res) => {
     const { id } = req.params;
     const { title, body, scope, groupId, priority, pinned } = req.body;
 
-    const announcement = await Announcement.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const announcement = await Announcement.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!announcement) {
       return res.status(404).json({ success: false, message: 'Announcement not found' });
     }
@@ -199,7 +222,11 @@ const updateAnnouncement = async (req, res) => {
 const togglePin = async (req, res) => {
   try {
     const { id } = req.params;
-    const announcement = await Announcement.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const announcement = await Announcement.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
 
     if (!announcement) {
       return res.status(404).json({ success: false, message: 'Announcement not found' });
@@ -235,7 +262,11 @@ const togglePin = async (req, res) => {
 const deleteAnnouncement = async (req, res) => {
   try {
     const { id } = req.params;
-    const announcement = await Announcement.findOne({ _id: id, workspaceId: req.user.workspaceId, isDeleted: false });
+    const announcement = await Announcement.findOne({
+      _id: id,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
 
     if (!announcement) {
       return res.status(404).json({ success: false, message: 'Announcement not found' });
@@ -255,8 +286,12 @@ const deleteAnnouncement = async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`workspace:${req.user.workspaceId}`).emit('announcement:deleted', { announcementId: id });
-      io.to(`workspace_${req.user.workspaceId}`).emit('announcement:deleted', { announcementId: id });
+      io.to(`workspace:${req.user.workspaceId}`).emit('announcement:deleted', {
+        announcementId: id,
+      });
+      io.to(`workspace_${req.user.workspaceId}`).emit('announcement:deleted', {
+        announcementId: id,
+      });
     }
 
     return res.status(200).json({

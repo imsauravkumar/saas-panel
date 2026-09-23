@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { initSocket, disconnectSocket } from '../services/socket';
 
@@ -28,6 +28,8 @@ export const AuthProvider = ({ children }) => {
         // Only clear the session if the token is explicitly invalid or expired (401)
         if (err.response?.status === 401) {
           localStorage.removeItem('nexus_token');
+          localStorage.removeItem('nexus_current_tab');
+          localStorage.removeItem('nexus_active_group_id');
           setUser(null);
         }
       } finally {
@@ -49,6 +51,9 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (data.success) {
+      localStorage.removeItem('nexus_current_tab');
+      localStorage.removeItem('nexus_active_group_id');
+      window.location.hash = 'dashboard';
       localStorage.setItem('nexus_token', data.token);
       setUser(data.user);
       initSocket(data.user.id);
@@ -60,6 +65,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
     if (data.success) {
+      localStorage.removeItem('nexus_current_tab');
+      localStorage.removeItem('nexus_active_group_id');
+      window.location.hash = 'dashboard';
       localStorage.setItem('nexus_token', data.token);
       setUser(data.user);
       initSocket(data.user.id);
@@ -67,9 +75,12 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // Logout
+  // Logout (clean all session state)
   const logout = () => {
     localStorage.removeItem('nexus_token');
+    localStorage.removeItem('nexus_current_tab');
+    localStorage.removeItem('nexus_active_group_id');
+    window.location.hash = '';
     disconnectSocket();
     setUser(null);
   };

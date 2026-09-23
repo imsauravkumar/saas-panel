@@ -3,7 +3,11 @@ const Group = require('../models/Group');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const ActivityLog = require('../models/ActivityLog');
-const { createEventWithMeet, updateEvent, deleteOrCancelEvent } = require('../services/googleCalendarService');
+const {
+  createEventWithMeet,
+  updateEvent,
+  deleteOrCancelEvent,
+} = require('../services/googleCalendarService');
 const { sendMeetingEmail } = require('../services/emailService');
 const { notify } = require('../services/notify');
 
@@ -16,10 +20,7 @@ const getMeetings = async (req, res) => {
     let query = { workspaceId: req.user.workspaceId };
 
     if (req.user.role !== 'admin') {
-      query.$or = [
-        { attendeeIds: req.user._id },
-        { groupId: { $in: req.user.groupIds || [] } },
-      ];
+      query.$or = [{ attendeeIds: req.user._id }, { groupId: { $in: req.user.groupIds || [] } }];
     }
 
     if (groupId) {
@@ -70,10 +71,17 @@ const getMeetingById = async (req, res) => {
 
     // Access authorization check
     if (req.user.role !== 'admin') {
-      const isAttendee = meeting.attendeeIds?.some((a) => a._id.toString() === req.user._id.toString());
-      const isGroupMember = meeting.groupId?.memberIds?.some((m) => m.toString() === req.user._id.toString());
+      const isAttendee = meeting.attendeeIds?.some(
+        (a) => a._id.toString() === req.user._id.toString()
+      );
+      const isGroupMember = meeting.groupId?.memberIds?.some(
+        (m) => m.toString() === req.user._id.toString()
+      );
       if (!isAttendee && !isGroupMember) {
-        return res.status(403).json({ success: false, message: 'Access denied: You are not an attendee of this meeting' });
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: You are not an attendee of this meeting',
+        });
       }
     }
 
@@ -106,10 +114,16 @@ const createMeeting = async (req, res) => {
     } = req.body;
 
     if (!title || !groupId) {
-      return res.status(400).json({ success: false, message: 'Title and target channel are required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Title and target channel are required.' });
     }
 
-    const group = await Group.findOne({ _id: groupId, workspaceId: req.user.workspaceId, isDeleted: false });
+    const group = await Group.findOne({
+      _id: groupId,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!group) {
       return res.status(404).json({ success: false, message: 'Selected group channel not found' });
     }
@@ -117,13 +131,17 @@ const createMeeting = async (req, res) => {
     // Membership check for non-admin users
     const isMember = group.memberIds.some((id) => id.toString() === req.user._id.toString());
     if (req.user.role !== 'admin' && !isMember) {
-      return res.status(403).json({ success: false, message: 'You can only schedule meetings in channels you belong to.' });
+      return res.status(403).json({
+        success: false,
+        message: 'You can only schedule meetings in channels you belong to.',
+      });
     }
 
     // Resolve attendee IDs (defaults to group members if not specified)
-    const finalAttendeeIds = attendeeIds && Array.isArray(attendeeIds) && attendeeIds.length > 0
-      ? attendeeIds
-      : group.memberIds;
+    const finalAttendeeIds =
+      attendeeIds && Array.isArray(attendeeIds) && attendeeIds.length > 0
+        ? attendeeIds
+        : group.memberIds;
 
     const attendeeUsers = await User.find({
       _id: { $in: finalAttendeeIds },
@@ -247,12 +265,16 @@ const createMeeting = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: isInstant ? 'Instant Google Meet call started!' : 'Meeting scheduled and Google Meet link generated!',
+      message: isInstant
+        ? 'Instant Google Meet call started!'
+        : 'Meeting scheduled and Google Meet link generated!',
       meeting: populatedMeeting,
     });
   } catch (error) {
     console.error('[Create Meeting Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to create meeting: ' + error.message });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to create meeting: ' + error.message });
   }
 };
 
@@ -270,7 +292,10 @@ const updateMeeting = async (req, res) => {
     }
 
     if (req.user.role !== 'admin' && meeting.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Access denied: You can only edit meetings created by you.' });
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: You can only edit meetings created by you.',
+      });
     }
 
     if (title) meeting.title = title.trim();
@@ -356,7 +381,10 @@ const cancelMeeting = async (req, res) => {
     }
 
     if (req.user.role !== 'admin' && meeting.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Access denied: You can only cancel meetings created by you.' });
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: You can only cancel meetings created by you.',
+      });
     }
 
     meeting.status = 'cancelled';
@@ -451,7 +479,10 @@ const deleteMeeting = async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`group:${meeting.groupId}`).emit('meeting:cancelled', { meetingId: id, title: meeting.title });
+      io.to(`group:${meeting.groupId}`).emit('meeting:cancelled', {
+        meetingId: id,
+        title: meeting.title,
+      });
     }
 
     return res.status(200).json({

@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  CheckSquare,
   Calendar,
-  Clock,
-  MessageCircle,
   AlertTriangle,
   Columns,
   List,
@@ -16,7 +13,6 @@ import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
-import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
 import TaskDetailModal from '../../components/TaskDetailModal';
 
@@ -26,7 +22,6 @@ const UserTasks = () => {
   const { socket } = useSocket();
 
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -34,7 +29,6 @@ const UserTasks = () => {
 
   const fetchTasks = useCallback(async () => {
     try {
-      setLoading(true);
       const params = {};
       if (selectedPriority) params.priority = selectedPriority;
 
@@ -43,7 +37,7 @@ const UserTasks = () => {
       if (data.success) {
         setTasks(data.tasks);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load tasks', 'error');
     } finally {
       setLoading(false);
@@ -61,9 +55,16 @@ const UserTasks = () => {
     const handleTaskNew = () => fetchTasks();
     const handleTaskUpdated = (updatedTask) => {
       setTasks((prev) =>
-        prev.map((t) => (t._id === updatedTask._id || t._id === updatedTask.task?._id ? updatedTask.task || updatedTask : t))
+        prev.map((t) =>
+          t._id === updatedTask._id || t._id === updatedTask.task?._id
+            ? updatedTask.task || updatedTask
+            : t
+        )
       );
-      if (activeTaskDetail && (activeTaskDetail._id === updatedTask._id || activeTaskDetail._id === updatedTask.task?._id)) {
+      if (
+        activeTaskDetail &&
+        (activeTaskDetail._id === updatedTask._id || activeTaskDetail._id === updatedTask.task?._id)
+      ) {
         setActiveTaskDetail(updatedTask.task || updatedTask);
       }
     };
@@ -94,9 +95,7 @@ const UserTasks = () => {
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       // Optimistic local update
-      setTasks((prev) =>
-        prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
-      );
+      setTasks((prev) => prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)));
 
       const { data } = await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
       if (data.success) {
@@ -106,7 +105,7 @@ const UserTasks = () => {
         }
         fetchTasks();
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to update task status', 'error');
       fetchTasks();
     }
@@ -120,7 +119,9 @@ const UserTasks = () => {
   };
 
   const now = new Date();
-  const overdueTasksCount = tasks.filter((t) => t.status !== 'completed' && new Date(t.deadline) < now).length;
+  const overdueTasksCount = tasks.filter(
+    (t) => t.status !== 'completed' && new Date(t.deadline) < now
+  ).length;
 
   const filteredTasks = tasks.filter((t) => {
     const matchesSearch =
@@ -198,7 +199,8 @@ const UserTasks = () => {
         >
           <AlertTriangle size={18} />
           <span>
-            You have {overdueTasksCount} overdue {overdueTasksCount === 1 ? 'task' : 'tasks'} requiring attention.
+            You have {overdueTasksCount} overdue {overdueTasksCount === 1 ? 'task' : 'tasks'}{' '}
+            requiring attention.
           </span>
         </div>
       )}
@@ -221,7 +223,9 @@ const UserTasks = () => {
         >
           <CheckCircle2 size={18} />
           <span>
-            🎉 Great work! You completed {completedTasks.length} {completedTasks.length === 1 ? 'task' : 'tasks'} in this workspace. Keep up the momentum!
+            🎉 Great work! You completed {completedTasks.length}{' '}
+            {completedTasks.length === 1 ? 'task' : 'tasks'} in this workspace. Keep up the
+            momentum!
           </span>
         </div>
       )}
@@ -240,7 +244,10 @@ const UserTasks = () => {
           border: '1px solid var(--color-border)',
         }}
       >
-        <div className="search-input-box" style={{ flex: '1 1 200px', maxWidth: '320px', minWidth: '160px' }}>
+        <div
+          className="search-input-box"
+          style={{ flex: '1 1 200px', maxWidth: '320px', minWidth: '160px' }}
+        >
           <Search size={15} className="search-icon" />
           <input
             type="text"
@@ -271,14 +278,28 @@ const UserTasks = () => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#94A3B8' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#94A3B8',
+                  }}
+                />
                 <span>To Do</span>
               </div>
               <Badge variant="neutral">{todoTasks.length}</Badge>
             </div>
 
             {todoTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No tasks to do
               </div>
             ) : (
@@ -293,27 +314,71 @@ const UserTasks = () => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '6px',
+                      }}
+                    >
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 600,
+                          }}
+                        >
                           #{task.groupId?.name}
                         </span>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       {task.title}
                     </div>
 
                     {isOverdue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          color: 'var(--color-danger)',
+                          fontWeight: 700,
+                        }}
+                      >
                         <AlertTriangle size={12} /> OVERDUE
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderTop: '1px solid var(--color-border)',
+                        paddingTop: '8px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11.5px',
+                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
+                        }}
+                      >
                         <Calendar size={12} />
                         <span>{new Date(task.deadline).toLocaleDateString()}</span>
                       </div>
@@ -340,14 +405,28 @@ const UserTasks = () => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F59E0B',
+                  }}
+                />
                 <span>In Progress</span>
               </div>
               <Badge variant="warning">{inProgressTasks.length}</Badge>
             </div>
 
             {inProgressTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No tasks in progress
               </div>
             ) : (
@@ -362,27 +441,71 @@ const UserTasks = () => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '6px',
+                      }}
+                    >
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
-                        <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 600,
+                          }}
+                        >
                           #{task.groupId?.name}
                         </span>
                       )}
                     </div>
 
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
                       {task.title}
                     </div>
 
                     {isOverdue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          color: 'var(--color-danger)',
+                          fontWeight: 700,
+                        }}
+                      >
                         <AlertTriangle size={12} /> OVERDUE
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderTop: '1px solid var(--color-border)',
+                        paddingTop: '8px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11.5px',
+                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
+                        }}
+                      >
                         <Calendar size={12} />
                         <span>{new Date(task.deadline).toLocaleDateString()}</span>
                       </div>
@@ -405,7 +528,12 @@ const UserTasks = () => {
                       <button
                         type="button"
                         className="btn btn-primary btn-sm"
-                        style={{ flex: 1, fontSize: '12px', backgroundColor: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+                        style={{
+                          flex: 1,
+                          fontSize: '12px',
+                          backgroundColor: 'var(--color-success)',
+                          borderColor: 'var(--color-success)',
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'completed');
@@ -424,14 +552,28 @@ const UserTasks = () => {
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#10B981',
+                  }}
+                />
                 <span>Completed</span>
               </div>
               <Badge variant="success">{completedTasks.length}</Badge>
             </div>
 
             {completedTasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
                 No completed deliverables
               </div>
             ) : (
@@ -445,27 +587,64 @@ const UserTasks = () => {
                   }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: '6px',
+                    }}
+                  >
                     <Badge variant="success">DONE</Badge>
                     {task.groupId && (
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--color-text-secondary)',
+                          fontWeight: 600,
+                        }}
+                      >
                         #{task.groupId?.name}
                       </span>
                     )}
                   </div>
 
-                  <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)', textDecoration: 'line-through' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: 'var(--color-text-primary)',
+                      textDecoration: 'line-through',
+                    }}
+                  >
                     {task.title}
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}>Completed</span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderTop: '1px solid var(--color-border)',
+                      paddingTop: '8px',
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}
+                    >
+                      Completed
+                    </span>
                   </div>
 
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
-                    style={{ width: '100%', fontSize: '11.5px', marginTop: '2px', color: 'var(--color-text-muted)' }}
+                    style={{
+                      width: '100%',
+                      fontSize: '11.5px',
+                      marginTop: '2px',
+                      color: 'var(--color-text-muted)',
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleStatusChange(task._id, 'inprogress');
@@ -495,7 +674,14 @@ const UserTasks = () => {
             <tbody>
               {filteredTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>
+                  <td
+                    colSpan={6}
+                    style={{
+                      textAlign: 'center',
+                      padding: '32px',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
                     No tasks assigned to you right now.
                   </td>
                 </tr>
@@ -511,7 +697,13 @@ const UserTasks = () => {
                       <td>
                         <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{task.title}</div>
                         {isOverdue && (
-                          <span style={{ fontSize: '11px', color: 'var(--color-danger)', fontWeight: 700 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-danger)',
+                              fontWeight: 700,
+                            }}
+                          >
                             ⚠️ Overdue
                           </span>
                         )}
@@ -519,7 +711,12 @@ const UserTasks = () => {
                       <td>{getPriorityBadge(task.priority)}</td>
                       <td>{task.groupId ? `#${task.groupId?.name}` : 'Workspace'}</td>
                       <td>
-                        <span style={{ color: isOverdue ? 'var(--color-danger)' : 'inherit', fontWeight: isOverdue ? 700 : 400 }}>
+                        <span
+                          style={{
+                            color: isOverdue ? 'var(--color-danger)' : 'inherit',
+                            fontWeight: isOverdue ? 700 : 400,
+                          }}
+                        >
                           {new Date(task.deadline).toLocaleDateString()}
                         </span>
                       </td>
@@ -529,8 +726,8 @@ const UserTasks = () => {
                             task.status === 'completed'
                               ? 'success'
                               : task.status === 'inprogress'
-                              ? 'warning'
-                              : 'neutral'
+                                ? 'warning'
+                                : 'neutral'
                           }
                         >
                           {task.status.toUpperCase()}
@@ -550,7 +747,10 @@ const UserTasks = () => {
                         ) : task.status === 'inprogress' ? (
                           <button
                             className="btn btn-primary btn-sm"
-                            style={{ backgroundColor: 'var(--color-success)', borderColor: 'var(--color-success)' }}
+                            style={{
+                              backgroundColor: 'var(--color-success)',
+                              borderColor: 'var(--color-success)',
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStatusChange(task._id, 'completed');
@@ -559,7 +759,15 @@ const UserTasks = () => {
                             Complete ✓
                           </button>
                         ) : (
-                          <span style={{ fontSize: '12px', color: 'var(--color-success)', fontWeight: 600 }}>Done</span>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--color-success)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Done
+                          </span>
                         )}
                       </td>
                     </tr>

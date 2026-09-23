@@ -3,7 +3,6 @@ const { admin, getFirebaseApp } = require('../config/firebase');
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
-const ActivityLog = require('../models/ActivityLog');
 const { canPostInGroup } = require('../utils/canPostInGroup');
 
 // Multi-tenant isolation: workspaceId -> Map<userId, Set<socketId>>
@@ -32,7 +31,9 @@ const setupSocket = (io) => {
   // Socket Authentication Middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+      const token =
+        socket.handshake.auth?.token ||
+        socket.handshake.headers?.authorization?.replace('Bearer ', '');
       if (!token) {
         return next();
       }
@@ -44,9 +45,12 @@ const setupSocket = (io) => {
         try {
           const decodedFirebase = await admin.auth().verifyIdToken(token);
           user = await User.findOne({
-            $or: [{ firebaseUid: decodedFirebase.uid }, { email: decodedFirebase.email?.toLowerCase() }]
+            $or: [
+              { firebaseUid: decodedFirebase.uid },
+              { email: decodedFirebase.email?.toLowerCase() },
+            ],
           });
-        } catch (fbErr) {
+        } catch (_fbErr) {
           // fallback to JWT
         }
       }
@@ -55,7 +59,7 @@ const setupSocket = (io) => {
         try {
           const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
           user = await User.findById(decodedJwt.id);
-        } catch (jwtErr) {
+        } catch (_jwtErr) {
           // Token invalid
         }
       }
@@ -88,7 +92,7 @@ const setupSocket = (io) => {
             socket.data.user = user;
             socket.workspaceId = user.workspaceId ? user.workspaceId.toString() : null;
           }
-        } catch (e) {
+        } catch (_e) {
           console.warn('[Register User Lookup Error]:', e.message);
         }
       }
@@ -169,7 +173,9 @@ const setupSocket = (io) => {
           if (typeof ack === 'function') {
             ack({ error: 'Rate limit exceeded: Please slow down message sending.' });
           }
-          socket.emit('error', { message: 'Too many messages sent too quickly. Please wait a moment.' });
+          socket.emit('error', {
+            message: 'Too many messages sent too quickly. Please wait a moment.',
+          });
           return;
         }
         messageTimestamps.push(now);
@@ -188,7 +194,8 @@ const setupSocket = (io) => {
           replyTo = null,
         } = payload;
 
-        const user = socket.data.user || (socket.userId ? await User.findById(socket.userId) : null);
+        const user =
+          socket.data.user || (socket.userId ? await User.findById(socket.userId) : null);
 
         if (!user) {
           if (typeof ack === 'function') ack({ error: 'Unauthorized: User not authenticated' });
@@ -205,7 +212,11 @@ const setupSocket = (io) => {
         let recipient = null;
 
         if (conversationType === 'group') {
-          group = await Group.findOne({ _id: groupId, workspaceId: user.workspaceId, isDeleted: false });
+          group = await Group.findOne({
+            _id: groupId,
+            workspaceId: user.workspaceId,
+            isDeleted: false,
+          });
           if (!group) {
             if (typeof ack === 'function') ack({ error: 'Group channel not found or deleted' });
             return;
@@ -218,12 +229,19 @@ const setupSocket = (io) => {
           }
 
           if (!canPostInGroup(user, group)) {
-            if (typeof ack === 'function') ack({ error: 'This channel is restricted to Administrator announcements only.' });
-            socket.emit('error', { message: 'Only Administrators are authorized to post in this channel.' });
+            if (typeof ack === 'function')
+              ack({ error: 'This channel is restricted to Administrator announcements only.' });
+            socket.emit('error', {
+              message: 'Only Administrators are authorized to post in this channel.',
+            });
             return;
           }
         } else {
-          recipient = await User.findOne({ _id: recipientId, workspaceId: user.workspaceId, status: { $ne: 'disabled' } });
+          recipient = await User.findOne({
+            _id: recipientId,
+            workspaceId: user.workspaceId,
+            status: { $ne: 'disabled' },
+          });
           if (!recipient) {
             if (typeof ack === 'function') ack({ error: 'Recipient user not found' });
             return;
@@ -236,7 +254,8 @@ const setupSocket = (io) => {
         }
 
         if (content && content.length > 5000) {
-          if (typeof ack === 'function') ack({ error: 'Message length exceeds maximum limit of 5000 characters' });
+          if (typeof ack === 'function')
+            ack({ error: 'Message length exceeds maximum limit of 5000 characters' });
           return;
         }
 
@@ -275,7 +294,9 @@ const setupSocket = (io) => {
         else if (type === 'video') preview = '🎥 Video';
         else if (type === 'audio') preview = '🎤 Voice note';
         else if (type === 'document') preview = `📄 ${fileName || 'Document'}`;
-        else preview = content.trim().length > 45 ? `${content.trim().slice(0, 45)}...` : content.trim();
+        else
+          preview =
+            content.trim().length > 45 ? `${content.trim().slice(0, 45)}...` : content.trim();
 
         const responseData = {
           ...populated.toObject(),
@@ -290,8 +311,16 @@ const setupSocket = (io) => {
 
           io.to(`group:${groupId}`).emit('message:new', responseData);
           io.to(`group_${groupId}`).emit('new_message', responseData);
-          io.to(`workspace:${user.workspaceId}`).emit('group:updated', { groupId, lastMessageAt: new Date(), lastMessagePreview: preview });
-          io.to(`workspace_${user.workspaceId}`).emit('group:updated', { groupId, lastMessageAt: new Date(), lastMessagePreview: preview });
+          io.to(`workspace:${user.workspaceId}`).emit('group:updated', {
+            groupId,
+            lastMessageAt: new Date(),
+            lastMessagePreview: preview,
+          });
+          io.to(`workspace_${user.workspaceId}`).emit('group:updated', {
+            groupId,
+            lastMessageAt: new Date(),
+            lastMessagePreview: preview,
+          });
         } else {
           // Direct message emission to recipient and sender
           io.to(`user:${recipient._id}`).emit('message:new', responseData);
@@ -330,8 +359,12 @@ const setupSocket = (io) => {
           isTyping: true,
         });
       } else if (groupId) {
-        socket.to(`group:${groupId}`).emit('typing:update', { groupId, userId, userName, isTyping: true });
-        socket.to(`group_${groupId}`).emit('user_typing', { groupId, userId, userName, isTyping: true });
+        socket
+          .to(`group:${groupId}`)
+          .emit('typing:update', { groupId, userId, userName, isTyping: true });
+        socket
+          .to(`group_${groupId}`)
+          .emit('user_typing', { groupId, userId, userName, isTyping: true });
       }
     });
 
@@ -352,7 +385,8 @@ const setupSocket = (io) => {
     // Real-time Reaction Handler
     socket.on('message:react', async ({ messageId, emoji }, ack) => {
       try {
-        const user = socket.data.user || (socket.userId ? await User.findById(socket.userId) : null);
+        const user =
+          socket.data.user || (socket.userId ? await User.findById(socket.userId) : null);
         if (!user) return;
 
         const message = await Message.findOne({ _id: messageId, workspaceId: user.workspaceId });
@@ -369,7 +403,10 @@ const setupSocket = (io) => {
         }
         await message.save();
 
-        const populated = await Message.findById(message._id).populate('reactions.user', 'name avatar');
+        const populated = await Message.findById(message._id).populate(
+          'reactions.user',
+          'name avatar'
+        );
 
         if (message.conversationType === 'group') {
           io.to(`group:${message.groupId}`).emit('message:reactionUpdated', {
@@ -419,7 +456,7 @@ const setupSocket = (io) => {
             targetId: userId,
           });
         }
-      } catch (e) {
+      } catch (_e) {
         console.error('[Socket Read Receipt Error]:', e);
       }
     });
@@ -442,7 +479,7 @@ const setupSocket = (io) => {
             // Update lastSeenAt in DB
             try {
               await User.findByIdAndUpdate(userId, { lastSeenAt: new Date() });
-            } catch (err) {}
+            } catch (_err) {}
           }
         }
         if (companyUsers.size === 0) {

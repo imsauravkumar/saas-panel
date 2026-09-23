@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Video,
   Calendar,
   Clock,
-  Users,
   Copy,
   Check,
   ExternalLink,
   Edit2,
   XCircle,
-  Shield,
-  MapPin,
-  AlertTriangle,
   CalendarPlus,
-  Zap,
 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
@@ -98,7 +93,9 @@ const MeetingDetailModal = ({
   const isUpcoming = meeting.status === 'upcoming';
   const typeInfo = TYPE_EMOJIS[meeting.meetingType] || TYPE_EMOJIS.general;
 
-  const isCreator = currentUserId && (meeting.createdBy?._id === currentUserId || meeting.createdBy === currentUserId);
+  const isCreator =
+    currentUserId &&
+    (meeting.createdBy?._id === currentUserId || meeting.createdBy === currentUserId);
   const canManage = isAdmin || isCreator;
 
   const handleCopyLink = () => {
@@ -115,7 +112,9 @@ const MeetingDetailModal = ({
     const end = new Date(start.getTime() + (meeting.durationMinutes || 45) * 60 * 1000);
     const formatTime = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
     const title = encodeURIComponent(meeting.title || 'Google Meet');
-    const details = encodeURIComponent(`${meeting.description || ''}\n\nJoin Google Meet: ${meeting.googleMeetLink || ''}`);
+    const details = encodeURIComponent(
+      `${meeting.description || ''}\n\nJoin Google Meet: ${meeting.googleMeetLink || ''}`
+    );
     const location = encodeURIComponent(meeting.googleMeetLink || 'Google Meet');
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatTime(start)}/${formatTime(end)}&details=${details}&location=${location}`;
   };
@@ -124,14 +123,25 @@ const MeetingDetailModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Google Meet Details" maxWidth="640px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {/* Header Summary */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: '14px',
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-              <Badge
-                variant={
-                  isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'
-                }
-              >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '6px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <Badge variant={isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'}>
                 {meeting.status?.toUpperCase()}
               </Badge>
 
@@ -160,7 +170,9 @@ const MeetingDetailModal = ({
                   style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: countdownText.includes('🟢') ? 'var(--color-success)' : 'var(--color-text-secondary)',
+                    color: countdownText.includes('🟢')
+                      ? 'var(--color-success)'
+                      : 'var(--color-text-secondary)',
                     backgroundColor: 'var(--color-surface-alt)',
                     padding: '2px 8px',
                     borderRadius: 'var(--radius-sm)',
@@ -192,8 +204,19 @@ const MeetingDetailModal = ({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <Calendar size={18} color="var(--color-primary)" style={{ marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>DATE</div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text-muted)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                DATE
+              </div>
+              <div
+                style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+              >
                 {meetDate.toLocaleDateString(undefined, {
                   weekday: 'short',
                   month: 'short',
@@ -207,10 +230,22 @@ const MeetingDetailModal = ({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <Clock size={18} color="var(--color-primary)" style={{ marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>TIME & DURATION</div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text-muted)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                TIME & DURATION
+              </div>
+              <div
+                style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+              >
                 {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
-                {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({meeting.durationMinutes} mins)
+                {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (
+                {meeting.durationMinutes} mins)
               </div>
             </div>
           </div>
@@ -222,19 +257,43 @@ const MeetingDetailModal = ({
             style={{
               padding: '16px',
               borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, rgba(234, 67, 53, 0.08), rgba(66, 133, 244, 0.08))',
+              background:
+                'linear-gradient(135deg, rgba(234, 67, 53, 0.08), rgba(66, 133, 244, 0.08))',
               border: '1px solid rgba(66, 133, 244, 0.3)',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px',
+              }}
+            >
               <div>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '15px',
+                    color: 'var(--color-text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
                   <span style={{ fontSize: '18px' }}>🟢</span> Google Meet Video Conference
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '2px',
+                  }}
+                >
                   Click below to launch the video call or add to your Google Calendar
                 </div>
               </div>
@@ -301,7 +360,15 @@ const MeetingDetailModal = ({
         {/* Description / Agenda */}
         {meeting.description && (
           <div>
-            <h4 style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 700 }}>
+            <h4
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-text-muted)',
+                textTransform: 'uppercase',
+                marginBottom: '6px',
+                fontWeight: 700,
+              }}
+            >
               Agenda / Notes
             </h4>
             <div
@@ -323,15 +390,40 @@ const MeetingDetailModal = ({
 
         {/* Organizer & Attendees */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '12px', color: 'var(--color-text-muted)', textTransform: 'uppercase', margin: 0, fontWeight: 700 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+            }}
+          >
+            <h4
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-text-muted)',
+                textTransform: 'uppercase',
+                margin: 0,
+                fontWeight: 700,
+              }}
+            >
               Invited Attendees ({meeting.attendeeIds?.length || 0})
             </h4>
 
             {meeting.createdBy && (
-              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
                 <span>Host:</span>
-                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{meeting.createdBy.name}</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                  {meeting.createdBy.name}
+                </span>
               </div>
             )}
           </div>
@@ -361,10 +453,26 @@ const MeetingDetailModal = ({
               >
                 <Avatar name={att.name} src={att.avatar} size="xs" />
                 <div style={{ overflow: 'hidden' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
                     {att.name}
                   </div>
-                  <div style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div
+                    style={{
+                      fontSize: '10.5px',
+                      color: 'var(--color-text-secondary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
                     {att.post || att.department || 'Member'}
                   </div>
                 </div>

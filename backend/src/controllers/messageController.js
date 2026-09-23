@@ -1,7 +1,6 @@
 const Message = require('../models/Message');
 const Group = require('../models/Group');
 const User = require('../models/User');
-const ActivityLog = require('../models/ActivityLog');
 const { canPostInGroup } = require('../utils/canPostInGroup');
 
 /**
@@ -15,7 +14,11 @@ const getGroupMessages = async (req, res) => {
     const limit = Math.min(rawLimit, 100); // Cap at 100 to prevent large DB dumps
     const before = req.query.before;
 
-    const group = await Group.findOne({ _id: groupId, workspaceId: req.user.workspaceId, isDeleted: false });
+    const group = await Group.findOne({
+      _id: groupId,
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+    });
     if (!group) {
       return res.status(404).json({ success: false, message: 'Group channel not found' });
     }
@@ -23,7 +26,9 @@ const getGroupMessages = async (req, res) => {
     // Verify membership or admin
     const isMember = group.memberIds.some((id) => id.toString() === req.user._id.toString());
     if (req.user.role !== 'admin' && !isMember) {
-      return res.status(403).json({ success: false, message: 'Access denied: You are not a member of this channel.' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Access denied: You are not a member of this channel.' });
     }
 
     const query = {
@@ -57,7 +62,11 @@ const getGroupMessages = async (req, res) => {
     const userCanChat = canPostInGroup(req.user, group);
 
     // Get pinned messages for quick banner
-    const pinnedMessages = await Message.find({ groupId, isPinned: true, deletedFor: { $ne: req.user._id } })
+    const pinnedMessages = await Message.find({
+      groupId,
+      isPinned: true,
+      deletedFor: { $ne: req.user._id },
+    })
       .populate('senderId', 'name avatar')
       .sort({ pinnedAt: -1 })
       .limit(5);
@@ -70,7 +79,7 @@ const getGroupMessages = async (req, res) => {
       canChat: userCanChat,
       pinnedMessages,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Group Messages Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch messages' });
   }
@@ -87,8 +96,11 @@ const getDirectMessages = async (req, res) => {
     const limit = Math.min(rawLimit, 100); // Cap at 100 to prevent large DB dumps
     const before = req.query.before;
 
-    const recipient = await User.findOne({ _id: recipientId, workspaceId: req.user.workspaceId, status: { $ne: 'disabled' } })
-      .select('name email avatar post department role lastSeenAt status');
+    const recipient = await User.findOne({
+      _id: recipientId,
+      workspaceId: req.user.workspaceId,
+      status: { $ne: 'disabled' },
+    }).select('name email avatar post department role lastSeenAt status');
 
     if (!recipient) {
       return res.status(404).json({ success: false, message: 'Teammate not found or inactive' });
@@ -191,7 +203,7 @@ const getDirectMessages = async (req, res) => {
       recipient: recipientObj,
       pinnedMessages,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Direct Messages Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch direct messages' });
   }
@@ -298,7 +310,7 @@ const getDirectConversations = async (req, res) => {
       success: true,
       conversations,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Direct Conversations Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch conversations' });
   }
@@ -325,7 +337,9 @@ const sendMessage = async (req, res) => {
     } = req.body;
 
     if (!content.trim() && !fileUrl) {
-      return res.status(400).json({ success: false, message: 'Message content or attachment is required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Message content or attachment is required.' });
     }
 
     let targetGroup = null;
@@ -335,12 +349,21 @@ const sendMessage = async (req, res) => {
       const gId = groupId || req.params.groupId || req.params.id;
       if (!gId) return res.status(400).json({ success: false, message: 'Channel ID is required.' });
 
-      targetGroup = await Group.findOne({ _id: gId, workspaceId: req.user.workspaceId, isDeleted: false });
-      if (!targetGroup) return res.status(404).json({ success: false, message: 'Channel not found.' });
+      targetGroup = await Group.findOne({
+        _id: gId,
+        workspaceId: req.user.workspaceId,
+        isDeleted: false,
+      });
+      if (!targetGroup)
+        return res.status(404).json({ success: false, message: 'Channel not found.' });
 
-      const isMember = targetGroup.memberIds.some((id) => id.toString() === req.user._id.toString());
+      const isMember = targetGroup.memberIds.some(
+        (id) => id.toString() === req.user._id.toString()
+      );
       if (req.user.role !== 'admin' && !isMember) {
-        return res.status(403).json({ success: false, message: 'You are not a member of this channel.' });
+        return res
+          .status(403)
+          .json({ success: false, message: 'You are not a member of this channel.' });
       }
 
       if (!canPostInGroup(req.user, targetGroup)) {
@@ -351,10 +374,16 @@ const sendMessage = async (req, res) => {
       }
     } else {
       const rId = recipientId || req.params.recipientId;
-      if (!rId) return res.status(400).json({ success: false, message: 'Recipient ID is required.' });
+      if (!rId)
+        return res.status(400).json({ success: false, message: 'Recipient ID is required.' });
 
-      targetRecipient = await User.findOne({ _id: rId, workspaceId: req.user.workspaceId, status: { $ne: 'disabled' } });
-      if (!targetRecipient) return res.status(404).json({ success: false, message: 'Recipient not found.' });
+      targetRecipient = await User.findOne({
+        _id: rId,
+        workspaceId: req.user.workspaceId,
+        status: { $ne: 'disabled' },
+      });
+      if (!targetRecipient)
+        return res.status(404).json({ success: false, message: 'Recipient not found.' });
     }
 
     const newMessage = await Message.create({
@@ -391,7 +420,8 @@ const sendMessage = async (req, res) => {
     else if (type === 'video') preview = '🎥 Video';
     else if (type === 'audio') preview = '🎤 Voice note';
     else if (type === 'document') preview = `📄 ${fileName || 'Document'}`;
-    else preview = content.trim().length > 45 ? `${content.trim().slice(0, 45)}...` : content.trim();
+    else
+      preview = content.trim().length > 45 ? `${content.trim().slice(0, 45)}...` : content.trim();
 
     const responseData = {
       ...populated.toObject(),
@@ -433,9 +463,11 @@ const sendMessage = async (req, res) => {
       success: true,
       message: responseData,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Send Message Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to send message: ' + error.message });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to send message: ' + error.message });
   }
 };
 
@@ -458,7 +490,9 @@ const editMessage = async (req, res) => {
     }
 
     if (message.senderId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'You can only edit your own messages.' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'You can only edit your own messages.' });
     }
 
     if (message.isDeletedForEveryone) {
@@ -493,7 +527,7 @@ const editMessage = async (req, res) => {
       success: true,
       message: populated,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Edit Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to edit message' });
   }
@@ -560,7 +594,7 @@ const toggleReaction = async (req, res) => {
       success: true,
       reactions: populated.reactions,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Reaction Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update reaction' });
   }
@@ -579,7 +613,9 @@ const togglePinMessage = async (req, res) => {
     }
 
     if (message.conversationType === 'group' && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Only channel administrators can pin messages.' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Only channel administrators can pin messages.' });
     }
 
     message.isPinned = !message.isPinned;
@@ -605,7 +641,7 @@ const togglePinMessage = async (req, res) => {
       success: true,
       message: populated,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Pin Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to pin/unpin message' });
   }
@@ -638,7 +674,7 @@ const toggleStarMessage = async (req, res) => {
       isStarred,
       message: isStarred ? 'Message saved to starred list' : 'Message removed from starred',
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Star Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to star message' });
   }
@@ -674,7 +710,9 @@ const deleteMessage = async (req, res) => {
     // Delete for everyone: verify author or admin
     const isOwner = message.senderId.toString() === req.user._id.toString();
     if (req.user.role !== 'admin' && !isOwner) {
-      return res.status(403).json({ success: false, message: 'Permission denied: Cannot delete for everyone.' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Permission denied: Cannot delete for everyone.' });
     }
 
     message.isDeletedForEveryone = true;
@@ -718,7 +756,7 @@ const deleteMessage = async (req, res) => {
       messageId: message._id,
       mode: 'everyone',
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Delete Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete message' });
   }
@@ -734,7 +772,9 @@ const forwardMessage = async (req, res) => {
     const { targetType = 'group', targetId } = req.body;
 
     if (!targetId) {
-      return res.status(400).json({ success: false, message: 'Target channel or user ID is required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Target channel or user ID is required.' });
     }
 
     const originalMsg = await Message.findOne({ _id: id, workspaceId: req.user.workspaceId });
@@ -757,7 +797,7 @@ const forwardMessage = async (req, res) => {
     };
 
     return sendMessage(req, res);
-  } catch (error) {
+  } catch (_error) {
     console.error('[Forward Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to forward message' });
   }
@@ -798,8 +838,12 @@ const markAsRead = async (req, res) => {
     }
 
     return res.status(200).json({ success: true });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to mark messages as read' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to mark messages as read',
+      message: 'Failed to mark messages as read',
+    });
   }
 };
 
@@ -842,7 +886,7 @@ const getSharedMedia = async (req, res) => {
       success: true,
       media: items,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Shared Media Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch shared media' });
   }
@@ -881,7 +925,7 @@ const uploadAttachment = async (req, res) => {
       fileMimeType: req.file.mimetype,
       type,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Upload Error]:', error);
     return res.status(500).json({ success: false, message: 'File upload failed' });
   }

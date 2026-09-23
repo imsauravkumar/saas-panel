@@ -96,14 +96,16 @@ app.use(
 );
 
 // Response Compression (gzip) — reduces payload sizes by ~70%
-app.use(compression({
-  level: 6,
-  threshold: 1024, // Only compress responses > 1KB
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) return false;
-    return compression.filter(req, res);
-  },
-}));
+app.use(
+  compression({
+    level: 6,
+    threshold: 1024, // Only compress responses > 1KB
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+  })
+);
 
 // Payload Parsers
 app.use(express.json({ limit: '10mb' }));
@@ -150,23 +152,35 @@ app.get('/', (req, res) => {
   res.send('SAAS Nexus Backend API is running securely.');
 });
 
-// 404 Handler
+// 404 Resource Handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Resource endpoint not found' });
+  res.status(404).json({
+    success: false,
+    error: 'Resource endpoint not found',
+    message: 'Resource endpoint not found',
+  });
 });
 
-// Centralized Error handling middleware (masks stack traces in production)
-app.use((err, req, res, next) => {
-  console.error('[Unhandled Error]:', err.message);
+// Centralized Error Handling Middleware (Masks internal stack traces in production)
+app.use((err, req, res, _next) => {
+  console.error('[Unhandled Server Error]:', err.message);
   const isProd = process.env.NODE_ENV === 'production';
+  const humanMessage =
+    isProd && (!err.status || err.status === 500)
+      ? 'Internal Server Error'
+      : err.message || 'Internal Server Error';
+
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal Server Error',
+    error: humanMessage,
+    message: humanMessage,
     ...(isProd ? {} : { stack: err.stack }),
   });
 });
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`[SAAS Nexus Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(
+    `[SAAS Nexus Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`
+  );
 });

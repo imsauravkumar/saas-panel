@@ -11,7 +11,10 @@ const Announcement = require('../models/Announcement');
 const getWorkspaceStats = async (req, res) => {
   try {
     const workspaceId = req.user.workspaceId;
-    const workspace = await Workspace.findById(workspaceId).populate('ownerId', 'name email avatar');
+    const workspace = await Workspace.findById(workspaceId).populate(
+      'ownerId',
+      'name email avatar'
+    );
 
     const totalUsers = await User.countDocuments({ workspaceId });
     const activeUsers = await User.countDocuments({ workspaceId, status: 'active' });
@@ -36,8 +39,12 @@ const getWorkspaceStats = async (req, res) => {
         totalAnnouncements,
       },
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch workspace statistics' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch workspace statistics',
+      message: 'Failed to fetch workspace statistics',
+    });
   }
 };
 
@@ -50,7 +57,11 @@ const updateWorkspace = async (req, res) => {
     const workspace = await Workspace.findById(req.user.workspaceId);
 
     if (!workspace) {
-      return res.status(404).json({ success: false, message: 'Workspace not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'Workspace not found',
+        message: 'Workspace not found',
+      });
     }
 
     if (name) workspace.name = name.trim();
@@ -64,8 +75,12 @@ const updateWorkspace = async (req, res) => {
       message: 'Workspace settings updated successfully',
       workspace,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to update workspace settings' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update workspace settings',
+      message: 'Failed to update workspace settings',
+    });
   }
 };
 

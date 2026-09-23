@@ -34,7 +34,9 @@ describe('Integration Test: Groups & Permissions Suite', () => {
 
   test('Group is created with bidirectional membership', async () => {
     expect(testGroup.memberIds.length).toBe(2);
-    expect(testGroup.memberIds.some((id) => id.toString() === standardUser._id.toString())).toBe(true);
+    expect(testGroup.memberIds.some((id) => id.toString() === standardUser._id.toString())).toBe(
+      true
+    );
   });
 
   test('Group chat permission can be toggled to adminOnly', async () => {
@@ -51,6 +53,8 @@ describe('Integration Test: Groups & Permissions Suite', () => {
     });
 
     const refreshed = await Group.findById(testGroup._id);
-    expect(refreshed.memberIds.some((id) => id.toString() === standardUser._id.toString())).toBe(false);
+    expect(refreshed.memberIds.some((id) => id.toString() === standardUser._id.toString())).toBe(
+      false
+    );
   });
 });

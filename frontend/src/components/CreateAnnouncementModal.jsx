@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Megaphone, Pin, Users, Globe, AlertCircle, Loader2 } from 'lucide-react';
 import Modal from './Modal';
-import Badge from './Badge';
 
 const CreateAnnouncementModal = ({
   isOpen,
@@ -82,7 +81,10 @@ const CreateAnnouncementModal = ({
       title={isEdit ? 'Edit Announcement' : 'Publish Workspace Announcement'}
       maxWidth="580px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
         {error && (
           <div
             style={{
@@ -132,7 +134,10 @@ const CreateAnnouncementModal = ({
                 gap: '10px',
                 padding: '12px 14px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: formData.scope === 'company' ? 'var(--color-primary-soft)' : 'var(--color-surface-alt)',
+                backgroundColor:
+                  formData.scope === 'company'
+                    ? 'var(--color-primary-soft)'
+                    : 'var(--color-surface-alt)',
                 border: `1px solid ${formData.scope === 'company' ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 cursor: 'pointer',
               }}
@@ -140,7 +145,9 @@ const CreateAnnouncementModal = ({
               <Globe size={18} color="var(--color-primary)" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 600 }}>Company-wide</div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>All workspace users</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                  All workspace users
+                </div>
               </div>
             </label>
 
@@ -152,7 +159,10 @@ const CreateAnnouncementModal = ({
                 gap: '10px',
                 padding: '12px 14px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: formData.scope === 'group' ? 'var(--color-primary-soft)' : 'var(--color-surface-alt)',
+                backgroundColor:
+                  formData.scope === 'group'
+                    ? 'var(--color-primary-soft)'
+                    : 'var(--color-surface-alt)',
                 border: `1px solid ${formData.scope === 'group' ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 cursor: 'pointer',
               }}
@@ -160,7 +170,9 @@ const CreateAnnouncementModal = ({
               <Users size={18} color="var(--color-accent)" />
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 600 }}>Specific Channel</div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Channel members only</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                  Channel members only
+                </div>
               </div>
             </label>
           </div>
@@ -235,7 +247,15 @@ const CreateAnnouncementModal = ({
                 onChange={(e) => setFormData({ ...formData, pinned: e.target.checked })}
                 style={{ width: '16px', height: '16px', cursor: 'pointer' }}
               />
-              <span style={{ fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
                 <Pin size={14} color="var(--color-warning)" /> Pin Announcement
               </span>
             </label>
@@ -256,7 +276,12 @@ const CreateAnnouncementModal = ({
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ minWidth: '160px' }}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+            style={{ minWidth: '160px' }}
+          >
             {loading ? (
               <>
                 <Loader2 size={16} className="spin-animation" />

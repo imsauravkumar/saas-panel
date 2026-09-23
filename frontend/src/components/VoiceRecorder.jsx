@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Trash2, Send, Pause, Play, Square, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Trash2, Send, Pause, Play, Square, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 
 const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
   const { addToast } = useNotification();
   const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
@@ -33,7 +32,7 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
-      } catch (e) {}
+      } catch (_e) {}
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -54,8 +53,8 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
       const mimeType = MediaRecorder.isTypeSupported('audio/webm')
         ? 'audio/webm'
         : MediaRecorder.isTypeSupported('audio/ogg')
-        ? 'audio/ogg'
-        : 'audio/mp4';
+          ? 'audio/ogg'
+          : 'audio/mp4';
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
@@ -124,8 +123,14 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
 
     try {
       setIsUploading(true);
-      const ext = finalBlob.type.includes('ogg') ? 'ogg' : finalBlob.type.includes('mp4') ? 'm4a' : 'webm';
-      const file = new File([finalBlob], `voice_note_${Date.now()}.${ext}`, { type: finalBlob.type });
+      const ext = finalBlob.type.includes('ogg')
+        ? 'ogg'
+        : finalBlob.type.includes('mp4')
+          ? 'm4a'
+          : 'webm';
+      const file = new File([finalBlob], `voice_note_${Date.now()}.${ext}`, {
+        type: finalBlob.type,
+      });
 
       const formData = new FormData();
       formData.append('file', file);
@@ -201,10 +206,23 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
                 flexShrink: 0,
               }}
             />
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-danger)', fontFamily: 'monospace' }}>
+            <span
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: 'var(--color-danger)',
+                fontFamily: 'monospace',
+              }}
+            >
               {formatTimer(recordingTime)}
             </span>
-            <span style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', marginLeft: '4px' }}>
+            <span
+              style={{
+                fontSize: '12.5px',
+                color: 'var(--color-text-secondary)',
+                marginLeft: '4px',
+              }}
+            >
               Recording voice message...
             </span>
           </>
@@ -216,9 +234,15 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
               className="btn btn-primary btn-icon"
               style={{ width: '30px', height: '30px', padding: 0 }}
             >
-              {isPlayingPreview ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
+              {isPlayingPreview ? (
+                <Pause size={14} />
+              ) : (
+                <Play size={14} style={{ marginLeft: '2px' }} />
+              )}
             </button>
-            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            <span
+              style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
+            >
               Voice Note ({formatTimer(recordingTime)})
             </span>
             {audioUrl && (

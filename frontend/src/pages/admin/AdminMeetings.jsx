@@ -1,21 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Video,
-  Plus,
   Calendar,
   Clock,
   ExternalLink,
   Users,
   Trash2,
-  CheckCircle,
   XCircle,
   Copy,
   Check,
   Search,
-  Filter,
   Eye,
   Edit2,
-  Lock,
   Zap,
 } from 'lucide-react';
 import api from '../../services/api';
@@ -64,7 +60,7 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
       if (data.success) {
         setMeetings(data.meetings);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load meetings schedule', 'error');
     } finally {
       setLoading(false);
@@ -146,7 +142,7 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
             addToast('Meeting deleted from workspace', 'success');
             fetchMeetings();
           }
-        } catch (err) {
+        } catch (_err) {
           addToast('Failed to delete meeting', 'error');
         }
       },
@@ -178,7 +174,8 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
         <div className="page-header-title">
           <h1>Google Meet & Video Syncs</h1>
           <p>
-            Schedule video conferences with auto-generated Google Meet links, attendee sync, and automated channel alerts.
+            Schedule video conferences with auto-generated Google Meet links, attendee sync, and
+            automated channel alerts.
           </p>
         </div>
 
@@ -225,7 +222,8 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
             className={`btn btn-ghost btn-sm ${activeTab === 'upcoming' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'upcoming' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color:
+                activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'upcoming' ? 700 : 500,
             }}
             onClick={() => setActiveTab('upcoming')}
@@ -274,14 +272,38 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
       </div>
 
       {/* Meetings Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '18px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+          gap: '18px',
+        }}
+      >
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}>
+          <div
+            style={{
+              gridColumn: '1 / -1',
+              textAlign: 'center',
+              padding: '48px',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
             Loading meetings calendar...
           </div>
         ) : filteredMeetings.length === 0 ? (
-          <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '56px 24px', color: 'var(--color-text-muted)' }}>
-            <Video size={40} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: '#EA4335' }} />
+          <div
+            className="card"
+            style={{
+              gridColumn: '1 / -1',
+              textAlign: 'center',
+              padding: '56px 24px',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            <Video
+              size={40}
+              style={{ margin: '0 auto 12px auto', opacity: 0.5, color: '#EA4335' }}
+            />
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
               No {activeTab} meetings found
             </div>
@@ -322,19 +344,24 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                   borderLeft: isCancelled
                     ? '4px solid var(--color-danger)'
                     : isUpcoming
-                    ? '4px solid #EA4335'
-                    : '4px solid var(--color-success)',
+                      ? '4px solid #EA4335'
+                      : '4px solid var(--color-success)',
                   transition: 'transform 150ms ease, box-shadow 150ms ease',
                 }}
               >
                 {/* Card Top Meta */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <Badge
-                      variant={
-                        isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'
-                      }
-                    >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                  }}
+                >
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}
+                  >
+                    <Badge variant={isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'}>
                       {m.status.toUpperCase()}
                     </Badge>
 
@@ -367,7 +394,11 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
-                    style={{ padding: '2px 6px', fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                    style={{
+                      padding: '2px 6px',
+                      fontSize: '11.5px',
+                      color: 'var(--color-text-secondary)',
+                    }}
                     onClick={() => setViewingMeeting(m)}
                     title="View Full Details"
                   >
@@ -431,13 +462,21 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Clock size={14} color="var(--color-primary)" />
                     <span>
-                      {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({m.durationMinutes} mins)
+                      {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (
+                      {m.durationMinutes} mins)
                     </span>
                   </div>
                 </div>
 
                 {/* Attendees Avatar Stack */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Users size={14} color="var(--color-text-muted)" />
                     <span style={{ color: 'var(--color-text-secondary)' }}>
@@ -519,11 +558,17 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                         onClick={() => handleCopyLink(m._id, m.googleMeetLink)}
                         title="Copy Meet Link"
                       >
-                        {isCopied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
+                        {isCopied ? (
+                          <Check size={14} color="var(--color-success)" />
+                        ) : (
+                          <Copy size={14} />
+                        )}
                       </button>
                     </div>
                   ) : (
-                    <span style={{ fontSize: '12.5px', color: 'var(--color-danger)', fontWeight: 600 }}>
+                    <span
+                      style={{ fontSize: '12.5px', color: 'var(--color-danger)', fontWeight: 600 }}
+                    >
                       Meeting Cancelled
                     </span>
                   )}

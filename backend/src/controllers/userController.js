@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Task = require('../models/Task');
@@ -56,7 +55,7 @@ const getUsers = async (req, res) => {
       limit,
       totalPages: Math.ceil(total / limit) || 1,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Users Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch users directory' });
   }
@@ -85,8 +84,16 @@ const getUserById = async (req, res) => {
 
     // Fetch assigned task statistics
     const [openTasksCount, completedTasksCount] = await Promise.all([
-      Task.countDocuments({ workspaceId: req.user.workspaceId, assignedTo: user._id, status: { $ne: 'completed' } }),
-      Task.countDocuments({ workspaceId: req.user.workspaceId, assignedTo: user._id, status: 'completed' }),
+      Task.countDocuments({
+        workspaceId: req.user.workspaceId,
+        assignedTo: user._id,
+        status: { $ne: 'completed' },
+      }),
+      Task.countDocuments({
+        workspaceId: req.user.workspaceId,
+        assignedTo: user._id,
+        status: 'completed',
+      }),
     ]);
 
     // Fetch last 10 activity log actions for this user (actions where this user was target or actor)
@@ -109,7 +116,7 @@ const getUserById = async (req, res) => {
       },
       recentActivity,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get User Detail Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch user details' });
   }
@@ -120,16 +127,33 @@ const getUserById = async (req, res) => {
  */
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, post = 'Team Member', department = 'General', role = 'user', groupIds = [], sendInviteEmail = false } = req.body;
+    const {
+      name,
+      email,
+      password,
+      post = 'Team Member',
+      department = 'General',
+      role = 'user',
+      groupIds = [],
+      sendInviteEmail: _sendInviteEmail = false,
+    } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Full name, email, and temporary password are required.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Full name, email, and temporary password are required.',
+        message: 'Full name, email, and temporary password are required.',
+      });
     }
 
     const emailLower = email.toLowerCase().trim();
     const existingUser = await User.findOne({ email: emailLower });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: 'A user with this email address already exists.' });
+      return res.status(400).json({
+        success: false,
+        error: 'A user with this email address already exists.',
+        message: 'A user with this email address already exists.',
+      });
     }
 
     let firebaseUid = null;
@@ -151,7 +175,7 @@ const createUser = async (req, res) => {
         try {
           const existingFb = await admin.auth().getUserByEmail(emailLower);
           firebaseUid = existingFb.uid;
-        } catch (e) {
+        } catch (_e) {
           // Continue with fallback uid if local dev
         }
       }
@@ -193,7 +217,12 @@ const createUser = async (req, res) => {
       targetType: 'User',
       targetId: newUser._id,
       details: `Admin ${req.user.name} provisioned user ${newUser.name} (${newUser.post || 'Member'})`,
-      metadata: { post: newUser.post, department: newUser.department, role: newUser.role, groupCount: groupIds.length },
+      metadata: {
+        post: newUser.post,
+        department: newUser.department,
+        role: newUser.role,
+        groupCount: groupIds.length,
+      },
       workspaceId: req.user.workspaceId,
     });
 
@@ -215,9 +244,11 @@ const createUser = async (req, res) => {
       },
       temporaryPassword: password,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Create User Error]:', error);
-    return res.status(500).json({ success: false, message: error.message || 'Failed to create user' });
+    return res
+      .status(500)
+      .json({ success: false, message: error.message || 'Failed to create user' });
   }
 };
 
@@ -289,14 +320,17 @@ const updateUser = async (req, res) => {
       workspaceId: req.user.workspaceId,
     });
 
-    const populatedUser = await User.findById(user._id).populate('groupIds', 'name avatar chatPermission');
+    const populatedUser = await User.findById(user._id).populate(
+      'groupIds',
+      'name avatar chatPermission'
+    );
 
     return res.status(200).json({
       success: true,
       message: 'User details updated successfully',
       user: populatedUser,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Update User Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update user' });
   }
@@ -334,8 +368,12 @@ const updateUserPost = async (req, res) => {
       message: 'Role/Post label updated',
       user,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to update user post' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update user post',
+      message: 'Failed to update user post',
+    });
   }
 };
 
@@ -349,11 +387,19 @@ const toggleUserStatus = async (req, res) => {
     const { id } = req.params;
     const user = await User.findOne({ _id: id, workspaceId: req.user.workspaceId });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        message: 'User not found',
+      });
     }
 
     if (user._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({ success: false, message: 'You cannot disable your own administrator account.' });
+      return res.status(400).json({
+        success: false,
+        error: 'You cannot disable your own administrator account.',
+        message: 'You cannot disable your own administrator account.',
+      });
     }
 
     const newStatus = req.body.status || (user.status === 'active' ? 'disabled' : 'active');
@@ -397,8 +443,12 @@ const toggleUserStatus = async (req, res) => {
       message: `User account is now ${newStatus}`,
       status: user.status,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to change user status' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to change user status',
+      message: 'Failed to change user status',
+    });
   }
 };
 
@@ -411,13 +461,17 @@ const adminResetUserPassword = async (req, res) => {
     const { id } = req.params;
     const { tempPassword } = req.body;
 
-    const user = await User.findOne({ _id: id, workspaceId: req.user.workspaceId }).select('+password');
+    const user = await User.findOne({ _id: id, workspaceId: req.user.workspaceId }).select(
+      '+password'
+    );
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-    const newTempPassword = tempPassword || Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const newTempPassword =
+      tempPassword ||
+      Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 
     user.password = newTempPassword;
     user.mustResetPassword = true;
@@ -449,8 +503,12 @@ const adminResetUserPassword = async (req, res) => {
       message: 'Temporary password generated successfully.',
       temporaryPassword: newTempPassword,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to reset user password' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to reset user password',
+      message: 'Failed to reset user password',
+    });
   }
 };
 
@@ -462,18 +520,32 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     if (id === req.user._id.toString()) {
-      return res.status(400).json({ success: false, message: 'You cannot delete yourself.' });
+      return res.status(400).json({
+        success: false,
+        error: 'You cannot delete yourself.',
+        message: 'You cannot delete yourself.',
+      });
     }
 
     const user = await User.findOneAndDelete({ _id: id, workspaceId: req.user.workspaceId });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        message: 'User not found',
+      });
     }
 
     // Clean up references from all groups and tasks
     await Promise.all([
-      Group.updateMany({ workspaceId: req.user.workspaceId, memberIds: id }, { $pull: { memberIds: id } }),
-      Task.updateMany({ workspaceId: req.user.workspaceId, assignedTo: id }, { $pull: { assignedTo: id } }),
+      Group.updateMany(
+        { workspaceId: req.user.workspaceId, memberIds: id },
+        { $pull: { memberIds: id } }
+      ),
+      Task.updateMany(
+        { workspaceId: req.user.workspaceId, assignedTo: id },
+        { $pull: { assignedTo: id } }
+      ),
     ]);
 
     // Delete Firebase Auth user if configured
@@ -507,8 +579,12 @@ const deleteUser = async (req, res) => {
       success: true,
       message: 'User permanently removed from workspace.',
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to delete user' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to delete user',
+      message: 'Failed to delete user',
+    });
   }
 };
 
@@ -521,7 +597,11 @@ const bulkUserAction = async (req, res) => {
     const { userIds = [], action } = req.body;
 
     if (!Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({ success: false, message: 'Please select at least one user.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Please select at least one user.',
+        message: 'Please select at least one user.',
+      });
     }
 
     // Filter out current admin user
@@ -552,8 +632,14 @@ const bulkUserAction = async (req, res) => {
     if (action === 'delete') {
       await Promise.all([
         User.deleteMany({ _id: { $in: targetIds }, workspaceId: req.user.workspaceId }),
-        Group.updateMany({ workspaceId: req.user.workspaceId, memberIds: { $in: targetIds } }, { $pull: { memberIds: { $in: targetIds } } }),
-        Task.updateMany({ workspaceId: req.user.workspaceId, assignedTo: { $in: targetIds } }, { $pull: { assignedTo: { $in: targetIds } } }),
+        Group.updateMany(
+          { workspaceId: req.user.workspaceId, memberIds: { $in: targetIds } },
+          { $pull: { memberIds: { $in: targetIds } } }
+        ),
+        Task.updateMany(
+          { workspaceId: req.user.workspaceId, assignedTo: { $in: targetIds } },
+          { $pull: { assignedTo: { $in: targetIds } } }
+        ),
       ]);
 
       await logActivity({
@@ -572,9 +658,17 @@ const bulkUserAction = async (req, res) => {
       });
     }
 
-    return res.status(400).json({ success: false, message: 'Unsupported bulk action' });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to process bulk user action' });
+    return res.status(400).json({
+      success: false,
+      error: 'Unsupported bulk action',
+      message: 'Unsupported bulk action',
+    });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to process bulk user action',
+      message: 'Failed to process bulk user action',
+    });
   }
 };
 
@@ -587,7 +681,11 @@ const changeMyPassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters.' });
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters.',
+        message: 'New password must be at least 6 characters.',
+      });
     }
 
     const user = await User.findById(req.user._id).select('+password');
@@ -596,7 +694,11 @@ const changeMyPassword = async (req, res) => {
     if (!user.mustResetPassword && !user.mustChangePassword && currentPassword) {
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {
-        return res.status(400).json({ success: false, message: 'Current password does not match.' });
+        return res.status(400).json({
+          success: false,
+          error: 'Current password does not match.',
+          message: 'Current password does not match.',
+        });
       }
     }
 
@@ -628,8 +730,12 @@ const changeMyPassword = async (req, res) => {
       success: true,
       message: 'Password updated successfully.',
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to update password' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update password',
+      message: 'Failed to update password',
+    });
   }
 };
 
@@ -664,15 +770,19 @@ const getMyProfile = async (req, res) => {
             newMeeting: true,
             taskAssigned: true,
             announcement: true,
-          }
+          },
         },
         workspaceId: user.workspaceId?._id || user.workspaceId,
         workspaceName: user.workspaceId?.name || 'SAAS Workspace',
         createdAt: user.createdAt,
-      }
+      },
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch profile',
+      message: 'Failed to fetch profile',
+    });
   }
 };
 
@@ -704,10 +814,14 @@ const updateProfile = async (req, res) => {
         department: user.department,
         avatar: user.avatar,
         phone: user.phone,
-      }
+      },
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to update profile' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update profile',
+      message: 'Failed to update profile',
+    });
   }
 };
 
@@ -754,9 +868,9 @@ const updateMyAvatar = async (req, res) => {
         role: user.role,
         post: user.post,
         avatar: user.avatar,
-      }
+      },
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Update Avatar Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update avatar' });
   }
@@ -775,10 +889,7 @@ const getMyActivity = async (req, res) => {
       Task.countDocuments({ assignedTo: userId, workspaceId, status: 'completed' }),
       Meeting.countDocuments({ attendeeIds: userId, workspaceId, status: 'completed' }),
       Message.countDocuments({ senderId: userId, workspaceId, deletedAt: null }),
-      ActivityLog.find({ actorId: userId, workspaceId })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .lean(),
+      ActivityLog.find({ actorId: userId, workspaceId }).sort({ createdAt: -1 }).limit(10).lean(),
     ]);
 
     return res.status(200).json({
@@ -790,7 +901,7 @@ const getMyActivity = async (req, res) => {
         recentLogs,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get My Activity Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to load personal activity' });
   }
@@ -815,7 +926,7 @@ const updateNotificationPreferences = async (req, res) => {
           newMeeting: true,
           taskAssigned: true,
           announcement: true,
-        }
+        },
       };
     }
     if (!user.notificationPreferences.email) {
@@ -828,10 +939,14 @@ const updateNotificationPreferences = async (req, res) => {
     }
 
     if (email && typeof email === 'object') {
-      if (email.newMessage !== undefined) user.notificationPreferences.email.newMessage = Boolean(email.newMessage);
-      if (email.newMeeting !== undefined) user.notificationPreferences.email.newMeeting = Boolean(email.newMeeting);
-      if (email.taskAssigned !== undefined) user.notificationPreferences.email.taskAssigned = Boolean(email.taskAssigned);
-      if (email.announcement !== undefined) user.notificationPreferences.email.announcement = Boolean(email.announcement);
+      if (email.newMessage !== undefined)
+        user.notificationPreferences.email.newMessage = Boolean(email.newMessage);
+      if (email.newMeeting !== undefined)
+        user.notificationPreferences.email.newMeeting = Boolean(email.newMeeting);
+      if (email.taskAssigned !== undefined)
+        user.notificationPreferences.email.taskAssigned = Boolean(email.taskAssigned);
+      if (email.announcement !== undefined)
+        user.notificationPreferences.email.announcement = Boolean(email.announcement);
     }
 
     user.markModified('notificationPreferences');
@@ -842,9 +957,11 @@ const updateNotificationPreferences = async (req, res) => {
       message: 'Notification preferences updated successfully',
       notificationPreferences: user.notificationPreferences,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Update Notification Preferences Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to update notification preferences' });
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to update notification preferences' });
   }
 };
 
@@ -865,4 +982,3 @@ module.exports = {
   getMyActivity,
   updateNotificationPreferences,
 };
-

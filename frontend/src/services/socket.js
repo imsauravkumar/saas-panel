@@ -4,7 +4,7 @@ let socket = null;
 
 export const initSocket = (userData) => {
   const token = localStorage.getItem('nexus_token'); // Fixed: was 'token', must match api.js key
-  const userId = typeof userData === 'object' ? (userData?.id || userData?._id) : userData;
+  const userId = typeof userData === 'object' ? userData?.id || userData?._id : userData;
   const workspaceId = typeof userData === 'object' ? userData?.workspaceId : null;
 
   if (!socket) {
@@ -22,7 +22,6 @@ export const initSocket = (userData) => {
         socket.emit('register_user', { userId, workspaceId });
       }
     });
-
   } else if (userId && socket.connected) {
     socket.emit('register_user', { userId, workspaceId });
   }

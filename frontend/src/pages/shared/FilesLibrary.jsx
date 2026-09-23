@@ -1,25 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  FolderOpen,
-  Image as ImageIcon,
-  FileText,
-  Search,
-  Download,
-  Filter,
-  Grid,
-  List,
-  Eye,
-  Calendar,
-  User,
-  Hash,
-  X,
-  ExternalLink,
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { FolderOpen, FileText, Search, Download, Grid, List, Hash, X } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../../components/Avatar';
-import Badge from '../../components/Badge';
 
-const FilesLibrary = ({ groups = [], onSelectGroup }) => {
+const FilesLibrary = ({ groups = [], onSelectGroup: _onSelectGroup }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -84,24 +68,43 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
             <FolderOpen size={26} color="var(--color-primary)" />
             Files Hub
           </h1>
-          <p>
-            Aggregated repository of photos, PDFs, and assets shared across your channels
-          </p>
+          <p>Aggregated repository of photos, PDFs, and assets shared across your channels</p>
         </div>
 
         {/* View Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', padding: '4px', border: '1px solid var(--color-border)' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: 'var(--color-surface)',
+            borderRadius: 'var(--radius-md)',
+            padding: '4px',
+            border: '1px solid var(--color-border)',
+          }}
+        >
           <button
             onClick={() => setViewMode('grid')}
             className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
             <Grid size={15} /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
             className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
             <List size={15} /> List
           </button>
@@ -124,7 +127,15 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
         }}
       >
         {/* Left Filters */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', flex: '1 1 auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            alignItems: 'center',
+            flex: '1 1 auto',
+          }}
+        >
           {/* Channel Selector */}
           <select
             value={selectedGroup}
@@ -154,14 +165,14 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
               className={`btn btn-sm ${fileType === 'photo' ? 'btn-secondary' : 'btn-ghost'}`}
               style={{ fontSize: '12px', borderRadius: 'var(--radius-full)' }}
             >
-              📷 Photos
+              📷 Photos ({photoCount})
             </button>
             <button
               onClick={() => setFileType('document')}
               className={`btn btn-sm ${fileType === 'document' ? 'btn-secondary' : 'btn-ghost'}`}
               style={{ fontSize: '12px', borderRadius: 'var(--radius-full)' }}
             >
-              📄 Documents
+              📄 Documents ({docCount})
             </button>
           </div>
         </div>
@@ -197,9 +208,19 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
 
       {/* Content Area */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gap: '16px',
+          }}
+        >
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="card" style={{ height: '180px', background: 'var(--color-surface)', opacity: 0.6 }} />
+            <div
+              key={i}
+              className="card"
+              style={{ height: '180px', background: 'var(--color-surface)', opacity: 0.6 }}
+            />
           ))}
         </div>
       ) : files.length === 0 ? (
@@ -229,8 +250,17 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
           >
             <FolderOpen size={32} color="var(--color-text-tertiary)" />
           </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>No Files Found</h3>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', maxWidth: '420px', marginTop: '6px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
+            No Files Found
+          </h3>
+          <p
+            style={{
+              color: 'var(--color-text-secondary)',
+              fontSize: '14px',
+              maxWidth: '420px',
+              marginTop: '6px',
+            }}
+          >
             {searchQuery || selectedGroup || fileType !== 'all'
               ? 'No files match your current filter criteria. Try broadening your search or switching channels.'
               : 'No documents or photos have been shared in your channels yet. Upload files directly in group chats to see them here!'}
@@ -238,7 +268,13 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
         </div>
       ) : viewMode === 'grid' ? (
         /* GRID VIEW */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '20px',
+          }}
+        >
           {files.map((file) => {
             const isImage = file.type === 'photo';
             return (
@@ -301,7 +337,15 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                 </div>
 
                 {/* File Details */}
-                <div style={{ padding: '14px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <div>
                     <h4
                       style={{
@@ -317,7 +361,16 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                     >
                       {file.fileName || (isImage ? 'Photo Image' : 'Document')}
                     </h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '10px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '10px',
+                      }}
+                    >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Hash size={13} color="var(--color-text-tertiary)" />
                         {file.groupId?.name || 'Channel'}
@@ -328,10 +381,27 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                   </div>
 
                   {/* Uploader & Download Button */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingTop: '10px',
+                      borderTop: '1px solid var(--color-border)',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Avatar name={file.senderId?.name} src={file.senderId?.avatar} size="xs" />
-                      <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-text-secondary)',
+                          maxWidth: '100px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {file.senderId?.name?.split(' ')[0] || 'Member'}
                       </span>
                     </div>
@@ -342,7 +412,14 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                       rel="noopener noreferrer"
                       download={file.fileName || true}
                       className="btn btn-ghost btn-sm"
-                      style={{ padding: '4px 8px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}
+                      style={{
+                        padding: '4px 8px',
+                        color: 'var(--color-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '12px',
+                      }}
                     >
                       <Download size={14} /> Download
                     </a>
@@ -354,11 +431,30 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
         </div>
       ) : (
         /* LIST VIEW */
-        <div className="card" style={{ background: 'var(--color-surface)', padding: 0, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+        <div
+          className="card"
+          style={{
+            background: 'var(--color-surface)',
+            padding: 0,
+            overflow: 'hidden',
+            border: '1px solid var(--color-border)',
+          }}
+        >
           <div style={{ overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse' }}>
+            <table
+              className="table"
+              style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse' }}
+            >
               <thead>
-                <tr style={{ background: 'var(--color-surface-hover)', textAlign: 'left', fontSize: '12px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                <tr
+                  style={{
+                    background: 'var(--color-surface-hover)',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    color: 'var(--color-text-secondary)',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   <th style={{ padding: '14px 16px' }}>File Name</th>
                   <th style={{ padding: '14px 16px' }}>Channel</th>
                   <th style={{ padding: '14px 16px' }}>Uploaded By</th>
@@ -382,7 +478,9 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                               width: '32px',
                               height: '32px',
                               borderRadius: 'var(--radius-sm)',
-                              background: isImage ? 'rgba(59, 130, 246, 0.12)' : 'rgba(99, 102, 241, 0.12)',
+                              background: isImage
+                                ? 'rgba(59, 130, 246, 0.12)'
+                                : 'rgba(99, 102, 241, 0.12)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -417,8 +515,14 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Avatar name={file.senderId?.name} src={file.senderId?.avatar} size="xs" />
-                          <span style={{ color: 'var(--color-text)' }}>{file.senderId?.name || 'Member'}</span>
+                          <Avatar
+                            name={file.senderId?.name}
+                            src={file.senderId?.avatar}
+                            size="xs"
+                          />
+                          <span style={{ color: 'var(--color-text)' }}>
+                            {file.senderId?.name || 'Member'}
+                          </span>
                         </div>
                       </td>
                       <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>
@@ -485,7 +589,12 @@ const FilesLibrary = ({ groups = [], onSelectGroup }) => {
             <img
               src={previewImage}
               alt="Preview"
-              style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: 'var(--radius-lg)', objectFit: 'contain' }}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '85vh',
+                borderRadius: 'var(--radius-lg)',
+                objectFit: 'contain',
+              }}
             />
           </div>
         </div>

@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Send,
   Paperclip,
-  Image as ImageIcon,
   FileText,
-  Video as VideoIcon,
   Mic,
-  Users,
   Search,
   Hash,
   Download,
@@ -17,21 +14,17 @@ import {
   CheckCheck,
   ArrowDown,
   Loader2,
-  Eye,
   Smile,
   CornerDownLeft,
   UserPlus,
   Settings,
-  AlertCircle,
   Pin,
   Star,
   Forward,
   Edit2,
   Folder,
-  ChevronRight,
   Lock,
   MessageSquare,
-  User as UserIcon,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -108,7 +101,11 @@ const GroupChat = ({
   const [isAddMembersOpen, setIsAddMembersOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({ name: '', description: '', chatPermission: 'everyone' });
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    description: '',
+    chatPermission: 'everyone',
+  });
   const [editError, setEditError] = useState('');
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   const [workspaceUsers, setWorkspaceUsers] = useState(allUsers);
@@ -143,7 +140,8 @@ const GroupChat = ({
     if (allUsers && allUsers.length > 0) {
       setWorkspaceUsers(allUsers);
     } else {
-      api.get('/users')
+      api
+        .get('/users')
         .then(({ data }) => {
           if (data?.success && data.users) setWorkspaceUsers(data.users);
         })
@@ -193,7 +191,9 @@ const GroupChat = ({
           setHasMore(data.hasMore || false);
           setPinnedMessages(data.pinnedMessages || []);
           if (data.chatPermission && currentGroup) {
-            setCurrentGroup((prev) => (prev ? { ...prev, chatPermission: data.chatPermission } : prev));
+            setCurrentGroup((prev) =>
+              prev ? { ...prev, chatPermission: data.chatPermission } : prev
+            );
           }
         }
       } else if (chatMode === 'direct' && currentRecipient?._id) {
@@ -229,7 +229,15 @@ const GroupChat = ({
       setReplyingTo(null);
       setEditingMessage(null);
     }
-  }, [chatMode, currentGroup?._id, currentRecipient?._id, fetchMessages, joinGroupRoom, leaveGroupRoom, socket]);
+  }, [
+    chatMode,
+    currentGroup?._id,
+    currentRecipient?._id,
+    fetchMessages,
+    joinGroupRoom,
+    leaveGroupRoom,
+    socket,
+  ]);
 
   // Infinite Scroll Up
   const handleLoadOlderMessages = async () => {
@@ -250,7 +258,7 @@ const GroupChat = ({
       } else {
         setHasMore(false);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load older messages', 'error');
     } finally {
       setLoadingOlder(false);
@@ -298,7 +306,9 @@ const GroupChat = ({
         currRecipientId &&
         ((msgSenderId === currRecipientId && msgRecipientId === currUserId) ||
           (msgSenderId === currUserId && msgRecipientId === currRecipientId) ||
-          (currRecipientId === currUserId && msgSenderId === currUserId && msgRecipientId === currUserId));
+          (currRecipientId === currUserId &&
+            msgSenderId === currUserId &&
+            msgRecipientId === currUserId));
 
       if (isCurrentGroup || isCurrentDirect) {
         setMessages((prev) => {
@@ -343,19 +353,21 @@ const GroupChat = ({
     };
 
     const handleReactionUpdated = ({ messageId, reactions }) => {
-      setMessages((prev) =>
-        prev.map((m) => (m._id === messageId ? { ...m, reactions } : m))
-      );
+      setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
     };
 
-    const handleReadReceipt = ({ readerId, targetId }) => {
+    const handleReadReceipt = ({ readerId, targetId: _targetId }) => {
       setMessages((prev) =>
         prev.map((m) => {
           const sId = (m.senderId?._id || m.senderId || '').toString();
           if (sId === (user?.id || '').toString()) {
             const readBy = Array.isArray(m.readBy) ? m.readBy : [];
             if (!readBy.includes(readerId)) {
-              return { ...m, readBy: [...readBy, readerId], deliveredTo: [...(m.deliveredTo || []), readerId] };
+              return {
+                ...m,
+                readBy: [...readBy, readerId],
+                deliveredTo: [...(m.deliveredTo || []), readerId],
+              };
             }
           }
           return m;
@@ -363,7 +375,14 @@ const GroupChat = ({
       );
     };
 
-    const handleTypingUpdate = ({ groupId, recipientId, senderId, senderName, userName, isTyping }) => {
+    const handleTypingUpdate = ({
+      groupId,
+      recipientId: _recipientId,
+      senderId,
+      senderName,
+      userName,
+      isTyping,
+    }) => {
       const name = userName || senderName;
       if (chatMode === 'group' && groupId === currentGroup?._id && senderId !== user?.id) {
         setTypingUsers((prev) => {
@@ -405,15 +424,26 @@ const GroupChat = ({
       socket.off('typing:update', handleTypingUpdate);
       socket.off('group:permissionChanged', handlePermissionChanged);
     };
-  }, [socket, chatMode, currentGroup?._id, currentRecipient?._id, user?.id, fetchDirectConversations]);
+  }, [
+    socket,
+    chatMode,
+    currentGroup?._id,
+    currentRecipient?._id,
+    user?.id,
+    fetchDirectConversations,
+  ]);
 
   // Input Change & Debounced Typing Emitter
   const handleInputChange = (e) => {
     setInputText(e.target.value);
     if (!socket) return;
 
-    const activeGroupId = currentGroup ? (currentGroup._id?._id || currentGroup._id || '').toString() : undefined;
-    const activeRecipientId = currentRecipient ? (currentRecipient._id?._id || currentRecipient._id || '').toString() : undefined;
+    const activeGroupId = currentGroup
+      ? (currentGroup._id?._id || currentGroup._id || '').toString()
+      : undefined;
+    const activeRecipientId = currentRecipient
+      ? (currentRecipient._id?._id || currentRecipient._id || '').toString()
+      : undefined;
 
     if (chatMode === 'group' && activeGroupId) {
       socket.emit('typing:start', { groupId: activeGroupId, conversationType: 'group' });
@@ -480,8 +510,12 @@ const GroupChat = ({
     }
 
     const tempId = `temp_${Date.now()}`;
-    const activeGroupId = currentGroup ? (currentGroup._id?._id || currentGroup._id || '').toString() : undefined;
-    const activeRecipientId = currentRecipient ? (currentRecipient._id?._id || currentRecipient._id || '').toString() : undefined;
+    const activeGroupId = currentGroup
+      ? (currentGroup._id?._id || currentGroup._id || '').toString()
+      : undefined;
+    const activeRecipientId = currentRecipient
+      ? (currentRecipient._id?._id || currentRecipient._id || '').toString()
+      : undefined;
 
     const payload = {
       tempId,
@@ -534,8 +568,10 @@ const GroupChat = ({
     setReplyingTo(null);
 
     if (socket) {
-      if (chatMode === 'group' && activeGroupId) socket.emit('typing:stop', { groupId: activeGroupId, conversationType: 'group' });
-      if (chatMode === 'direct' && activeRecipientId) socket.emit('typing:stop', { recipientId: activeRecipientId, conversationType: 'direct' });
+      if (chatMode === 'group' && activeGroupId)
+        socket.emit('typing:stop', { groupId: activeGroupId, conversationType: 'group' });
+      if (chatMode === 'direct' && activeRecipientId)
+        socket.emit('typing:stop', { recipientId: activeRecipientId, conversationType: 'direct' });
     }
 
     if (socket && socket.connected) {
@@ -570,8 +606,12 @@ const GroupChat = ({
   const handleVoiceRecordingComplete = (voiceData) => {
     setIsRecordingVoice(false);
     const tempId = `temp_${Date.now()}`;
-    const activeGroupId = currentGroup ? (currentGroup._id?._id || currentGroup._id || '').toString() : undefined;
-    const activeRecipientId = currentRecipient ? (currentRecipient._id?._id || currentRecipient._id || '').toString() : undefined;
+    const activeGroupId = currentGroup
+      ? (currentGroup._id?._id || currentGroup._id || '').toString()
+      : undefined;
+    const activeRecipientId = currentRecipient
+      ? (currentRecipient._id?._id || currentRecipient._id || '').toString()
+      : undefined;
 
     const payload = {
       tempId,
@@ -606,7 +646,9 @@ const GroupChat = ({
     if (socket && socket.connected) {
       socket.emit('message:send', payload);
     } else {
-      api.post('/messages/send', payload).catch(() => addToast('Failed to send voice note', 'error'));
+      api
+        .post('/messages/send', payload)
+        .catch(() => addToast('Failed to send voice note', 'error'));
     }
   };
 
@@ -615,7 +657,9 @@ const GroupChat = ({
     if (!editingMessage || !inputText.trim()) return;
 
     try {
-      const { data } = await api.put(`/messages/${editingMessage._id}`, { content: inputText.trim() });
+      const { data } = await api.put(`/messages/${editingMessage._id}`, {
+        content: inputText.trim(),
+      });
       if (data.success) {
         setMessages((prev) => prev.map((m) => (m._id === editingMessage._id ? data.message : m)));
         setEditingMessage(null);
@@ -640,7 +684,7 @@ const GroupChat = ({
             prev.map((m) => (m._id === msgId ? { ...m, reactions: data.reactions } : m))
           );
         }
-      } catch (err) {
+      } catch (_err) {
         addToast('Failed to react to message', 'error');
       }
     }
@@ -681,7 +725,7 @@ const GroupChat = ({
         );
         addToast(data.isStarred ? 'Message starred' : 'Message unstarred', 'info', 1800);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to star message', 'error');
     }
   };
@@ -724,7 +768,10 @@ const GroupChat = ({
         } else {
           setMessages((prev) => prev.filter((m) => m._id !== msgId));
         }
-        addToast(mode === 'everyone' ? 'Message deleted for everyone' : 'Message deleted for you', 'info');
+        addToast(
+          mode === 'everyone' ? 'Message deleted for everyone' : 'Message deleted for you',
+          'info'
+        );
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to delete message', 'error');
@@ -837,9 +884,26 @@ const GroupChat = ({
     <div className={`chat-layout-wrapper ${embedded ? 'embedded' : ''}`}>
       {/* Left Sidebar (Only in Standalone Mode) */}
       {!embedded && (
-        <div className="chat-sidebar" style={{ width: '290px', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface)' }}>
+        <div
+          className="chat-sidebar"
+          style={{
+            width: '290px',
+            borderRight: '1px solid var(--color-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'var(--color-surface)',
+          }}
+        >
           {/* Top Tabs Switcher: Channels vs Direct */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', padding: '6px 8px', gap: '4px', backgroundColor: 'var(--color-surface-alt)' }}>
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid var(--color-border)',
+              padding: '6px 8px',
+              gap: '4px',
+              backgroundColor: 'var(--color-surface-alt)',
+            }}
+          >
             <button
               type="button"
               onClick={() => setSidebarTab('channels')}
@@ -848,7 +912,10 @@ const GroupChat = ({
                 flex: 1,
                 fontSize: '12px',
                 fontWeight: sidebarTab === 'channels' ? 700 : 500,
-                color: sidebarTab === 'channels' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                color:
+                  sidebarTab === 'channels'
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-secondary)',
                 backgroundColor: sidebarTab === 'channels' ? 'var(--color-surface)' : 'transparent',
                 display: 'flex',
                 alignItems: 'center',
@@ -867,7 +934,8 @@ const GroupChat = ({
                 flex: 1,
                 fontSize: '12px',
                 fontWeight: sidebarTab === 'direct' ? 700 : 500,
-                color: sidebarTab === 'direct' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                color:
+                  sidebarTab === 'direct' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                 backgroundColor: sidebarTab === 'direct' ? 'var(--color-surface)' : 'transparent',
                 display: 'flex',
                 alignItems: 'center',
@@ -885,7 +953,9 @@ const GroupChat = ({
               <Search size={13} className="search-icon" />
               <input
                 type="text"
-                placeholder={sidebarTab === 'channels' ? 'Search channels...' : 'Search teammates...'}
+                placeholder={
+                  sidebarTab === 'channels' ? 'Search channels...' : 'Search teammates...'
+                }
                 value={sidebarSearch}
                 onChange={(e) => setSidebarSearch(e.target.value)}
                 style={{ fontSize: '12px', padding: '5px 8px 5px 28px' }}
@@ -898,7 +968,14 @@ const GroupChat = ({
             {sidebarTab === 'channels' ? (
               /* Channels List */
               filteredChannels.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 8px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '24px 8px',
+                    color: 'var(--color-text-muted)',
+                    fontSize: '12.5px',
+                  }}
+                >
                   No channels found
                 </div>
               ) : (
@@ -925,19 +1002,62 @@ const GroupChat = ({
                         marginBottom: '2px',
                         transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={(e) => !isSelected && (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
-                      onMouseLeave={(e) => !isSelected && (e.currentTarget.style.backgroundColor = 'transparent')}
+                      onMouseEnter={(e) =>
+                        !isSelected &&
+                        (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                      }
+                      onMouseLeave={(e) =>
+                        !isSelected && (e.currentTarget.style.backgroundColor = 'transparent')
+                      }
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: 'var(--radius-sm)', backgroundColor: isSelected ? 'var(--color-primary)' : 'var(--color-surface-alt)', color: isSelected ? '#FFFFFF' : 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          minWidth: 0,
+                          flex: 1,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: isSelected
+                              ? 'var(--color-primary)'
+                              : 'var(--color-surface-alt)',
+                            color: isSelected ? '#FFFFFF' : 'var(--color-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
                           <Hash size={15} />
                         </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: isSelected ? 700 : 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: isSelected ? 700 : 500,
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
                             {g.name}
                           </div>
                           {g.description && (
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                            <div
+                              style={{
+                                fontSize: '11px',
+                                color: 'var(--color-text-tertiary)',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
                               {g.description}
                             </div>
                           )}
@@ -945,88 +1065,190 @@ const GroupChat = ({
                       </div>
 
                       {g.chatPermission === 'adminOnly' && (
-                        <Lock size={12} color="var(--color-warning)" title="Broadcast only" style={{ marginLeft: '4px' }} />
+                        <Lock
+                          size={12}
+                          color="var(--color-warning)"
+                          title="Broadcast only"
+                          style={{ marginLeft: '4px' }}
+                        />
                       )}
                     </div>
                   );
                 })
               )
+            ) : /* Direct Messages List */
+            filteredTeammates.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '24px 8px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
+                No teammates found
+              </div>
             ) : (
-              /* Direct Messages List */
-              filteredTeammates.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 8px', color: 'var(--color-text-muted)', fontSize: '12.5px' }}>
-                  No teammates found
-                </div>
-              ) : (
-                filteredTeammates.map((c) => {
-                  const teammate = c.teammate;
-                  if (!teammate) return null;
-                  const isSelected = chatMode === 'direct' && currentRecipient?._id === teammate._id;
-                  const isSelfTeammate = c.isSelf || (teammate._id || '').toString() === (user?.id || user?._id || '').toString();
-                  const isOnline = isSelfTeammate ? true : onlineUsers.includes(teammate._id);
+              filteredTeammates.map((c) => {
+                const teammate = c.teammate;
+                if (!teammate) return null;
+                const isSelected = chatMode === 'direct' && currentRecipient?._id === teammate._id;
+                const isSelfTeammate =
+                  c.isSelf ||
+                  (teammate._id || '').toString() === (user?.id || user?._id || '').toString();
+                const isOnline = isSelfTeammate ? true : onlineUsers.includes(teammate._id);
 
-                  return (
+                return (
+                  <div
+                    key={teammate._id}
+                    onClick={() => {
+                      if (onSelectGroup) onSelectGroup(null);
+                      setChatMode('direct');
+                      const targetId = (teammate._id?._id || teammate._id || '').toString();
+                      setCurrentRecipient({
+                        ...teammate,
+                        _id: targetId,
+                        name: isSelfTeammate
+                          ? `${user?.name || teammate.name} (You)`
+                          : teammate.name,
+                        isSelf: isSelfTeammate,
+                      });
+                      setCurrentGroup(null);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 10px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: isSelected ? 'var(--color-primary-soft)' : 'transparent',
+                      border:
+                        isSelfTeammate && !isSelected
+                          ? '1px solid var(--color-border)'
+                          : '1px solid transparent',
+                      cursor: 'pointer',
+                      marginBottom: '4px',
+                      transition: 'background-color 0.1s ease',
+                    }}
+                    onMouseEnter={(e) =>
+                      !isSelected &&
+                      (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                    }
+                    onMouseLeave={(e) =>
+                      !isSelected && (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
+                  >
                     <div
-                      key={teammate._id}
-                      onClick={() => {
-                        if (onSelectGroup) onSelectGroup(null);
-                        setChatMode('direct');
-                        const targetId = (teammate._id?._id || teammate._id || '').toString();
-                        setCurrentRecipient({
-                          ...teammate,
-                          _id: targetId,
-                          name: isSelfTeammate ? `${user?.name || teammate.name} (You)` : teammate.name,
-                          isSelf: isSelfTeammate,
-                        });
-                        setCurrentGroup(null);
-                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 10px',
-                        borderRadius: 'var(--radius-md)',
-                        backgroundColor: isSelected ? 'var(--color-primary-soft)' : 'transparent',
-                        border: isSelfTeammate && !isSelected ? '1px solid var(--color-border)' : '1px solid transparent',
-                        cursor: 'pointer',
-                        marginBottom: '4px',
-                        transition: 'background-color 0.1s ease',
+                        gap: '8px',
+                        minWidth: 0,
+                        flex: 1,
                       }}
-                      onMouseEnter={(e) => !isSelected && (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
-                      onMouseLeave={(e) => !isSelected && (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                        <Avatar name={isSelfTeammate ? (user?.name || 'You') : teammate.name} src={isSelfTeammate ? user?.avatar : teammate.avatar} size="sm" isOnline={isOnline} />
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontSize: '13px', fontWeight: isSelected ? 700 : 600, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                {isSelfTeammate ? `${user?.name || teammate.name} (You)` : teammate.name}
-                              </span>
-                              {isSelfTeammate && (
-                                <span style={{ fontSize: '9px', fontWeight: 700, backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', padding: '1px 4px', borderRadius: '3px', flexShrink: 0 }}>
-                                  YOU
-                                </span>
-                              )}
-                            </div>
-                            {c.lastMessage && (
-                              <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
-                                {new Date(c.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <Avatar
+                        name={isSelfTeammate ? user?.name || 'You' : teammate.name}
+                        src={isSelfTeammate ? user?.avatar : teammate.avatar}
+                        size="sm"
+                        isOnline={isOnline}
+                      />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              minWidth: 0,
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: isSelected ? 700 : 600,
+                                color: isSelected
+                                  ? 'var(--color-primary)'
+                                  : 'var(--color-text-primary)',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {isSelfTeammate
+                                ? `${user?.name || teammate.name} (You)`
+                                : teammate.name}
+                            </span>
+                            {isSelfTeammate && (
+                              <span
+                                style={{
+                                  fontSize: '9px',
+                                  fontWeight: 700,
+                                  backgroundColor: 'var(--color-primary-soft)',
+                                  color: 'var(--color-primary)',
+                                  padding: '1px 4px',
+                                  borderRadius: '3px',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                YOU
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '1px' }}>
-                            {c.lastMessage
-                              ? c.lastMessage.isDeletedForEveryone
-                                ? 'This message was deleted'
-                                : c.lastMessage.content || (c.lastMessage.type === 'photo' ? '📷 Photo' : c.lastMessage.type === 'video' ? '🎥 Video' : c.lastMessage.type === 'audio' ? '🎤 Voice Note' : '📄 Document')
-                              : (isSelfTeammate ? 'Message yourself · Save notes & media' : isOnline ? 'Online now' : (teammate.post || 'Teammate'))}
-                          </div>
+                          {c.lastMessage && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                color: 'var(--color-text-tertiary)',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {new Date(c.lastMessage.createdAt).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-secondary)',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            marginTop: '1px',
+                          }}
+                        >
+                          {c.lastMessage
+                            ? c.lastMessage.isDeletedForEveryone
+                              ? 'This message was deleted'
+                              : c.lastMessage.content ||
+                                (c.lastMessage.type === 'photo'
+                                  ? '📷 Photo'
+                                  : c.lastMessage.type === 'video'
+                                    ? '🎥 Video'
+                                    : c.lastMessage.type === 'audio'
+                                      ? '🎤 Voice Note'
+                                      : '📄 Document')
+                            : isSelfTeammate
+                              ? 'Message yourself · Save notes & media'
+                              : isOnline
+                                ? 'Online now'
+                                : teammate.post || 'Teammate'}
                         </div>
                       </div>
+                    </div>
 
-                      {c.unreadCount > 0 && (
-                        <span style={{
+                    {c.unreadCount > 0 && (
+                      <span
+                        style={{
                           backgroundColor: 'var(--color-primary)',
                           color: '#FFFFFF',
                           borderRadius: 'var(--radius-full)',
@@ -1034,47 +1256,105 @@ const GroupChat = ({
                           fontWeight: 700,
                           padding: '2px 6px',
                           marginLeft: '6px',
-                        }}>
-                          {c.unreadCount}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })
-              )
+                        }}
+                      >
+                        {c.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
       )}
 
       {/* Main Conversation Column */}
-      <div className="chat-main" style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflow: 'hidden' }}>
+      <div
+        className="chat-main"
+        style={{
+          position: 'relative',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          width: '100%',
+          overflow: 'hidden',
+        }}
+      >
         {currentGroup || currentRecipient ? (
           <>
             {/* Header */}
             {!embedded && (
-              <div className="chat-header" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+              <div
+                className="chat-header"
+                style={{
+                  padding: '10px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                }}
+              >
                 {chatMode === 'group' ? (
                   /* Channel Header */
                   <div
                     onClick={() => setIsGroupInfoOpen(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      cursor: 'pointer',
+                    }}
                     title="Click for channel info & participants"
                   >
-                    <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: 'var(--color-primary-soft)',
+                        color: 'var(--color-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <Hash size={18} />
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                        <h2
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
                           #{currentGroup.name}
                         </h2>
-                        <Badge variant={currentGroup.chatPermission === 'adminOnly' ? 'warning' : 'neutral'}>
+                        <Badge
+                          variant={
+                            currentGroup.chatPermission === 'adminOnly' ? 'warning' : 'neutral'
+                          }
+                        >
                           {currentGroup.chatPermission === 'adminOnly' ? 'Admin Broadcast' : 'Open'}
                         </Badge>
                       </div>
-                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {currentGroup.description || `${currentGroup.memberIds?.length || 0} channel members`}
+                      <p
+                        style={{
+                          fontSize: '11.5px',
+                          color: 'var(--color-text-secondary)',
+                          marginTop: '2px',
+                          maxWidth: '350px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {currentGroup.description ||
+                          `${currentGroup.memberIds?.length || 0} channel members`}
                       </p>
                     </div>
                   </div>
@@ -1082,31 +1362,79 @@ const GroupChat = ({
                   /* Direct Chat Header */
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Avatar
-                      name={currentRecipient.isSelf || currentRecipient._id === user?.id ? (user?.name || 'You') : currentRecipient.name}
-                      src={currentRecipient.isSelf || currentRecipient._id === user?.id ? user?.avatar : currentRecipient.avatar}
+                      name={
+                        currentRecipient.isSelf || currentRecipient._id === user?.id
+                          ? user?.name || 'You'
+                          : currentRecipient.name
+                      }
+                      src={
+                        currentRecipient.isSelf || currentRecipient._id === user?.id
+                          ? user?.avatar
+                          : currentRecipient.avatar
+                      }
                       size="md"
-                      isOnline={currentRecipient.isSelf || currentRecipient._id === user?.id ? true : onlineUsers.includes(currentRecipient._id)}
+                      isOnline={
+                        currentRecipient.isSelf || currentRecipient._id === user?.id
+                          ? true
+                          : onlineUsers.includes(currentRecipient._id)
+                      }
                     />
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-                          {currentRecipient.isSelf || currentRecipient._id === user?.id ? `${user?.name} (You)` : currentRecipient.name}
+                        <h2
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
+                          {currentRecipient.isSelf || currentRecipient._id === user?.id
+                            ? `${user?.name} (You)`
+                            : currentRecipient.name}
                         </h2>
                         {currentRecipient.isSelf || currentRecipient._id === user?.id ? (
-                          <span style={{ fontSize: '9.5px', fontWeight: 700, backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', padding: '1px 6px', borderRadius: '4px' }}>
+                          <span
+                            style={{
+                              fontSize: '9.5px',
+                              fontWeight: 700,
+                              backgroundColor: 'var(--color-primary-soft)',
+                              color: 'var(--color-primary)',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                            }}
+                          >
                             Message yourself
                           </span>
-                        ) : currentRecipient.role === 'admin' && (
-                          <span style={{ fontSize: '9.5px', fontWeight: 800, backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', padding: '1px 5px', borderRadius: '3px' }}>
-                            ADMIN
-                          </span>
+                        ) : (
+                          currentRecipient.role === 'admin' && (
+                            <span
+                              style={{
+                                fontSize: '9.5px',
+                                fontWeight: 800,
+                                backgroundColor: 'var(--color-primary-soft)',
+                                color: 'var(--color-primary)',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                              }}
+                            >
+                              ADMIN
+                            </span>
+                          )
                         )}
                       </div>
-                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                      <p
+                        style={{
+                          fontSize: '11.5px',
+                          color: 'var(--color-text-secondary)',
+                          marginTop: '2px',
+                        }}
+                      >
                         {currentRecipient.isSelf || currentRecipient._id === user?.id ? (
                           'Save notes, voice memos, files & photos for yourself'
                         ) : onlineUsers.includes(currentRecipient._id) ? (
-                          <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Active now</span>
+                          <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
+                            Active now
+                          </span>
                         ) : currentRecipient.lastSeenAt ? (
                           `Last active ${new Date(currentRecipient.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                         ) : (
@@ -1164,7 +1492,12 @@ const GroupChat = ({
                         type="button"
                         onClick={() => setIsAddMembersOpen(true)}
                         className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        style={{
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
                         title="Add Teammates"
                       >
                         <UserPlus size={13} />
@@ -1182,7 +1515,12 @@ const GroupChat = ({
                           setIsEditModalOpen(true);
                         }}
                         className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        style={{
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
                         title="Channel Settings"
                       >
                         <Settings size={13} />
@@ -1196,7 +1534,16 @@ const GroupChat = ({
 
             {/* In-Chat Search Bar Dropdown */}
             {isSearchOpen && (
-              <div style={{ padding: '8px 16px', backgroundColor: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'var(--color-surface-alt)',
+                  borderBottom: '1px solid var(--color-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
                 <Search size={14} color="var(--color-text-secondary)" />
                 <input
                   type="text"
@@ -1204,10 +1551,21 @@ const GroupChat = ({
                   value={chatSearchQuery}
                   onChange={(e) => setChatSearchQuery(e.target.value)}
                   autoFocus
-                  style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: 'var(--color-text-primary)' }}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: '13px',
+                    color: 'var(--color-text-primary)',
+                  }}
                 />
                 {chatSearchQuery && (
-                  <button type="button" onClick={() => setChatSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <button
+                    type="button"
+                    onClick={() => setChatSearchQuery('')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
                     <X size={14} />
                   </button>
                 )}
@@ -1231,9 +1589,23 @@ const GroupChat = ({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                   <Pin size={13} color="var(--color-warning)" style={{ flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>Pinned:</span>
-                  <span style={{ color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    {pinnedMessages[0].content || (pinnedMessages[0].type === 'photo' ? '📷 Photo' : pinnedMessages[0].type === 'video' ? '🎥 Video' : '📄 Document')}
+                  <span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    Pinned:
+                  </span>
+                  <span
+                    style={{
+                      color: 'var(--color-text-secondary)',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {pinnedMessages[0].content ||
+                      (pinnedMessages[0].type === 'photo'
+                        ? '📷 Photo'
+                        : pinnedMessages[0].type === 'video'
+                          ? '🎥 Video'
+                          : '📄 Document')}
                   </span>
                 </div>
                 <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600 }}>
@@ -1257,54 +1629,137 @@ const GroupChat = ({
                     onClick={handleLoadOlderMessages}
                     style={{ fontSize: '12px' }}
                   >
-                    {loadingOlder ? <Loader2 size={12} className="spin" /> : '↑ Load older messages'}
+                    {loadingOlder ? (
+                      <Loader2 size={12} className="spin" />
+                    ) : (
+                      '↑ Load older messages'
+                    )}
                   </button>
                 </div>
               )}
 
               {loadingChat ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px', color: 'var(--color-primary)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    padding: '40px',
+                    color: 'var(--color-primary)',
+                  }}
+                >
                   <Loader2 size={28} className="spin" />
                 </div>
               ) : displayMessages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', margin: 'auto', padding: '40px 16px' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '50%', backgroundColor: 'var(--color-surface-alt)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--color-text-muted)',
+                    margin: 'auto',
+                    padding: '40px 16px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--color-surface-alt)',
+                      color: 'var(--color-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 12px auto',
+                    }}
+                  >
                     {chatMode === 'group' ? <Hash size={26} /> : <UserIcon size={26} />}
                   </div>
-                  <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--color-text-primary)' }}>
-                    {chatMode === 'group' ? `Welcome to #${currentGroup?.name}!` : `Direct conversation with ${currentRecipient?.name}`}
+                  <p
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '15px',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {chatMode === 'group'
+                      ? `Welcome to #${currentGroup?.name}!`
+                      : `Direct conversation with ${currentRecipient?.name}`}
                   </p>
-                  <p style={{ fontSize: '13px', maxWidth: '340px', margin: '4px auto 0 auto', lineHeight: 1.4 }}>
-                    Send messages, voice notes, photos, videos, or documents to collaborate in real time.
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      maxWidth: '340px',
+                      margin: '4px auto 0 auto',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Send messages, voice notes, photos, videos, or documents to collaborate in real
+                    time.
                   </p>
                 </div>
               ) : (
                 displayMessages.map((msg, index) => {
                   if (!msg) return null;
-                  const sender = typeof msg.senderId === 'object' && msg.senderId !== null ? msg.senderId : { _id: msg.senderId };
+                  const sender =
+                    typeof msg.senderId === 'object' && msg.senderId !== null
+                      ? msg.senderId
+                      : { _id: msg.senderId };
                   const senderIdStr = (sender._id || sender || '').toString();
                   const currentUserIdStr = (user?.id || user?._id || '').toString();
-                  const isSelf = Boolean(senderIdStr && currentUserIdStr && senderIdStr === currentUserIdStr);
-                  const senderName = sender.name || (isSelf ? (user?.name || 'You') : 'Teammate');
+                  const isSelf = Boolean(
+                    senderIdStr && currentUserIdStr && senderIdStr === currentUserIdStr
+                  );
+                  const senderName = sender.name || (isSelf ? user?.name || 'You' : 'Teammate');
                   const isOnline = onlineUsers.includes(senderIdStr);
-                  const isRead = Array.isArray(msg.readBy) && msg.readBy.some((id) => id !== user?.id);
-                  const isStarred = Array.isArray(msg.starredBy) && msg.starredBy.includes(user?.id);
+                  const isRead =
+                    Array.isArray(msg.readBy) && msg.readBy.some((id) => id !== user?.id);
+                  const isStarred =
+                    Array.isArray(msg.starredBy) && msg.starredBy.includes(user?.id);
 
                   // Safe Day Divider
                   const msgDate = msg.createdAt ? new Date(msg.createdAt) : new Date();
                   const prevMsg = index > 0 ? displayMessages[index - 1] : null;
                   const prevDate = prevMsg?.createdAt ? new Date(prevMsg.createdAt) : null;
-                  const showDayDivider = !prevDate || msgDate.toDateString() !== prevDate.toDateString();
+                  const showDayDivider =
+                    !prevDate || msgDate.toDateString() !== prevDate.toDateString();
 
                   return (
                     <React.Fragment key={msg._id || msg.tempId || index}>
                       {showDayDivider && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0 8px 0' }}>
-                          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--color-border)' }} />
-                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)', backgroundColor: 'var(--color-surface)', padding: '2px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            margin: '14px 0 8px 0',
+                          }}
+                        >
+                          <div
+                            style={{
+                              flex: 1,
+                              height: '1px',
+                              backgroundColor: 'var(--color-border)',
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: 'var(--color-text-secondary)',
+                              backgroundColor: 'var(--color-surface)',
+                              padding: '2px 10px',
+                              borderRadius: 'var(--radius-full)',
+                              border: '1px solid var(--color-border)',
+                            }}
+                          >
                             {formatDayDivider(msg.createdAt)}
                           </span>
-                          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--color-border)' }} />
+                          <div
+                            style={{
+                              flex: 1,
+                              height: '1px',
+                              backgroundColor: 'var(--color-border)',
+                            }}
+                          />
                         </div>
                       )}
 
@@ -1316,24 +1771,58 @@ const GroupChat = ({
                       >
                         {!isSelf && (
                           <div style={{ flexShrink: 0, paddingBottom: '2px' }}>
-                            <Avatar name={senderName} src={sender.avatar} size="sm" isOnline={isOnline} />
+                            <Avatar
+                              name={senderName}
+                              src={sender.avatar}
+                              size="sm"
+                              isOnline={isOnline}
+                            />
                           </div>
                         )}
 
-                        <div className={`chat-bubble ${isSelf ? 'outgoing' : 'incoming'}`} style={{ position: 'relative' }}>
+                        <div
+                          className={`chat-bubble ${isSelf ? 'outgoing' : 'incoming'}`}
+                          style={{ position: 'relative' }}
+                        >
                           {/* Sender Meta for Group Incoming */}
                           {!isSelf && chatMode === 'group' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 700, fontSize: '12px', color: 'var(--color-primary)' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: '12px',
+                                  color: 'var(--color-primary)',
+                                }}
+                              >
                                 {senderName}
                               </span>
                               {sender.role === 'admin' && (
-                                <span style={{ fontSize: '9px', fontWeight: 800, backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)', padding: '1px 4px', borderRadius: '3px' }}>
+                                <span
+                                  style={{
+                                    fontSize: '9px',
+                                    fontWeight: 800,
+                                    backgroundColor: 'var(--color-primary-soft)',
+                                    color: 'var(--color-primary)',
+                                    padding: '1px 4px',
+                                    borderRadius: '3px',
+                                  }}
+                                >
                                   ADMIN
                                 </span>
                               )}
                               {sender.post && (
-                                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>• {sender.post}</span>
+                                <span
+                                  style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}
+                                >
+                                  • {sender.post}
+                                </span>
                               )}
                             </div>
                           )}
@@ -1346,7 +1835,9 @@ const GroupChat = ({
                                 padding: '6px 8px',
                                 marginBottom: '6px',
                                 borderRadius: 'var(--radius-sm)',
-                                backgroundColor: isSelf ? 'rgba(255, 255, 255, 0.15)' : 'var(--color-surface-alt)',
+                                backgroundColor: isSelf
+                                  ? 'rgba(255, 255, 255, 0.15)'
+                                  : 'var(--color-surface-alt)',
                                 borderLeft: `3px solid ${isSelf ? '#FFFFFF' : 'var(--color-primary)'}`,
                                 cursor: 'pointer',
                                 fontSize: '11.5px',
@@ -1355,15 +1846,38 @@ const GroupChat = ({
                               <div style={{ fontWeight: 700, opacity: 0.9, marginBottom: '2px' }}>
                                 {msg.replyTo.senderId?.name || 'Teammate'}
                               </div>
-                              <div style={{ opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                {msg.replyTo.content || (msg.replyTo.type === 'photo' ? '📷 Photo' : msg.replyTo.type === 'video' ? '🎥 Video' : msg.replyTo.type === 'audio' ? '🎤 Voice Note' : '📄 Document')}
+                              <div
+                                style={{
+                                  opacity: 0.8,
+                                  textOverflow: 'ellipsis',
+                                  overflow: 'hidden',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {msg.replyTo.content ||
+                                  (msg.replyTo.type === 'photo'
+                                    ? '📷 Photo'
+                                    : msg.replyTo.type === 'video'
+                                      ? '🎥 Video'
+                                      : msg.replyTo.type === 'audio'
+                                        ? '🎤 Voice Note'
+                                        : '📄 Document')}
                               </div>
                             </div>
                           )}
 
                           {/* Deleted Message Placeholder */}
                           {msg.isDeletedForEveryone ? (
-                            <div style={{ fontSize: '13px', fontStyle: 'italic', opacity: 0.7, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div
+                              style={{
+                                fontSize: '13px',
+                                fontStyle: 'italic',
+                                opacity: 0.7,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
                               <Trash2 size={13} />
                               <span>This message was deleted</span>
                             </div>
@@ -1372,32 +1886,64 @@ const GroupChat = ({
                               {/* Photo Attachment */}
                               {msg.type === 'photo' && msg.fileUrl && (
                                 <div
-                                  style={{ marginBottom: msg.content ? '6px' : '2px', cursor: 'pointer', borderRadius: '8px', overflow: 'hidden' }}
-                                  onClick={() => setLightboxImg({ src: msg.fileUrl, fileName: msg.fileName || 'Photo' })}
+                                  style={{
+                                    marginBottom: msg.content ? '6px' : '2px',
+                                    cursor: 'pointer',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                  }}
+                                  onClick={() =>
+                                    setLightboxImg({
+                                      src: msg.fileUrl,
+                                      fileName: msg.fileName || 'Photo',
+                                    })
+                                  }
                                 >
                                   <img
                                     src={msg.fileUrl}
                                     alt="Attachment"
-                                    style={{ maxWidth: '100%', maxHeight: '280px', display: 'block', objectFit: 'cover', borderRadius: '6px' }}
+                                    style={{
+                                      maxWidth: '100%',
+                                      maxHeight: '280px',
+                                      display: 'block',
+                                      objectFit: 'cover',
+                                      borderRadius: '6px',
+                                    }}
                                   />
                                 </div>
                               )}
 
                               {/* Video Attachment */}
                               {msg.type === 'video' && msg.fileUrl && (
-                                <div style={{ marginBottom: msg.content ? '6px' : '2px', borderRadius: '8px', overflow: 'hidden', maxWidth: '320px' }}>
+                                <div
+                                  style={{
+                                    marginBottom: msg.content ? '6px' : '2px',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    maxWidth: '320px',
+                                  }}
+                                >
                                   <video
                                     src={msg.fileUrl}
                                     controls
                                     preload="metadata"
-                                    style={{ width: '100%', maxHeight: '260px', borderRadius: '6px', backgroundColor: '#000000' }}
+                                    style={{
+                                      width: '100%',
+                                      maxHeight: '260px',
+                                      borderRadius: '6px',
+                                      backgroundColor: '#000000',
+                                    }}
                                   />
                                 </div>
                               )}
 
                               {/* Audio Voice Note Player */}
                               {msg.type === 'audio' && msg.fileUrl && (
-                                <AudioMessagePlayer src={msg.fileUrl} duration={msg.duration} isSelf={isSelf} />
+                                <AudioMessagePlayer
+                                  src={msg.fileUrl}
+                                  duration={msg.duration}
+                                  isSelf={isSelf}
+                                />
                               )}
 
                               {/* Document Attachment */}
@@ -1413,19 +1959,34 @@ const GroupChat = ({
                                     gap: '10px',
                                     padding: '8px 10px',
                                     marginBottom: msg.content ? '6px' : '2px',
-                                    backgroundColor: isSelf ? 'rgba(255, 255, 255, 0.15)' : 'var(--color-surface-alt)',
+                                    backgroundColor: isSelf
+                                      ? 'rgba(255, 255, 255, 0.15)'
+                                      : 'var(--color-surface-alt)',
                                     borderRadius: 'var(--radius-sm)',
                                     textDecoration: 'none',
                                     color: isSelf ? '#FFFFFF' : 'var(--color-text-primary)',
                                   }}
                                 >
-                                  <FileText size={18} color={isSelf ? '#FFFFFF' : 'var(--color-primary)'} />
+                                  <FileText
+                                    size={18}
+                                    color={isSelf ? '#FFFFFF' : 'var(--color-primary)'}
+                                  />
                                   <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: 600, fontSize: '12.5px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                    <div
+                                      style={{
+                                        fontWeight: 600,
+                                        fontSize: '12.5px',
+                                        textOverflow: 'ellipsis',
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                      }}
+                                    >
                                       {msg.fileName || 'Document'}
                                     </div>
                                     <div style={{ fontSize: '10px', opacity: 0.8 }}>
-                                      {msg.fileSize ? `${(msg.fileSize / 1024).toFixed(1)} KB` : 'Document'}
+                                      {msg.fileSize
+                                        ? `${(msg.fileSize / 1024).toFixed(1)} KB`
+                                        : 'Document'}
                                     </div>
                                   </div>
                                   <Download size={14} />
@@ -1434,7 +1995,15 @@ const GroupChat = ({
 
                               {/* Text Message Content */}
                               {msg.content && (
-                                <div style={{ fontSize: '13.5px', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isSelf ? '#FFFFFF' : 'var(--color-text-primary)' }}>
+                                <div
+                                  style={{
+                                    fontSize: '13.5px',
+                                    lineHeight: 1.45,
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    color: isSelf ? '#FFFFFF' : 'var(--color-text-primary)',
+                                  }}
+                                >
                                   {msg.content}
                                 </div>
                               )}
@@ -1442,34 +2011,72 @@ const GroupChat = ({
                           )}
 
                           {/* Footer: Timestamp, Edited Tag, Starred Icon, Delivery Checkmarks */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '3px', fontSize: '10px', opacity: 0.85 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              gap: '4px',
+                              marginTop: '3px',
+                              fontSize: '10px',
+                              opacity: 0.85,
+                            }}
+                          >
                             {msg.isPinned && <Pin size={10} color="var(--color-warning)" />}
-                            {isStarred && <Star size={10} fill="currentColor" color="var(--color-warning)" />}
-                            {msg.isEdited && <span style={{ fontStyle: 'italic', fontSize: '9.5px' }}>(edited)</span>}
+                            {isStarred && (
+                              <Star size={10} fill="currentColor" color="var(--color-warning)" />
+                            )}
+                            {msg.isEdited && (
+                              <span style={{ fontStyle: 'italic', fontSize: '9.5px' }}>
+                                (edited)
+                              </span>
+                            )}
                             <span>
                               {msg.createdAt
-                                ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                ? new Date(msg.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : new Date().toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
                             </span>
-                            {isSelf && (
-                              msg.pending ? (
-                                <span style={{ fontStyle: 'italic', fontSize: '9px' }}>sending...</span>
+                            {isSelf &&
+                              (msg.pending ? (
+                                <span style={{ fontStyle: 'italic', fontSize: '9px' }}>
+                                  sending...
+                                </span>
                               ) : isRead ? (
-                                <CheckCheck size={13} strokeWidth={2.5} color="#3B82F6" title="Read" />
+                                <CheckCheck
+                                  size={13}
+                                  strokeWidth={2.5}
+                                  color="#3B82F6"
+                                  title="Read"
+                                />
                               ) : (
                                 <Check size={12} strokeWidth={2.5} title="Sent" />
-                              )
-                            )}
+                              ))}
                           </div>
                         </div>
 
                         {/* Message Reactions Display Bar */}
                         {msg.reactions && msg.reactions.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '3px', marginLeft: isSelf ? 'auto' : '38px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: '4px',
+                              marginTop: '3px',
+                              marginLeft: isSelf ? 'auto' : '38px',
+                            }}
+                          >
                             {Array.from(new Set(msg.reactions.map((r) => r.emoji))).map((emoji) => {
                               const count = msg.reactions.filter((r) => r.emoji === emoji).length;
                               const userReacted = msg.reactions.some(
-                                (r) => (r.user?._id || r.user || '').toString() === (user?.id || '').toString() && r.emoji === emoji
+                                (r) =>
+                                  (r.user?._id || r.user || '').toString() ===
+                                    (user?.id || '').toString() && r.emoji === emoji
                               );
                               return (
                                 <button
@@ -1482,15 +2089,27 @@ const GroupChat = ({
                                     gap: '3px',
                                     padding: '1px 6px',
                                     borderRadius: 'var(--radius-full)',
-                                    border: userReacted ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                    backgroundColor: userReacted ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                                    border: userReacted
+                                      ? '1px solid var(--color-primary)'
+                                      : '1px solid var(--color-border)',
+                                    backgroundColor: userReacted
+                                      ? 'var(--color-primary-soft)'
+                                      : 'var(--color-surface)',
                                     fontSize: '11px',
                                     cursor: 'pointer',
                                     boxShadow: 'var(--shadow-sm)',
                                   }}
                                 >
                                   <span>{emoji}</span>
-                                  <span style={{ fontWeight: 600, fontSize: '10px', color: 'var(--color-text-secondary)' }}>{count}</span>
+                                  <span
+                                    style={{
+                                      fontWeight: 600,
+                                      fontSize: '10px',
+                                      color: 'var(--color-text-secondary)',
+                                    }}
+                                  >
+                                    {count}
+                                  </span>
                                 </button>
                               );
                             })}
@@ -1505,7 +2124,11 @@ const GroupChat = ({
                               <button
                                 type="button"
                                 className="chat-action-btn"
-                                onClick={() => setActiveReactionMsgId(activeReactionMsgId === msg._id ? null : msg._id)}
+                                onClick={() =>
+                                  setActiveReactionMsgId(
+                                    activeReactionMsgId === msg._id ? null : msg._id
+                                  )
+                                }
                                 title="React"
                               >
                                 <Smile size={13} />
@@ -1533,7 +2156,13 @@ const GroupChat = ({
                                       key={em}
                                       type="button"
                                       onClick={() => handleToggleReaction(msg._id, em)}
-                                      style={{ background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer', padding: '2px' }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '16px',
+                                        cursor: 'pointer',
+                                        padding: '2px',
+                                      }}
                                     >
                                       {em}
                                     </button>
@@ -1569,7 +2198,11 @@ const GroupChat = ({
                               className="chat-action-btn"
                               title={isStarred ? 'Unstar' : 'Star'}
                             >
-                              <Star size={13} fill={isStarred ? 'currentColor' : 'none'} color={isStarred ? 'var(--color-warning)' : 'inherit'} />
+                              <Star
+                                size={13}
+                                fill={isStarred ? 'currentColor' : 'none'}
+                                color={isStarred ? 'var(--color-warning)' : 'inherit'}
+                              />
                             </button>
 
                             {/* Pin Button (Sender or Admin) */}
@@ -1580,7 +2213,10 @@ const GroupChat = ({
                                 className="chat-action-btn"
                                 title={msg.isPinned ? 'Unpin message' : 'Pin message'}
                               >
-                                <Pin size={13} color={msg.isPinned ? 'var(--color-warning)' : 'inherit'} />
+                                <Pin
+                                  size={13}
+                                  color={msg.isPinned ? 'var(--color-warning)' : 'inherit'}
+                                />
                               </button>
                             )}
 
@@ -1608,7 +2244,11 @@ const GroupChat = ({
                                 className="chat-action-btn"
                                 title={copiedMsgId === msg._id ? 'Copied!' : 'Copy text'}
                               >
-                                {copiedMsgId === msg._id ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
+                                {copiedMsgId === msg._id ? (
+                                  <Check size={13} color="var(--color-success)" />
+                                ) : (
+                                  <Copy size={13} />
+                                )}
                               </button>
                             )}
 
@@ -1633,9 +2273,25 @@ const GroupChat = ({
 
               {/* Typing Presence Indicator */}
               {typingUsers.size > 0 && (
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}>
-                  <span className="presence-dot" style={{ backgroundColor: 'var(--color-primary)' }} />
-                  <span>{Array.from(typingUsers).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'} typing...</span>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-text-muted)',
+                    fontStyle: 'italic',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                  }}
+                >
+                  <span
+                    className="presence-dot"
+                    style={{ backgroundColor: 'var(--color-primary)' }}
+                  />
+                  <span>
+                    {Array.from(typingUsers).join(', ')} {typingUsers.size === 1 ? 'is' : 'are'}{' '}
+                    typing...
+                  </span>
                 </div>
               )}
 
@@ -1672,11 +2328,34 @@ const GroupChat = ({
             )}
 
             {/* Rich Composer Section */}
-            <div className="chat-composer-container" style={{ padding: '10px 16px', backgroundColor: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }}>
+            <div
+              className="chat-composer-container"
+              style={{
+                padding: '10px 16px',
+                backgroundColor: 'var(--color-surface)',
+                borderTop: '1px solid var(--color-border)',
+              }}
+            >
               {!canPost ? (
-                <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-surface-alt)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    color: 'var(--color-text-secondary)',
+                    fontSize: '13px',
+                  }}
+                >
                   <Lock size={16} color="var(--color-warning)" />
-                  <span>This channel is in <strong>Admin Broadcast Mode</strong>. Only workspace administrators can post.</span>
+                  <span>
+                    This channel is in <strong>Admin Broadcast Mode</strong>. Only workspace
+                    administrators can post.
+                  </span>
                 </div>
               ) : isRecordingVoice ? (
                 /* Live Voice Recorder */
@@ -1686,18 +2365,62 @@ const GroupChat = ({
                 />
               ) : (
                 /* Standard Message Composer */
-                <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-surface-alt)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
+                <div
+                  style={{
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-lg)',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    boxShadow: 'var(--shadow-sm)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
                   {/* Quoting Banner */}
                   {replyingTo && (
-                    <div style={{ padding: '6px 12px', backgroundColor: 'var(--color-primary-soft)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'var(--color-primary-soft)',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
+                      >
                         <CornerDownLeft size={13} color="var(--color-primary)" />
-                        <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Replying to {replyingTo.senderId?.name || 'Teammate'}:</span>
-                        <span style={{ color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                          {replyingTo.content || (replyingTo.type === 'photo' ? 'Photo' : replyingTo.type === 'video' ? 'Video' : 'Document')}
+                        <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                          Replying to {replyingTo.senderId?.name || 'Teammate'}:
+                        </span>
+                        <span
+                          style={{
+                            color: 'var(--color-text-secondary)',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {replyingTo.content ||
+                            (replyingTo.type === 'photo'
+                              ? 'Photo'
+                              : replyingTo.type === 'video'
+                                ? 'Video'
+                                : 'Document')}
                         </span>
                       </div>
-                      <button type="button" onClick={() => setReplyingTo(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--color-text-tertiary)',
+                        }}
+                      >
                         <X size={14} />
                       </button>
                     </div>
@@ -1705,12 +2428,36 @@ const GroupChat = ({
 
                   {/* Editing Message Banner */}
                   {editingMessage && (
-                    <div style={{ padding: '6px 12px', backgroundColor: 'var(--color-warning-soft)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'var(--color-warning-soft)',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '12px',
+                      }}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Edit2 size={13} color="var(--color-warning)" />
-                        <span style={{ fontWeight: 600, color: 'var(--color-warning)' }}>Editing message...</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-warning)' }}>
+                          Editing message...
+                        </span>
                       </div>
-                      <button type="button" onClick={() => { setEditingMessage(null); setInputText(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingMessage(null);
+                          setInputText('');
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--color-text-tertiary)',
+                        }}
+                      >
                         <X size={14} />
                       </button>
                     </div>
@@ -1718,18 +2465,54 @@ const GroupChat = ({
 
                   {/* Attachment Preview Banner */}
                   {attachment && (
-                    <div style={{ padding: '6px 12px', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'var(--color-surface)',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
                       {attachment.type === 'photo' ? (
-                        <img src={attachment.fileUrl} alt="preview" style={{ width: '30px', height: '30px', borderRadius: '4px', objectFit: 'cover' }} />
+                        <img
+                          src={attachment.fileUrl}
+                          alt="preview"
+                          style={{
+                            width: '30px',
+                            height: '30px',
+                            borderRadius: '4px',
+                            objectFit: 'cover',
+                          }}
+                        />
                       ) : attachment.type === 'video' ? (
                         <VideoIcon size={16} color="var(--color-primary)" />
                       ) : (
                         <FileText size={16} color="var(--color-primary)" />
                       )}
-                      <span style={{ fontSize: '12px', fontWeight: 600, flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          flex: 1,
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {attachment.fileName}
                       </span>
-                      <button type="button" onClick={() => setAttachment(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)' }}>
+                      <button
+                        type="button"
+                        onClick={() => setAttachment(null)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--color-danger)',
+                        }}
+                      >
                         <X size={14} />
                       </button>
                     </div>
@@ -1737,17 +2520,39 @@ const GroupChat = ({
 
                   {/* Upload Progress */}
                   {uploading && (
-                    <div style={{ padding: '6px 12px', backgroundColor: 'var(--color-primary-soft)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>
+                    <div
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: 'var(--color-primary-soft)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: 'var(--color-primary)',
+                        fontWeight: 600,
+                      }}
+                    >
                       <Loader2 size={13} className="spin" />
                       <span>Uploading file... {uploadProgress}%</span>
                     </div>
                   )}
 
                   {/* Textarea Input */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', padding: '8px 12px', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      padding: '8px 12px',
+                      gap: '8px',
+                    }}
+                  >
                     <textarea
                       ref={textareaRef}
-                      placeholder={chatMode === 'group' ? `Message #${currentGroup?.name}...` : `Message ${currentRecipient?.name}...`}
+                      placeholder={
+                        chatMode === 'group'
+                          ? `Message #${currentGroup?.name}...`
+                          : `Message ${currentRecipient?.name}...`
+                      }
                       value={inputText}
                       onChange={handleInputChange}
                       onKeyDown={(e) => {
@@ -1774,14 +2579,33 @@ const GroupChat = ({
                   </div>
 
                   {/* Composer Actions Bar */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', borderTop: '1px solid rgba(0, 0, 0, 0.04)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', position: 'relative' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '4px 8px',
+                      borderTop: '1px solid rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        position: 'relative',
+                      }}
+                    >
                       {/* Emoji Picker Button */}
                       <button
                         type="button"
                         onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
                         className="btn btn-ghost btn-icon"
-                        style={{ width: '30px', height: '30px', color: 'var(--color-text-secondary)' }}
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          color: 'var(--color-text-secondary)',
+                        }}
                         title="Add emoji"
                       >
                         <Smile size={16} />
@@ -1821,7 +2645,11 @@ const GroupChat = ({
                         type="button"
                         onClick={() => setAttachMenuOpen((prev) => !prev)}
                         className="btn btn-ghost btn-icon"
-                        style={{ width: '30px', height: '30px', color: 'var(--color-text-secondary)' }}
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          color: 'var(--color-text-secondary)',
+                        }}
                         title="Attach document or file"
                       >
                         <Paperclip size={16} />
@@ -1847,9 +2675,23 @@ const GroupChat = ({
                         >
                           <button
                             type="button"
-                            onClick={() => { setAttachMenuOpen(false); docInputRef.current?.click(); }}
+                            onClick={() => {
+                              setAttachMenuOpen(false);
+                              docInputRef.current?.click();
+                            }}
                             className="dropdown-item"
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12.5px', border: 'none', background: 'transparent', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '6px 8px',
+                              fontSize: '12.5px',
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              width: '100%',
+                              textAlign: 'left',
+                            }}
                           >
                             <FileText size={14} color="var(--color-primary)" />
                             <span>Upload Document</span>
@@ -1869,9 +2711,27 @@ const GroupChat = ({
                       </button>
 
                       {/* Hidden File Inputs */}
-                      <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'photo')} />
-                      <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'video')} />
-                      <input ref={docInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.csv,.json" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'document')} />
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'photo')}
+                      />
+                      <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'video')}
+                      />
+                      <input
+                        ref={docInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.csv,.json"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'document')}
+                      />
                     </div>
 
                     {/* Send Button */}
@@ -1886,8 +2746,8 @@ const GroupChat = ({
                         alignItems: 'center',
                         gap: '5px',
                         fontWeight: 600,
-                        opacity: (!inputText.trim() && !attachment) ? 0.45 : 1,
-                        cursor: (!inputText.trim() && !attachment) ? 'not-allowed' : 'pointer',
+                        opacity: !inputText.trim() && !attachment ? 0.45 : 1,
+                        cursor: !inputText.trim() && !attachment ? 'not-allowed' : 'pointer',
                       }}
                     >
                       <span>{editingMessage ? 'Save' : 'Send'}</span>
@@ -1901,7 +2761,9 @@ const GroupChat = ({
         ) : (
           <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--color-text-muted)' }}>
             <MessageSquare size={40} style={{ margin: '0 auto 12px auto', opacity: 0.3 }} />
-            <p style={{ fontWeight: 600, fontSize: '15px' }}>Select a channel or teammate to start chatting</p>
+            <p style={{ fontWeight: 600, fontSize: '15px' }}>
+              Select a channel or teammate to start chatting
+            </p>
           </div>
         )}
       </div>
@@ -1927,20 +2789,30 @@ const GroupChat = ({
               >
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '13px' }}>Delete for me</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Hides this message only on your screen.</div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                    Hides this message only on your screen.
+                  </div>
                 </div>
               </button>
 
-              {(isAdmin || (deleteModalMsg.senderId?._id || deleteModalMsg.senderId || '').toString() === (user?.id || '').toString()) && (
+              {(isAdmin ||
+                (deleteModalMsg.senderId?._id || deleteModalMsg.senderId || '').toString() ===
+                  (user?.id || '').toString()) && (
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={() => handleConfirmDelete('everyone')}
-                  style={{ justifyContent: 'flex-start', padding: '10px 14px', backgroundColor: 'var(--color-danger)' }}
+                  style={{
+                    justifyContent: 'flex-start',
+                    padding: '10px 14px',
+                    backgroundColor: 'var(--color-danger)',
+                  }}
                 >
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '13px' }}>Delete for everyone</div>
-                    <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)' }}>Replaces message with "This message was deleted" for all members.</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)' }}>
+                      Replaces message with "This message was deleted" for all members.
+                    </div>
                   </div>
                 </button>
               )}
@@ -1967,7 +2839,11 @@ const GroupChat = ({
         onClose={() => setIsMediaDrawerOpen(false)}
         conversationType={chatMode}
         targetId={chatMode === 'group' ? currentGroup?._id : currentRecipient?._id}
-        title={chatMode === 'group' ? `#${currentGroup?.name} Repository` : `Files with ${currentRecipient?.name}`}
+        title={
+          chatMode === 'group'
+            ? `#${currentGroup?.name} Repository`
+            : `Files with ${currentRecipient?.name}`
+        }
       />
 
       {/* Lightbox for Photos */}
@@ -2023,9 +2899,20 @@ const GroupChat = ({
           title={`Channel Settings: #${currentGroup.name}`}
           maxWidth="500px"
         >
-          <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form
+            onSubmit={handleSaveSettings}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
             {editError && (
-              <div style={{ padding: '8px 12px', backgroundColor: 'var(--color-danger-soft)', color: 'var(--color-danger)', borderRadius: 'var(--radius-md)', fontSize: '12.5px' }}>
+              <div
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: 'var(--color-danger-soft)',
+                  color: 'var(--color-danger)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '12.5px',
+                }}
+              >
                 {editError}
               </div>
             )}
@@ -2062,12 +2949,21 @@ const GroupChat = ({
                     padding: '8px 12px',
                     borderRadius: 'var(--radius-md)',
                     border: `1px solid ${editFormData.chatPermission === 'everyone' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    backgroundColor: editFormData.chatPermission === 'everyone' ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                    backgroundColor:
+                      editFormData.chatPermission === 'everyone'
+                        ? 'var(--color-primary-soft)'
+                        : 'var(--color-surface)',
                     cursor: 'pointer',
                   }}
                 >
-                  <input type="radio" checked={editFormData.chatPermission === 'everyone'} onChange={() => {}} />
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Everyone Can Chat (Open)</span>
+                  <input
+                    type="radio"
+                    checked={editFormData.chatPermission === 'everyone'}
+                    onChange={() => {}}
+                  />
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                    Everyone Can Chat (Open)
+                  </span>
                 </label>
 
                 <label
@@ -2079,18 +2975,33 @@ const GroupChat = ({
                     padding: '8px 12px',
                     borderRadius: 'var(--radius-md)',
                     border: `1px solid ${editFormData.chatPermission === 'adminOnly' ? 'var(--color-warning)' : 'var(--color-border)'}`,
-                    backgroundColor: editFormData.chatPermission === 'adminOnly' ? 'var(--color-warning-soft)' : 'var(--color-surface)',
+                    backgroundColor:
+                      editFormData.chatPermission === 'adminOnly'
+                        ? 'var(--color-warning-soft)'
+                        : 'var(--color-surface)',
                     cursor: 'pointer',
                   }}
                 >
-                  <input type="radio" checked={editFormData.chatPermission === 'adminOnly'} onChange={() => {}} />
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Only Admin Can Chat (Broadcast Mode)</span>
+                  <input
+                    type="radio"
+                    checked={editFormData.chatPermission === 'adminOnly'}
+                    onChange={() => {}}
+                  />
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                    Only Admin Can Chat (Broadcast Mode)
+                  </span>
                 </label>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsEditModalOpen(false)}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setIsEditModalOpen(false)}
+              >
                 Cancel
               </button>
               <button type="submit" disabled={isEditSubmitting} className="btn btn-primary btn-sm">
@@ -2108,7 +3019,7 @@ const GroupChat = ({
           onClose={() => setIsMeetingModalOpen(false)}
           onSubmit={handleCreateChatMeeting}
           initialData={{
-            groupId: currentGroup?._id || (groups[0]?._id || ''),
+            groupId: currentGroup?._id || groups[0]?._id || '',
             title: currentGroup ? `#${currentGroup.name} Team Sync` : 'Video Conference',
           }}
           groups={groups}

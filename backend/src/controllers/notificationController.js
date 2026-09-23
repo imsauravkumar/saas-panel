@@ -23,10 +23,7 @@ const getNotifications = async (req, res) => {
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
     const [notifications, total, unreadCount] = await Promise.all([
-      Notification.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit, 10)),
+      Notification.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit, 10)),
       Notification.countDocuments(query),
       Notification.countDocuments({
         userId: req.user._id,
@@ -44,7 +41,7 @@ const getNotifications = async (req, res) => {
       totalPages: Math.ceil(total / parseInt(limit, 10)) || 1,
       notifications,
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('[Get Notifications Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
   }
@@ -65,8 +62,12 @@ const getUnreadCount = async (req, res) => {
       success: true,
       unreadCount: count,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch unread count' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch unread count',
+      message: 'Failed to fetch unread count',
+    });
   }
 };
 
@@ -83,7 +84,11 @@ const markAsRead = async (req, res) => {
     );
 
     if (!notification) {
-      return res.status(404).json({ success: false, message: 'Notification not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'Notification not found',
+        message: 'Notification not found',
+      });
     }
 
     const io = req.app.get('io');
@@ -95,8 +100,12 @@ const markAsRead = async (req, res) => {
       success: true,
       notification,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to mark notification as read',
+      message: 'Failed to mark notification as read',
+    });
   }
 };
 
@@ -119,8 +128,12 @@ const markAllAsRead = async (req, res) => {
       success: true,
       message: 'All notifications marked as read',
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to mark all notifications as read',
+      message: 'Failed to mark all notifications as read',
+    });
   }
 };
 
@@ -143,8 +156,12 @@ const getPreferences = async (req, res) => {
       success: true,
       preferences,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to fetch preferences' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch preferences',
+      message: 'Failed to fetch preferences',
+    });
   }
 };
 
@@ -157,7 +174,11 @@ const updatePreferences = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        message: 'User not found',
+      });
     }
 
     if (emailPreferences) {
@@ -176,8 +197,12 @@ const updatePreferences = async (req, res) => {
       message: 'Notification preferences updated',
       preferences: user.notificationPreferences,
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to update preferences' });
+  } catch (_error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update preferences',
+      message: 'Failed to update preferences',
+    });
   }
 };
 

@@ -8,7 +8,6 @@ const Announcement = require('../../models/Announcement');
 
 describe('Integration Test: Announcements & Scoping Suite', () => {
   let adminUser;
-  let standardUser;
   let testGroup;
   let companyAnnouncement;
   let groupAnnouncement;
@@ -16,7 +15,6 @@ describe('Integration Test: Announcements & Scoping Suite', () => {
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/saas_nexus');
     adminUser = await User.findOne({ role: 'admin' });
-    standardUser = await User.findOne({ role: 'user' });
 
     testGroup = await Group.findOne({ workspaceId: adminUser.workspaceId, isDeleted: false });
 

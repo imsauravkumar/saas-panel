@@ -1,17 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Megaphone,
-  Plus,
-  Pin,
-  Calendar,
-  Trash2,
-  Edit2,
-  Search,
-  Globe,
-  Users,
-  AlertCircle,
-  Eye,
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Megaphone, Plus, Pin, Calendar, Trash2, Edit2, Search, Globe, Users } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
@@ -43,7 +31,7 @@ const AdminAnnouncements = ({ groups = [] }) => {
       if (data.success) {
         setAnnouncements(data.announcements);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load announcements', 'error');
     } finally {
       setLoading(false);
@@ -101,7 +89,7 @@ const AdminAnnouncements = ({ groups = [] }) => {
         addToast(data.message, 'info', 1500);
         fetchAnnouncements();
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to toggle pin', 'error');
     }
   };
@@ -119,7 +107,7 @@ const AdminAnnouncements = ({ groups = [] }) => {
             addToast('Announcement deleted', 'success');
             fetchAnnouncements();
           }
-        } catch (err) {
+        } catch (_err) {
           addToast('Failed to delete announcement', 'error');
         }
       },
@@ -141,7 +129,8 @@ const AdminAnnouncements = ({ groups = [] }) => {
         <div className="page-header-title">
           <h1>Company Bulletins & Announcements</h1>
           <p>
-            Publish company-wide broadcasts or channel-specific notices with pinned priorities and instant notification fan-out.
+            Publish company-wide broadcasts or channel-specific notices with pinned priorities and
+            instant notification fan-out.
           </p>
         </div>
 
@@ -185,17 +174,26 @@ const AdminAnnouncements = ({ groups = [] }) => {
       {/* Announcements Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}>
+          <div
+            style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}
+          >
             Loading bulletins...
           </div>
         ) : filteredAnnouncements.length === 0 ? (
-          <div className="card" style={{ textAlign: 'center', padding: '56px 24px', color: 'var(--color-text-muted)' }}>
-            <Megaphone size={40} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }} />
+          <div
+            className="card"
+            style={{ textAlign: 'center', padding: '56px 24px', color: 'var(--color-text-muted)' }}
+          >
+            <Megaphone
+              size={40}
+              style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }}
+            />
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
               No announcements published yet
             </div>
             <p style={{ fontSize: '13px', margin: '4px auto 16px auto', maxWidth: '360px' }}>
-              Broadcast company-wide news, milestones, or channel notices to keep your workspace aligned.
+              Broadcast company-wide news, milestones, or channel notices to keep your workspace
+              aligned.
             </p>
             <button
               className="btn btn-primary btn-sm"
@@ -224,13 +222,21 @@ const AdminAnnouncements = ({ groups = [] }) => {
                   borderLeft: isPinned
                     ? '4px solid var(--color-warning)'
                     : isUrgent
-                    ? '4px solid var(--color-danger)'
-                    : '4px solid var(--color-primary)',
+                      ? '4px solid var(--color-danger)'
+                      : '4px solid var(--color-primary)',
                   backgroundColor: isPinned ? 'rgba(245, 158, 11, 0.03)' : 'var(--color-surface)',
                 }}
               >
                 {/* Meta Top Bar */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {isPinned && (
                       <span
@@ -263,15 +269,36 @@ const AdminAnnouncements = ({ groups = [] }) => {
                     {isUrgent && <Badge variant="danger">URGENT</Badge>}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
                     <Calendar size={13} />
-                    <span>{new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span>
+                      {new Date(a.createdAt).toLocaleDateString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </div>
                 </div>
 
                 {/* Title & Body */}
                 <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--color-text-primary)' }}>
+                  <h3
+                    style={{
+                      fontSize: '17px',
+                      fontWeight: 700,
+                      margin: '0 0 6px 0',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     {a.title}
                   </h3>
                   <div
@@ -298,7 +325,11 @@ const AdminAnnouncements = ({ groups = [] }) => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Avatar name={a.createdBy?.name || 'Admin'} src={a.createdBy?.avatar} size="xs" />
+                    <Avatar
+                      name={a.createdBy?.name || 'Admin'}
+                      src={a.createdBy?.avatar}
+                      size="xs"
+                    />
                     <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                       Published by <strong>{a.createdBy?.name || 'Workspace Administrator'}</strong>
                     </span>

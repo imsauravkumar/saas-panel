@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Download, Volume2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Download } from 'lucide-react';
 
 const AudioMessagePlayer = ({ src, duration = 0, isSelf = false }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -73,8 +73,6 @@ const AudioMessagePlayer = ({ src, duration = 0, isSelf = false }) => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const progressPercent = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0;
-
   return (
     <div
       style={{
@@ -136,7 +134,15 @@ const AudioMessagePlayer = ({ src, duration = 0, isSelf = false }) => {
         </div>
 
         {/* Timestamps & Rate Control */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', opacity: 0.85 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '11px',
+            opacity: 0.85,
+          }}
+        >
           <span>{formatTime(currentTime > 0 ? currentTime : audioDuration)}</span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

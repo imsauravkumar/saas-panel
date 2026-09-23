@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, Download, ZoomIn } from 'lucide-react';
+import { useEffect } from 'react';
+import { X, Download } from 'lucide-react';
 
 const PhotoLightbox = ({ isOpen, onClose, src, alt = 'Image Preview', fileName = 'image.png' }) => {
   useEffect(() => {
@@ -44,7 +44,16 @@ const PhotoLightbox = ({ isOpen, onClose, src, alt = 'Image Preview', fileName =
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ fontSize: '14px', fontWeight: 600, maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div
+          style={{
+            fontSize: '14px',
+            fontWeight: 600,
+            maxWidth: '400px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {fileName}
         </div>
 
@@ -55,7 +64,11 @@ const PhotoLightbox = ({ isOpen, onClose, src, alt = 'Image Preview', fileName =
             target="_blank"
             rel="noreferrer"
             className="btn btn-secondary btn-sm"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.2)' }}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              color: '#FFFFFF',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+            }}
             title="Download Original"
           >
             <Download size={15} /> Download
@@ -64,7 +77,12 @@ const PhotoLightbox = ({ isOpen, onClose, src, alt = 'Image Preview', fileName =
           <button
             onClick={onClose}
             className="btn btn-ghost btn-icon"
-            style={{ width: '36px', height: '36px', color: '#FFFFFF', backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+            style={{
+              width: '36px',
+              height: '36px',
+              color: '#FFFFFF',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            }}
             title="Close Lightbox (Esc)"
           >
             <X size={20} />

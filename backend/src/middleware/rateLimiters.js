@@ -11,7 +11,8 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many authentication attempts from this IP address. Please try again in 15 minutes.',
+    message:
+      'Too many authentication attempts from this IP address. Please try again in 15 minutes.',
   },
 });
 
@@ -25,7 +26,8 @@ const userCreateLimiter = rateLimit({
   keyGenerator: (req) => req.user?._id?.toString() || req.ip,
   message: {
     success: false,
-    message: 'Rate limit exceeded: You have provisioned too many accounts in this window. Please wait.',
+    message:
+      'Rate limit exceeded: You have provisioned too many accounts in this window. Please wait.',
   },
 });
 

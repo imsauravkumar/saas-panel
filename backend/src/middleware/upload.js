@@ -13,25 +13,44 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
+  },
 });
 
 const fileFilter = (req, file, cb) => {
   // Allow images, videos, audio/voice notes, pdfs, documents, spreadsheets, presentations, zip
   const allowedMimeTypes = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-    'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-matroska',
-    'audio/webm', 'audio/ogg', 'audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/m4a', 'audio/aac',
-    'application/pdf', 'application/msword',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',
+    'video/x-matroska',
+    'audio/webm',
+    'audio/ogg',
+    'audio/mp3',
+    'audio/mpeg',
+    'audio/wav',
+    'audio/m4a',
+    'audio/aac',
+    'application/pdf',
+    'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.ms-powerpoint',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain', 'text/csv', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed'
+    'text/plain',
+    'text/csv',
+    'application/zip',
+    'application/x-zip-compressed',
+    'application/x-rar-compressed',
   ];
 
   if (

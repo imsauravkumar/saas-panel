@@ -1,19 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Video,
-  Calendar,
-  Clock,
-  Users,
-  X,
-  AlertCircle,
-  Check,
-  Loader2,
-  Zap,
-  Sparkles,
-  Link,
-  FileText,
-  Tag,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Video, Calendar, AlertCircle, Loader2, Zap, Sparkles, FileText, Tag } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -22,7 +8,12 @@ const MEETING_TYPES = [
   { id: 'general', label: 'General Call', emoji: '📹', description: 'Standard video sync' },
   { id: 'standup', label: 'Daily Standup', emoji: '⚡', description: 'Quick team progress check' },
   { id: 'sync', label: '1-on-1 Sync', emoji: '👥', description: 'Individual check-in' },
-  { id: 'review', label: 'Design / Code Review', emoji: '🔍', description: 'Walkthrough & feedback' },
+  {
+    id: 'review',
+    label: 'Design / Code Review',
+    emoji: '🔍',
+    description: 'Walkthrough & feedback',
+  },
   { id: 'demo', label: 'Product Demo', emoji: '🚀', description: 'Feature showcase' },
   { id: 'allhands', label: 'All-Hands', emoji: '🏢', description: 'Company / Channel wide' },
 ];
@@ -76,7 +67,7 @@ const CreateMeetingModal = ({
       setFormData({
         title: initialData.title || '',
         description: initialData.description || '',
-        groupId: initialData.groupId?._id || initialData.groupId || (groups[0]?._id || ''),
+        groupId: initialData.groupId?._id || initialData.groupId || groups[0]?._id || '',
         dateTime: dt,
         durationMinutes: initialData.durationMinutes || 45,
         attendeeIds: (initialData.attendeeIds || []).map((a) => a._id || a),
@@ -96,7 +87,9 @@ const CreateMeetingModal = ({
         .slice(0, 16);
 
       const firstGroup = groups[0];
-      const initialAttendees = firstGroup ? (firstGroup.memberIds || []).map((m) => m._id || m) : [];
+      const initialAttendees = firstGroup
+        ? (firstGroup.memberIds || []).map((m) => m._id || m)
+        : [];
 
       setFormData({
         title: '',
@@ -201,7 +194,8 @@ const CreateMeetingModal = ({
         ...formData,
         meetingType,
         isInstant,
-        googleMeetLink: linkMode === 'custom' && customMeetLink.trim() ? customMeetLink.trim() : undefined,
+        googleMeetLink:
+          linkMode === 'custom' && customMeetLink.trim() ? customMeetLink.trim() : undefined,
       };
       await onSubmit(payload);
       onClose();
@@ -221,7 +215,10 @@ const CreateMeetingModal = ({
       title={isEdit ? 'Edit Scheduled Meeting' : 'Create Google Meet Video Call'}
       maxWidth="680px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
         {error && (
           <div
             style={{
@@ -280,7 +277,8 @@ const CreateMeetingModal = ({
               type="button"
               onClick={() => {
                 setIsInstant(true);
-                if (!formData.title) setFormData((prev) => ({ ...prev, title: 'Quick Google Meet Call' }));
+                if (!formData.title)
+                  setFormData((prev) => ({ ...prev, title: 'Quick Google Meet Call' }));
               }}
               style={{
                 display: 'flex',
@@ -306,7 +304,10 @@ const CreateMeetingModal = ({
 
         {/* Meeting Type Badges */}
         <div>
-          <label className="form-label" style={{ marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label
+            className="form-label"
+            style={{ marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
             <Tag size={13} /> Meeting Type
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -323,7 +324,9 @@ const CreateMeetingModal = ({
                     gap: '6px',
                     padding: '5px 10px',
                     borderRadius: 'var(--radius-sm)',
-                    backgroundColor: isSelected ? 'var(--color-primary)' : 'var(--color-surface-alt)',
+                    backgroundColor: isSelected
+                      ? 'var(--color-primary)'
+                      : 'var(--color-surface-alt)',
                     color: isSelected ? '#FFFFFF' : 'var(--color-text-primary)',
                     fontSize: '12px',
                     fontWeight: isSelected ? 700 : 500,
@@ -377,7 +380,9 @@ const CreateMeetingModal = ({
             <select
               className="form-select"
               value={formData.durationMinutes}
-              onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value, 10) })}
+              onChange={(e) =>
+                setFormData({ ...formData, durationMinutes: parseInt(e.target.value, 10) })
+              }
             >
               <option value={15}>15 mins (Quick Sync)</option>
               <option value={30}>30 mins (Standup)</option>
@@ -391,8 +396,17 @@ const CreateMeetingModal = ({
         {/* Date & Time Picker (Hidden if Instant Call) */}
         {!isInstant && (
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>Start Date & Time *</label>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '6px',
+              }}
+            >
+              <label className="form-label" style={{ marginBottom: 0 }}>
+                Start Date & Time *
+              </label>
               <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
@@ -440,8 +454,18 @@ const CreateMeetingModal = ({
 
         {/* Agenda / Description with quick templates */}
         <div className="form-group" style={{ marginBottom: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label className="form-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '6px',
+            }}
+          >
+            <label
+              className="form-label"
+              style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
               <FileText size={13} /> Agenda / Notes (Optional)
             </label>
             <div style={{ display: 'flex', gap: '4px' }}>
@@ -480,7 +504,15 @@ const CreateMeetingModal = ({
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+              }}
+            >
               <Sparkles size={14} color="var(--color-primary)" />
               <span>Google Meet Link Generation</span>
             </div>
@@ -514,7 +546,11 @@ const CreateMeetingModal = ({
 
           {linkMode === 'auto' ? (
             <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
-              A unique standard Google Meet conference code (<code style={{ color: 'var(--color-primary)' }}>https://meet.google.com/xxx-yyyy-zzz</code>) will be created and synchronized with the channel automatically.
+              A unique standard Google Meet conference code (
+              <code style={{ color: 'var(--color-primary)' }}>
+                https://meet.google.com/xxx-yyyy-zzz
+              </code>
+              ) will be created and synchronized with the channel automatically.
             </div>
           ) : (
             <input
@@ -530,7 +566,14 @@ const CreateMeetingModal = ({
 
         {/* Attendees Checklist */}
         <div className="form-group" style={{ marginBottom: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+            }}
+          >
             <label className="form-label" style={{ marginBottom: 0 }}>
               Invited Attendees ({formData.attendeeIds.length} of {groupMembers.length} selected)
             </label>
@@ -568,7 +611,14 @@ const CreateMeetingModal = ({
             }}
           >
             {groupMembers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '16px',
+                  fontSize: '12px',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
                 Please select a channel to load available attendees.
               </div>
             ) : (
@@ -585,7 +635,9 @@ const CreateMeetingModal = ({
                       padding: '6px 10px',
                       borderRadius: 'var(--radius-sm)',
                       backgroundColor: isSelected ? 'var(--color-surface)' : 'transparent',
-                      border: isSelected ? '1px solid var(--color-border)' : '1px solid transparent',
+                      border: isSelected
+                        ? '1px solid var(--color-border)'
+                        : '1px solid transparent',
                       cursor: 'pointer',
                       transition: 'all 120ms ease',
                     }}
@@ -619,7 +671,16 @@ const CreateMeetingModal = ({
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px', borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '10px',
+            marginTop: '4px',
+            borderTop: '1px solid var(--color-border)',
+            paddingTop: '14px',
+          }}
+        >
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
             Cancel
           </button>

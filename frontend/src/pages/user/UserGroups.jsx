@@ -1,13 +1,5 @@
-import React, { useState } from 'react';
-import {
-  MessageSquare,
-  Users,
-  ExternalLink,
-  Search,
-  Layers,
-  Clock,
-  Hash,
-} from 'lucide-react';
+import { useState } from 'react';
+import { MessageSquare, Users, ExternalLink, Search, Layers, Hash } from 'lucide-react';
 import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
 
@@ -36,9 +28,10 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
     return timeB - timeA;
   });
 
-  const filteredGroups = sortedGroups.filter((g) =>
-    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredGroups = sortedGroups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -49,9 +42,7 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
             <MessageSquare size={26} color="var(--color-primary)" />
             My Channels & Team Spaces
           </h1>
-          <p>
-            Browse active project rooms, announcements, and team discussion channels
-          </p>
+          <p>Browse active project rooms, announcements, and team discussion channels</p>
         </div>
 
         {/* Search Bar */}
@@ -96,14 +87,27 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
           <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
             No Channels Found
           </h3>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', maxWidth: '400px', marginTop: '6px' }}>
+          <p
+            style={{
+              color: 'var(--color-text-secondary)',
+              fontSize: '14px',
+              maxWidth: '400px',
+              marginTop: '6px',
+            }}
+          >
             {searchTerm
               ? 'No channels match your search term. Try a different search.'
               : 'You have not been added to any channels yet. Your workspace administrator will assign you to team channels.'}
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+            gap: '20px',
+          }}
+        >
           {filteredGroups.map((group) => {
             const isLocked = group.chatPermission === 'adminOnly';
             const hasUnread = (group.unreadCount || 0) > 0;
@@ -125,7 +129,13 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                   transition: 'all var(--transition-fast)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div
                       style={{
@@ -145,7 +155,11 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                       }}
                     >
                       {group.avatar ? (
-                        <img src={group.avatar} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img
+                          src={group.avatar}
+                          alt={group.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       ) : (
                         <Hash size={20} />
                       )}
@@ -167,7 +181,9 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
+                        <h3
+                          style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}
+                        >
                           #{group.name}
                         </h3>
                         {hasUnread && (
@@ -185,7 +201,16 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                          color: 'var(--color-text-secondary)',
+                          marginTop: '2px',
+                        }}
+                      >
                         <Users size={13} />
                         <span>{group.memberIds?.length || 0} members</span>
                       </div>
@@ -197,7 +222,15 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                   </Badge>
                 </div>
 
-                <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', flex: 1, minHeight: '36px', lineHeight: 1.4 }}>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--color-text-secondary)',
+                    flex: 1,
+                    minHeight: '36px',
+                    lineHeight: 1.4,
+                  }}
+                >
                   {group.description || 'General discussions and updates.'}
                 </p>
 
@@ -216,25 +249,50 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                       gap: '8px',
                     }}
                   >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
                       {group.lastMessagePreview}
                     </span>
                     {group.lastMessageAt && (
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--color-text-tertiary)',
+                          flexShrink: 0,
+                        }}
+                      >
                         {formatRelativeTime(group.lastMessageAt)}
                       </span>
                     )}
                   </div>
                 )}
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderTop: '1px solid var(--color-border)',
+                    paddingTop: '12px',
+                  }}
+                >
                   <div style={{ display: 'flex', gap: '-6px' }}>
                     {group.memberIds?.slice(0, 4).map((m) => (
                       <Avatar key={m._id || m} name={m.name || 'Member'} src={m.avatar} size="xs" />
                     ))}
                   </div>
 
-                  <span style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--color-primary)',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
                     Open Channel <ExternalLink size={13} />
                   </span>
                 </div>

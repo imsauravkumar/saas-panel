@@ -1,30 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   UserPlus,
   Search,
-  MoreVertical,
   Shield,
   UserCheck,
   UserX,
   Trash2,
   Edit2,
-  Mail,
   Key,
-  Building,
   CheckCircle2,
   Copy,
   Check,
   Eye,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  Layers,
   Activity,
-  Calendar,
   Lock,
-  RefreshCw,
-  Send,
-  AlertTriangle,
   CheckSquare,
 } from 'lucide-react';
 import api from '../../services/api';
@@ -101,7 +92,7 @@ const AdminUsers = ({ groups = [] }) => {
         setTotal(data.total);
         setTotalPages(data.totalPages);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load users directory', 'error');
     } finally {
       setLoading(false);
@@ -121,7 +112,7 @@ const AdminUsers = ({ groups = [] }) => {
       if (data.success) {
         setDetailData(data);
       }
-    } catch (err) {
+    } catch (_err) {
       addToast('Failed to load user details', 'error');
     } finally {
       setDetailLoading(false);
@@ -130,7 +121,10 @@ const AdminUsers = ({ groups = [] }) => {
 
   const generateRandomPassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-    const pwd = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const pwd = Array.from(
+      { length: 10 },
+      () => chars[Math.floor(Math.random() * chars.length)]
+    ).join('');
     setFormData((prev) => ({ ...prev, password: pwd }));
     return pwd;
   };
@@ -256,7 +250,7 @@ const AdminUsers = ({ groups = [] }) => {
             setSelectedUserIds([]);
             fetchUsers();
           }
-        } catch (err) {
+        } catch (_err) {
           addToast('Failed to execute bulk action', 'error');
         }
       },
@@ -275,7 +269,10 @@ const AdminUsers = ({ groups = [] }) => {
       <div className="page-header">
         <div className="page-header-title">
           <h1>Team Directory & User Management</h1>
-          <p>Provision user accounts, configure role titles, sync channels, and audit team activities.</p>
+          <p>
+            Provision user accounts, configure role titles, sync channels, and audit team
+            activities.
+          </p>
         </div>
 
         <button
@@ -339,7 +336,9 @@ const AdminUsers = ({ groups = [] }) => {
         >
           <option value="">All Channels</option>
           {groups.map((g) => (
-            <option key={g._id} value={g._id}>#{g.name}</option>
+            <option key={g._id} value={g._id}>
+              #{g.name}
+            </option>
           ))}
         </select>
 
@@ -374,16 +373,18 @@ const AdminUsers = ({ groups = [] }) => {
 
       {/* Bulk Action Bar (Visible when items selected) */}
       {selectedUserIds.length > 0 && (
-        <div style={{
-          padding: '10px 16px',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: 'var(--color-primary-soft)',
-          border: '1px solid var(--color-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          animation: 'fadeIn 150ms ease-out',
-        }}>
+        <div
+          style={{
+            padding: '10px 16px',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'var(--color-primary-soft)',
+            border: '1px solid var(--color-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            animation: 'fadeIn 150ms ease-out',
+          }}
+        >
           <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-primary)' }}>
             {selectedUserIds.length} {selectedUserIds.length === 1 ? 'user' : 'users'} selected
           </div>
@@ -394,10 +395,7 @@ const AdminUsers = ({ groups = [] }) => {
             >
               <UserX size={14} /> Bulk Disable
             </button>
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={() => handleBulkAction('delete')}
-            >
+            <button className="btn btn-danger btn-sm" onClick={() => handleBulkAction('delete')}>
               <Trash2 size={14} /> Bulk Delete
             </button>
           </div>
@@ -428,13 +426,23 @@ const AdminUsers = ({ groups = [] }) => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: '36px', color: 'var(--color-text-secondary)' }}>
+                <td
+                  colSpan="8"
+                  style={{
+                    textAlign: 'center',
+                    padding: '36px',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   Loading team directory...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: '36px', color: 'var(--color-text-muted)' }}>
+                <td
+                  colSpan="8"
+                  style={{ textAlign: 'center', padding: '36px', color: 'var(--color-text-muted)' }}
+                >
                   No members found matching your search criteria.
                 </td>
               </tr>
@@ -443,7 +451,12 @@ const AdminUsers = ({ groups = [] }) => {
                 const isSelected = selectedUserIds.includes(u._id);
 
                 return (
-                  <tr key={u._id} style={{ backgroundColor: isSelected ? 'var(--color-primary-soft)' : undefined }}>
+                  <tr
+                    key={u._id}
+                    style={{
+                      backgroundColor: isSelected ? 'var(--color-primary-soft)' : undefined,
+                    }}
+                  >
                     <td>
                       <input
                         type="checkbox"
@@ -454,13 +467,22 @@ const AdminUsers = ({ groups = [] }) => {
 
                     <td>
                       <div
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          cursor: 'pointer',
+                        }}
                         onClick={() => handleOpenDetail(u)}
                       >
                         <Avatar name={u.name} src={u.avatar} size="md" />
                         <div>
-                          <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{u.name}</div>
-                          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{u.email}</div>
+                          <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                            {u.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                            {u.email}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -468,11 +490,19 @@ const AdminUsers = ({ groups = [] }) => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {u.role === 'admin' ? (
-                          <Badge variant="primary" icon={Shield}>Admin</Badge>
+                          <Badge variant="primary" icon={Shield}>
+                            Admin
+                          </Badge>
                         ) : (
                           <Badge variant="neutral">Member</Badge>
                         )}
-                        <span style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                        <span
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 500,
+                          }}
+                        >
                           {u.post || 'No title'}
                         </span>
                       </div>
@@ -483,7 +513,9 @@ const AdminUsers = ({ groups = [] }) => {
                     </td>
 
                     <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '200px' }}>
+                      <div
+                        style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '200px' }}
+                      >
                         {u.groupIds && u.groupIds.length > 0 ? (
                           u.groupIds.map((g) => (
                             <span
@@ -501,7 +533,9 @@ const AdminUsers = ({ groups = [] }) => {
                             </span>
                           ))
                         ) : (
-                          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>None</span>
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                            None
+                          </span>
                         )}
                       </div>
                     </td>
@@ -517,7 +551,14 @@ const AdminUsers = ({ groups = [] }) => {
                     </td>
 
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          gap: '4px',
+                        }}
+                      >
                         {/* Assign Work / Task */}
                         <button
                           className="btn btn-ghost btn-icon"
@@ -561,8 +602,14 @@ const AdminUsers = ({ groups = [] }) => {
                           title="Generate New Temporary Password"
                           onClick={() => {
                             setResetPwdUser(u);
-                            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-                            setNewTempPwd(Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''));
+                            const chars =
+                              'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+                            setNewTempPwd(
+                              Array.from(
+                                { length: 10 },
+                                () => chars[Math.floor(Math.random() * chars.length)]
+                              ).join('')
+                            );
                             setResetPwdCopied(false);
                           }}
                         >
@@ -572,7 +619,14 @@ const AdminUsers = ({ groups = [] }) => {
                         {/* Toggle Disable / Enable */}
                         <button
                           className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px', color: u.status === 'active' ? 'var(--color-warning)' : 'var(--color-success)' }}
+                          style={{
+                            width: '30px',
+                            height: '30px',
+                            color:
+                              u.status === 'active'
+                                ? 'var(--color-warning)'
+                                : 'var(--color-success)',
+                          }}
                           title={u.status === 'active' ? 'Disable Account' : 'Enable Account'}
                           onClick={() => handleToggleStatus(u)}
                         >
@@ -601,7 +655,8 @@ const AdminUsers = ({ groups = [] }) => {
       {/* Pagination Footer */}
       <div className="pagination-footer">
         <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-          Showing <strong>{Math.min(total, (page - 1) * limit + 1)}</strong> - <strong>{Math.min(total, page * limit)}</strong> of <strong>{total}</strong> members
+          Showing <strong>{Math.min(total, (page - 1) * limit + 1)}</strong> -{' '}
+          <strong>{Math.min(total, page * limit)}</strong> of <strong>{total}</strong> members
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -649,32 +704,86 @@ const AdminUsers = ({ groups = [] }) => {
       >
         {generatedCreds ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-success-soft)', border: '1px solid var(--color-success)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--color-success)', marginBottom: '4px' }}>
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-success-soft)',
+                border: '1px solid var(--color-success)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                  color: 'var(--color-success)',
+                  marginBottom: '4px',
+                }}
+              >
                 <CheckCircle2 size={18} /> Account Created Successfully
               </div>
               <p style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                Please provide the credentials below to <strong>{generatedCreds.name}</strong>. The user will be required to set a secure password upon their first login.
+                Please provide the credentials below to <strong>{generatedCreds.name}</strong>. The
+                user will be required to set a secure password upon their first login.
               </p>
             </div>
 
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13.5px' }}>
-              <div><strong>Full Name:</strong> {generatedCreds.name}</div>
-              <div><strong>Email:</strong> {generatedCreds.email}</div>
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--color-surface-alt)',
+                border: '1px solid var(--color-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                fontSize: '13.5px',
+              }}
+            >
+              <div>
+                <strong>Full Name:</strong> {generatedCreds.name}
+              </div>
+              <div>
+                <strong>Email:</strong> {generatedCreds.email}
+              </div>
               <div>
                 <strong>Temporary Password:</strong>{' '}
-                <code style={{ fontFamily: 'var(--font-mono)', backgroundColor: 'var(--color-surface)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 600 }}>
+                <code
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    backgroundColor: 'var(--color-surface)',
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--color-border)',
+                    fontWeight: 600,
+                  }}
+                >
                   {generatedCreds.password}
                 </code>
               </div>
-              <div><strong>Role / Title:</strong> {generatedCreds.post}</div>
+              <div>
+                <strong>Role / Title:</strong> {generatedCreds.post}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: '8px',
+              }}
+            >
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => copyToClipboard(`Email: ${generatedCreds.email}\nTemporary Password: ${generatedCreds.password}`)}
+                onClick={() =>
+                  copyToClipboard(
+                    `Email: ${generatedCreds.email}\nTemporary Password: ${generatedCreds.password}`
+                  )
+                }
               >
                 {copied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
                 {copied ? 'Credentials Copied!' : 'Copy Credentials'}
@@ -686,7 +795,10 @@ const AdminUsers = ({ groups = [] }) => {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form
+            onSubmit={handleCreateSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Full Name *</label>
               <input
@@ -712,12 +824,21 @@ const AdminUsers = ({ groups = [] }) => {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <label className="form-label">Temporary Password *</label>
                 <button
                   type="button"
                   onClick={generateRandomPassword}
-                  style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
                 >
                   Regenerate
                 </button>
@@ -757,11 +878,29 @@ const AdminUsers = ({ groups = [] }) => {
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Assign to Channel(s)</label>
-              <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '8px' }}>
+              <div
+                style={{
+                  maxHeight: '120px',
+                  overflowY: 'auto',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '8px',
+                }}
+              >
                 {groups.map((g) => {
                   const isChecked = formData.groupIds.includes(g._id);
                   return (
-                    <label key={g._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer', fontSize: '13px' }}>
+                    <label
+                      key={g._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '4px 0',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={isChecked}
@@ -769,7 +908,10 @@ const AdminUsers = ({ groups = [] }) => {
                           if (e.target.checked) {
                             setFormData({ ...formData, groupIds: [...formData.groupIds, g._id] });
                           } else {
-                            setFormData({ ...formData, groupIds: formData.groupIds.filter((id) => id !== g._id) });
+                            setFormData({
+                              ...formData,
+                              groupIds: formData.groupIds.filter((id) => id !== g._id),
+                            });
                           }
                         }}
                       />
@@ -780,8 +922,19 @@ const AdminUsers = ({ groups = [] }) => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsCreateOpen(false)}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '12px',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsCreateOpen(false)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -799,7 +952,10 @@ const AdminUsers = ({ groups = [] }) => {
         title="Edit Team Member Details"
       >
         {editingUser && (
-          <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form
+            onSubmit={handleEditSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Full Name</label>
               <input
@@ -818,10 +974,24 @@ const AdminUsers = ({ groups = [] }) => {
                   type="email"
                   disabled
                   className="form-input"
-                  style={{ backgroundColor: 'var(--color-surface-alt)', color: 'var(--color-text-muted)', cursor: 'not-allowed', paddingLeft: '34px' }}
+                  style={{
+                    backgroundColor: 'var(--color-surface-alt)',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'not-allowed',
+                    paddingLeft: '34px',
+                  }}
                   value={editingUser.email || ''}
                 />
-                <Lock size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+                <Lock
+                  size={15}
+                  style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--color-text-muted)',
+                  }}
+                />
               </div>
             </div>
 
@@ -861,19 +1031,43 @@ const AdminUsers = ({ groups = [] }) => {
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Channel Memberships</label>
-              <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '8px' }}>
+              <div
+                style={{
+                  maxHeight: '120px',
+                  overflowY: 'auto',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '8px',
+                }}
+              >
                 {groups.map((g) => {
                   const isChecked = editingUser.groupIds?.includes(g._id);
                   return (
-                    <label key={g._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer', fontSize: '13px' }}>
+                    <label
+                      key={g._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '4px 0',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setEditingUser({ ...editingUser, groupIds: [...(editingUser.groupIds || []), g._id] });
+                            setEditingUser({
+                              ...editingUser,
+                              groupIds: [...(editingUser.groupIds || []), g._id],
+                            });
                           } else {
-                            setEditingUser({ ...editingUser, groupIds: editingUser.groupIds.filter((id) => id !== g._id) });
+                            setEditingUser({
+                              ...editingUser,
+                              groupIds: editingUser.groupIds.filter((id) => id !== g._id),
+                            });
                           }
                         }}
                       />
@@ -884,8 +1078,19 @@ const AdminUsers = ({ groups = [] }) => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsEditOpen(false)}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '12px',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsEditOpen(false)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -908,13 +1113,25 @@ const AdminUsers = ({ groups = [] }) => {
           maxWidth="640px"
         >
           {detailLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-secondary)' }}>
+            <div
+              style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-secondary)' }}
+            >
               Loading user profile & activity...
             </div>
           ) : detailData ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Profile Card Top */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '16px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--color-surface-alt)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
                 <Avatar name={detailData.user.name} src={detailData.user.avatar} size="xl" />
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -926,10 +1143,18 @@ const AdminUsers = ({ groups = [] }) => {
                       {detailData.user.status?.toUpperCase()}
                     </Badge>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '2px',
+                    }}
+                  >
                     {detailData.user.email} • {detailData.user.post || 'Team Member'}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                  <div
+                    style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}
+                  >
                     Member since {new Date(detailData.user.createdAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -937,25 +1162,55 @@ const AdminUsers = ({ groups = [] }) => {
 
               {/* Statistics Grid */}
               <div className="responsive-grid-3" style={{ gap: '12px' }}>
-                <div style={{ padding: '12px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    border: '1px solid var(--color-border)',
+                    textAlign: 'center',
+                  }}
+                >
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-primary)' }}>
                     {detailData.stats?.groupsCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>Channels</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                    Channels
+                  </div>
                 </div>
 
-                <div style={{ padding: '12px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    border: '1px solid var(--color-border)',
+                    textAlign: 'center',
+                  }}
+                >
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-warning)' }}>
                     {detailData.stats?.openTasksCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>Open Deliverables</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                    Open Deliverables
+                  </div>
                 </div>
 
-                <div style={{ padding: '12px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    border: '1px solid var(--color-border)',
+                    textAlign: 'center',
+                  }}
+                >
                   <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-success)' }}>
                     {detailData.stats?.completedTasksCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>Completed Tasks</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                    Completed Tasks
+                  </div>
                 </div>
               </div>
 
@@ -964,7 +1219,9 @@ const AdminUsers = ({ groups = [] }) => {
                 <h4 style={{ fontSize: '13.5px', marginBottom: '8px' }}>Assigned Channels</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {detailData.user.groupIds?.length === 0 ? (
-                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>No channels assigned.</span>
+                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                      No channels assigned.
+                    </span>
                   ) : (
                     detailData.user.groupIds.map((g) => (
                       <span
@@ -987,12 +1244,30 @@ const AdminUsers = ({ groups = [] }) => {
 
               {/* Activity Log Audit Trail */}
               <div>
-                <h4 style={{ fontSize: '13.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4
+                  style={{
+                    fontSize: '13.5px',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
                   <Activity size={15} /> User Activity Audit Trail (Last 10 Actions)
                 </h4>
-                <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div
+                  style={{
+                    maxHeight: '180px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
                   {detailData.recentActivity?.length === 0 ? (
-                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>No activity logs recorded.</span>
+                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                      No activity logs recorded.
+                    </span>
                   ) : (
                     detailData.recentActivity.map((log) => (
                       <div
@@ -1010,8 +1285,17 @@ const AdminUsers = ({ groups = [] }) => {
                         <div>
                           <strong>{log.action}</strong>: {log.details}
                         </div>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: '11px', whiteSpace: 'nowrap' }}>
-                          {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span
+                          style={{
+                            color: 'var(--color-text-muted)',
+                            fontSize: '11px',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {new Date(log.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </span>
                       </div>
                     ))
@@ -1030,9 +1314,13 @@ const AdminUsers = ({ groups = [] }) => {
           onClose={() => setResetPwdUser(null)}
           title={`Generate Temporary Password for ${resetPwdUser.name}`}
         >
-          <form onSubmit={handleAdminResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form
+            onSubmit={handleAdminResetPassword}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
             <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-              This will update the account password and mark <code>mustResetPassword: true</code>, requiring the user to choose their own private password upon their next login.
+              This will update the account password and mark <code>mustResetPassword: true</code>,
+              requiring the user to choose their own private password upon their next login.
             </p>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
@@ -1054,14 +1342,29 @@ const AdminUsers = ({ groups = [] }) => {
                     setTimeout(() => setResetPwdCopied(false), 2000);
                   }}
                 >
-                  {resetPwdCopied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
+                  {resetPwdCopied ? (
+                    <Check size={14} color="var(--color-success)" />
+                  ) : (
+                    <Copy size={14} />
+                  )}
                   {resetPwdCopied ? 'Copied' : 'Copy'}
                 </button>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setResetPwdUser(null)}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '12px',
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setResetPwdUser(null)}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">

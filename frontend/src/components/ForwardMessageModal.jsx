@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { Search, Send, Hash, User, Check, Forward } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Send, Hash, Forward } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 
-const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = [], currentUserId }) => {
+const ForwardMessageModal = ({
+  isOpen,
+  onClose,
+  message,
+  groups = [],
+  users = [],
+  currentUserId,
+}) => {
   const { addToast } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTargets, setSelectedTargets] = useState([]); // [{ type: 'group' | 'direct', id: '...' }]
@@ -51,7 +58,10 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
         )
       );
 
-      addToast(`Message forwarded to ${selectedTargets.length} ${selectedTargets.length === 1 ? 'chat' : 'chats'}`, 'success');
+      addToast(
+        `Message forwarded to ${selectedTargets.length} ${selectedTargets.length === 1 ? 'chat' : 'chats'}`,
+        'success'
+      );
       onClose();
     } catch (err) {
       console.error('[Forward Error]:', err);
@@ -62,12 +72,7 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Forward Message"
-      maxWidth="480px"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Forward Message" maxWidth="480px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Message Snippet Preview */}
         <div
@@ -83,10 +88,28 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
             textOverflow: 'ellipsis',
           }}
         >
-          <div style={{ fontWeight: 600, color: 'var(--color-primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div
+            style={{
+              fontWeight: 600,
+              color: 'var(--color-primary)',
+              marginBottom: '2px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
             <Forward size={12} /> Forwarding Message:
           </div>
-          <div>{message.content || (message.type === 'photo' ? '📷 Photo' : message.type === 'video' ? '🎥 Video' : message.type === 'audio' ? '🎤 Voice Note' : '📄 Document')}</div>
+          <div>
+            {message.content ||
+              (message.type === 'photo'
+                ? '📷 Photo'
+                : message.type === 'video'
+                  ? '🎥 Video'
+                  : message.type === 'audio'
+                    ? '🎤 Voice Note'
+                    : '📄 Document')}
+          </div>
         </div>
 
         {/* Search */}
@@ -102,11 +125,28 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
         </div>
 
         {/* Target List Tabs / Section */}
-        <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', padding: '2px' }}>
+        <div
+          style={{
+            maxHeight: '240px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '2px',
+          }}
+        >
           {/* Groups Section */}
           {filteredGroups.length > 0 && (
             <div>
-              <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--color-text-tertiary)', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-tertiary)',
+                  textTransform: 'uppercase',
+                  marginBottom: '6px',
+                }}
+              >
                 Channels
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -126,18 +166,45 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
                         cursor: 'pointer',
                         transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={(e) => !active && (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
-                      onMouseLeave={(e) => !active && (e.currentTarget.style.backgroundColor = 'transparent')}
+                      onMouseEnter={(e) =>
+                        !active &&
+                        (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                      }
+                      onMouseLeave={(e) =>
+                        !active && (e.currentTarget.style.backgroundColor = 'transparent')
+                      }
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: 'var(--color-surface-alt)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--color-primary)',
+                          }}
+                        >
                           <Hash size={14} />
                         </div>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
                           #{g.name}
                         </span>
                       </div>
-                      <input type="checkbox" checked={active} onChange={() => {}} style={{ pointerEvents: 'none' }} />
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={() => {}}
+                        style={{ pointerEvents: 'none' }}
+                      />
                     </div>
                   );
                 })}
@@ -148,7 +215,15 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
           {/* Teammates Section */}
           {filteredUsers.length > 0 && (
             <div>
-              <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--color-text-tertiary)', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--color-text-tertiary)',
+                  textTransform: 'uppercase',
+                  marginBottom: '6px',
+                }}
+              >
                 Teammates
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -168,17 +243,37 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
                         cursor: 'pointer',
                         transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={(e) => !active && (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
-                      onMouseLeave={(e) => !active && (e.currentTarget.style.backgroundColor = 'transparent')}
+                      onMouseEnter={(e) =>
+                        !active &&
+                        (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                      }
+                      onMouseLeave={(e) =>
+                        !active && (e.currentTarget.style.backgroundColor = 'transparent')
+                      }
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Avatar name={u.name} src={u.avatar} size="xs" />
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{u.name}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{u.post || u.email}</div>
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 600,
+                              color: 'var(--color-text-primary)',
+                            }}
+                          >
+                            {u.name}
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            {u.post || u.email}
+                          </div>
                         </div>
                       </div>
-                      <input type="checkbox" checked={active} onChange={() => {}} style={{ pointerEvents: 'none' }} />
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={() => {}}
+                        style={{ pointerEvents: 'none' }}
+                      />
                     </div>
                   );
                 })}
@@ -188,7 +283,15 @@ const ForwardMessageModal = ({ isOpen, onClose, message, groups = [], users = []
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '10px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderTop: '1px solid var(--color-border)',
+            paddingTop: '10px',
+          }}
+        >
           <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
             <strong>{selectedTargets.length}</strong> selected
           </span>

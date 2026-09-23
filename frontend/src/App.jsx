@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useSocket } from './context/SocketContext';
 import { useNotification } from './context/NotificationContext';
@@ -8,7 +8,8 @@ import api from './services/api';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 
-// Auth Pages
+// Marketing & Auth Pages
+import LandingPage from './pages/marketing/LandingPage';
 import AuthPage from './pages/auth/AuthPage';
 import FirstLoginReset from './pages/auth/FirstLoginReset';
 
@@ -20,7 +21,6 @@ import AdminTasks from './pages/admin/AdminTasks';
 import AdminMeetings from './pages/admin/AdminMeetings';
 import AdminAnnouncements from './pages/admin/AdminAnnouncements';
 import AdminActivityLogs from './pages/admin/AdminActivityLogs';
-import AdminSettings from './pages/admin/AdminSettings';
 
 // User Pages
 import UserDashboard from './pages/user/UserDashboard';
@@ -28,7 +28,6 @@ import UserGroups from './pages/user/UserGroups';
 import UserTasks from './pages/user/UserTasks';
 import UserMeetings from './pages/user/UserMeetings';
 import UserAnnouncements from './pages/user/UserAnnouncements';
-import UserProfile from './pages/user/UserProfile';
 
 // Shared Pages
 import GroupDashboard from './pages/shared/GroupDashboard';
@@ -41,13 +40,41 @@ function App() {
   const { socket } = useSocket();
   const { addToast } = useNotification();
 
+  const getInitialVisitorView = () => {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (hash === 'auth' || hash === 'login' || hash === 'signup') return 'auth';
+    return 'landing';
+  };
+
+  const [visitorView, setVisitorView] = useState(getInitialVisitorView);
+  const [initialLoginMode, setInitialLoginMode] = useState(() => {
+    const hash = window.location.hash.replace(/^#/, '');
+    return hash !== 'signup';
+  });
+
+  const validTabs = [
+    'dashboard',
+    'users',
+    'groups',
+    'tasks',
+    'meetings',
+    'files',
+    'announcements',
+    'activity',
+    'settings',
+    'profile',
+    'chat',
+  ];
+
   const getInitialTab = () => {
     const hash = window.location.hash.replace(/^#/, '');
     if (hash) {
       if (hash.startsWith('chat/')) return 'chat';
-      return hash;
+      if (validTabs.includes(hash)) return hash;
     }
-    return localStorage.getItem('nexus_current_tab') || 'dashboard';
+    const stored = localStorage.getItem('nexus_current_tab');
+    if (stored && validTabs.includes(stored)) return stored;
+    return 'dashboard';
   };
 
   const getInitialGroupId = () => {
@@ -63,20 +90,20 @@ function App() {
   const [selectedDashboardGroupId, setSelectedDashboardGroupId] = useState(null);
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     return localStorage.getItem('nexus_theme') === 'dark';
   });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Sync active tab to URL hash and localStorage
+  // Sync active tab to URL hash and localStorage when authenticated
   useEffect(() => {
+    if (!user) return;
     if (activeGroupId && currentTab === 'chat') {
       window.location.hash = `chat/${activeGroupId}`;
       localStorage.setItem('nexus_active_group_id', activeGroupId);
       localStorage.setItem('nexus_current_tab', 'chat');
-    } else if (currentTab) {
+    } else if (currentTab && validTabs.includes(currentTab)) {
       window.location.hash = currentTab;
       localStorage.setItem('nexus_current_tab', currentTab);
       if (currentTab !== 'chat') {
@@ -89,24 +116,39 @@ function App() {
     if (pageEl) {
       pageEl.scrollTop = 0;
     }
-  }, [currentTab, activeGroupId]);
+  }, [currentTab, activeGroupId, user]);
 
   // Listen to browser forward/back hashchange
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace(/^#/, '');
+      if (!user) {
+        if (hash === 'auth' || hash === 'login') {
+          setInitialLoginMode(true);
+          setVisitorView('auth');
+        } else if (hash === 'signup') {
+          setInitialLoginMode(false);
+          setVisitorView('auth');
+        } else if (hash === 'landing' || !hash || ['features', 'how-it-works', 'why-different', 'faq'].includes(hash)) {
+          setVisitorView('landing');
+        }
+        return;
+      }
+
       if (hash.startsWith('chat/')) {
         const gId = hash.replace('chat/', '');
         setActiveGroupId(gId);
         setCurrentTab('chat');
-      } else if (hash) {
+      } else if (hash && validTabs.includes(hash)) {
         if (hash !== 'chat') setActiveGroupId(null);
         setCurrentTab(hash);
+      } else {
+        setCurrentTab('dashboard');
       }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [user]);
 
   // Theme Toggler
   const toggleTheme = () => {
@@ -129,20 +171,34 @@ function App() {
     }
   }, [isDarkTheme]);
 
+  // Route Guard: Prevent non-admin users from accessing admin-only tabs
+  const adminOnlyTabs = ['users', 'activity'];
+  useEffect(() => {
+    if (user && !isAdmin && adminOnlyTabs.includes(currentTab)) {
+      setCurrentTab('dashboard');
+      window.location.hash = 'dashboard';
+      localStorage.setItem('nexus_current_tab', 'dashboard');
+    }
+  }, [user, isAdmin, currentTab]);
+
+  // Session State Cleanup: Reset state on user change or logout
+  useEffect(() => {
+    if (!user) {
+      setGroups([]);
+      setUsers([]);
+      setActiveGroupId(null);
+      setSelectedDashboardGroupId(null);
+      setSearchTerm('');
+    }
+  }, [user]);
+
   // Load Groups and Users when logged in
   const fetchWorkspaceData = useCallback(async () => {
     if (!user) return;
     try {
-      const [groupsRes, announceRes] = await Promise.all([
-        api.get('/groups'),
-        api.get('/announcements'),
-      ]);
-
+      const groupsRes = await api.get('/groups');
       if (groupsRes.data.success) {
         setGroups(groupsRes.data.groups);
-      }
-      if (announceRes.data.success) {
-        setAnnouncements(announceRes.data.announcements);
       }
 
       if (isAdmin) {
@@ -170,8 +226,15 @@ function App() {
 
     const handleMeetingNew = (meeting) => {
       const channelName = meeting.groupId?.name ? ` in #${meeting.groupId.name}` : '';
-      const meetTime = new Date(meeting.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      addToast(`📅 New meeting "${meeting.title}" scheduled for ${meetTime}${channelName}`, 'info', 6000);
+      const meetTime = new Date(meeting.dateTime).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      addToast(
+        `📅 New meeting "${meeting.title}" scheduled for ${meetTime}${channelName}`,
+        'info',
+        6000
+      );
     };
 
     const handleMeetingUpdated = (meeting) => {
@@ -183,13 +246,21 @@ function App() {
     };
 
     const handleTaskAssigned = (task) => {
-      const deadlineStr = new Date(task.deadline).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+      const deadlineStr = new Date(task.deadline).toLocaleDateString([], {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
       addToast(`📋 New task assigned: "${task.title}" — due ${deadlineStr}`, 'info', 6000);
     };
 
     const handleTaskStatusChanged = ({ task, changedBy, status }) => {
       if (isAdmin && changedBy?._id !== user?.id) {
-        addToast(`✅ ${changedBy?.name || 'Teammate'} moved "${task?.title || 'Task'}" to ${status.toUpperCase()}`, 'info', 4500);
+        addToast(
+          `✅ ${changedBy?.name || 'Teammate'} moved "${task?.title || 'Task'}" to ${status.toUpperCase()}`,
+          'info',
+          4500
+        );
       }
     };
 
@@ -217,23 +288,27 @@ function App() {
   // Loading Screen
   if (loading) {
     return (
-      <div style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'var(--color-bg)',
-        gap: '16px',
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          border: '3px solid var(--color-border)',
-          borderTopColor: 'var(--color-primary)',
-          animation: 'spin 0.8s linear infinite',
-        }} />
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'var(--color-bg)',
+          gap: '16px',
+        }}
+      >
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            border: '3px solid var(--color-border)',
+            borderTopColor: 'var(--color-primary)',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
         <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
           Loading SAAS Nexus Workspace...
@@ -242,9 +317,28 @@ function App() {
     );
   }
 
-  // Not Logged In -> Auth View
+  // Not Logged In -> Landing Page or Auth View
   if (!user) {
-    return <AuthPage />;
+    if (visitorView === 'auth') {
+      return (
+        <AuthPage
+          onBackToLanding={() => {
+            setVisitorView('landing');
+            window.location.hash = '';
+          }}
+          initialLoginMode={initialLoginMode}
+        />
+      );
+    }
+    return (
+      <LandingPage
+        onNavigateAuth={(isLogin) => {
+          setInitialLoginMode(isLogin);
+          setVisitorView('auth');
+          window.location.hash = isLogin ? 'login' : 'signup';
+        }}
+      />
+    );
   }
 
   // First Login Mandatory Password Reset (Only for provisioned team members)
@@ -256,10 +350,7 @@ function App() {
     <div className="app-container">
       {/* Mobile Sidebar Backdrop Overlay */}
       {isMobileSidebarOpen && (
-        <div
-          className="sidebar-backdrop"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
+        <div className="sidebar-backdrop" onClick={() => setIsMobileSidebarOpen(false)} />
       )}
 
       {/* Slack-style Fixed / Responsive Left Sidebar */}
@@ -318,7 +409,18 @@ function App() {
           />
         ) : isAdmin ? (
           <>
-            {currentTab === 'dashboard' && (
+            {(![
+              'users',
+              'groups',
+              'tasks',
+              'meetings',
+              'files',
+              'announcements',
+              'activity',
+              'settings',
+              'chat',
+            ].includes(currentTab) ||
+              currentTab === 'dashboard') && (
               <AdminDashboard
                 setTab={setCurrentTab}
                 onOpenCreateUser={() => setCurrentTab('users')}
@@ -367,7 +469,17 @@ function App() {
           </>
         ) : (
           <>
-            {currentTab === 'dashboard' && (
+            {(![
+              'groups',
+              'tasks',
+              'meetings',
+              'files',
+              'announcements',
+              'settings',
+              'profile',
+              'chat',
+            ].includes(currentTab) ||
+              currentTab === 'dashboard') && (
               <UserDashboard
                 setTab={setCurrentTab}
                 onSelectGroup={(groupId) => {

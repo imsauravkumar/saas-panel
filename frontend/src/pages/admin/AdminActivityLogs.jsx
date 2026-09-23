@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Activity,
-  Filter,
-  Shield,
-  Clock,
-  User,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
@@ -18,7 +12,9 @@ const AdminActivityLogs = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const url = targetTypeFilter ? `/activity-logs?targetType=${targetTypeFilter}` : '/activity-logs';
+      const url = targetTypeFilter
+        ? `/activity-logs?targetType=${targetTypeFilter}`
+        : '/activity-logs';
       const { data } = await api.get(url);
       if (data.success) {
         setLogs(data.logs);
@@ -72,16 +68,34 @@ const AdminActivityLogs = () => {
             </tr>
           </thead>
           <tbody>
-            {logs.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>
+                <td
+                  colSpan="5"
+                  style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}
+                >
+                  Loading audit logs...
+                </td>
+              </tr>
+            ) : logs.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}
+                >
                   No audit entries found.
                 </td>
               </tr>
             ) : (
               logs.map((log) => (
                 <tr key={log._id}>
-                  <td style={{ fontSize: '12px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Clock size={12} />
                       <span>{new Date(log.timestamp).toLocaleString()}</span>
@@ -90,16 +104,32 @@ const AdminActivityLogs = () => {
 
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Avatar name={log.actorId?.name || 'System'} src={log.actorId?.avatar} size="sm" />
+                      <Avatar
+                        name={log.actorId?.name || 'System'}
+                        src={log.actorId?.avatar}
+                        size="sm"
+                      />
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '13px' }}>{log.actorId?.name || 'System Actor'}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{log.actorId?.email}</div>
+                        <div style={{ fontWeight: 600, fontSize: '13px' }}>
+                          {log.actorId?.name || 'System Actor'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                          {log.actorId?.email}
+                        </div>
                       </div>
                     </div>
                   </td>
 
                   <td>
-                    <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11.5px', backgroundColor: 'var(--color-surface-alt)', padding: '3px 6px', borderRadius: '4px' }}>
+                    <code
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11.5px',
+                        backgroundColor: 'var(--color-surface-alt)',
+                        padding: '3px 6px',
+                        borderRadius: '4px',
+                      }}
+                    >
                       {log.action}
                     </code>
                   </td>

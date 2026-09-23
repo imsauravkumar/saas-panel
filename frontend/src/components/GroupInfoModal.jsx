@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Users,
   UserPlus,
@@ -12,8 +12,6 @@ import {
   Camera,
   Loader2,
   AlertCircle,
-  X,
-  Check,
   Upload,
   Eye,
 } from 'lucide-react';
@@ -99,7 +97,11 @@ const GroupInfoModal = ({
     const email = m.email || '';
     const post = m.post || '';
     const term = memberSearch.toLowerCase();
-    return name.toLowerCase().includes(term) || email.toLowerCase().includes(term) || post.toLowerCase().includes(term);
+    return (
+      name.toLowerCase().includes(term) ||
+      email.toLowerCase().includes(term) ||
+      post.toLowerCase().includes(term)
+    );
   });
 
   // Handle Channel Photo Upload
@@ -174,7 +176,7 @@ const GroupInfoModal = ({
           await api.patch(`/groups/${group._id}/permission`, {
             chatPermission: editPermission,
           });
-        } catch (permErr) {
+        } catch (_permErr) {
           console.warn('Permission patch fallback note:', permErr);
         }
       }
@@ -254,25 +256,29 @@ const GroupInfoModal = ({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title={isEditing ? `Edit Channel: #${group.name}` : "Channel Info & Settings"}
+        title={isEditing ? `Edit Channel: #${group.name}` : 'Channel Info & Settings'}
         maxWidth="560px"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          
           {/* Top Hero Photo & Basic Info Banner */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            padding: '20px 16px',
-            backgroundColor: 'var(--color-surface-alt)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
-            position: 'relative',
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              padding: '20px 16px',
+              backgroundColor: 'var(--color-surface-alt)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+              position: 'relative',
+            }}
+          >
             {/* Big Channel Avatar with Interactive Click Menu */}
-            <div ref={photoMenuRef} style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>
+            <div
+              ref={photoMenuRef}
+              style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}
+            >
               <div
                 onClick={() => {
                   if (userIsAdmin) {
@@ -297,11 +303,17 @@ const GroupInfoModal = ({
                   boxShadow: 'var(--shadow-md)',
                   overflow: 'hidden',
                   border: '3px solid var(--color-surface)',
-                  cursor: (userIsAdmin || group.avatar) ? 'pointer' : 'default',
+                  cursor: userIsAdmin || group.avatar ? 'pointer' : 'default',
                   position: 'relative',
                   transition: 'transform 0.15s ease',
                 }}
-                title={userIsAdmin ? "Click to manage channel photo" : group.avatar ? "Click to view full photo" : undefined}
+                title={
+                  userIsAdmin
+                    ? 'Click to manage channel photo'
+                    : group.avatar
+                      ? 'Click to view full photo'
+                      : undefined
+                }
               >
                 {avatarLoading ? (
                   <Loader2 size={30} className="spin" />
@@ -332,7 +344,11 @@ const GroupInfoModal = ({
                     onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
                   >
-                    {userIsAdmin ? <Camera size={24} color="#FFFFFF" /> : <Eye size={24} color="#FFFFFF" />}
+                    {userIsAdmin ? (
+                      <Camera size={24} color="#FFFFFF" />
+                    ) : (
+                      <Eye size={24} color="#FFFFFF" />
+                    )}
                   </div>
                 )}
               </div>
@@ -409,7 +425,9 @@ const GroupInfoModal = ({
                       width: '100%',
                       fontWeight: 500,
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <Upload size={14} color="var(--color-primary)" />
@@ -438,7 +456,9 @@ const GroupInfoModal = ({
                         width: '100%',
                         fontWeight: 500,
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)')
+                      }
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <Eye size={14} color="var(--color-primary)" />
@@ -468,7 +488,9 @@ const GroupInfoModal = ({
                         width: '100%',
                         fontWeight: 500,
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-danger-soft)')}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = 'var(--color-danger-soft)')
+                      }
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <Trash2 size={14} />
@@ -494,15 +516,34 @@ const GroupInfoModal = ({
             {/* View Mode Titles & Info */}
             {!isEditing ? (
               <>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                <h2
+                  style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-primary)' }}
+                >
                   #{group.name}
                 </h2>
-                <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px', maxWidth: '440px', lineHeight: 1.45 }}>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '4px',
+                    maxWidth: '440px',
+                    lineHeight: 1.45,
+                  }}
+                >
                   {group.description || 'No description provided for this channel.'}
                 </p>
 
                 {/* Badges Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginTop: '12px',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                  }}
+                >
                   <Badge variant={isLocked ? 'warning' : 'neutral'}>
                     {isLocked ? 'Admin Only Broadcast' : 'Everyone Can Chat'}
                   </Badge>
@@ -510,9 +551,22 @@ const GroupInfoModal = ({
                     {members.length} Members
                   </Badge>
                   {group.createdAt && (
-                    <span style={{ fontSize: '11.5px', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--color-text-tertiary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
                       <Calendar size={12} />
-                      Created {new Date(group.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                      Created{' '}
+                      {new Date(group.createdAt).toLocaleDateString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </span>
                   )}
                 </div>
@@ -529,7 +583,13 @@ const GroupInfoModal = ({
                       setEditError('');
                       setIsEditing(true);
                     }}
-                    style={{ marginTop: '14px', fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{
+                      marginTop: '14px',
+                      fontSize: '12.5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
                   >
                     <Edit2 size={13} /> Edit Details & Permissions
                   </button>
@@ -540,20 +600,35 @@ const GroupInfoModal = ({
 
           {/* Dedicated Channel Edit Form (When Edit Mode is active) */}
           {userIsAdmin && isEditing && (
-            <form onSubmit={handleSaveGroupSettings} style={{
-              padding: '16px',
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            <form
+              onSubmit={handleSaveGroupSettings}
+              style={{
+                padding: '16px',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid var(--color-border)',
+                  paddingBottom: '8px',
+                }}
+              >
+                <h3
+                  style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)' }}
+                >
                   Edit Channel Details & Permissions
                 </h3>
-                <span style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>Editing Mode</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>
+                  Editing Mode
+                </span>
               </div>
 
               {editError && (
@@ -616,14 +691,33 @@ const GroupInfoModal = ({
                       padding: '10px 12px',
                       borderRadius: 'var(--radius-md)',
                       border: `1px solid ${editPermission === 'everyone' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                      backgroundColor: editPermission === 'everyone' ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                      backgroundColor:
+                        editPermission === 'everyone'
+                          ? 'var(--color-primary-soft)'
+                          : 'var(--color-surface)',
                       cursor: 'pointer',
                     }}
                   >
-                    <input type="radio" name="modalChatPerm" checked={editPermission === 'everyone'} onChange={() => {}} style={{ marginTop: '2px' }} />
+                    <input
+                      type="radio"
+                      name="modalChatPerm"
+                      checked={editPermission === 'everyone'}
+                      onChange={() => {}}
+                      style={{ marginTop: '2px' }}
+                    />
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>Everyone Can Chat</div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>All channel members can post messages and attachments</div>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '13px',
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
+                        Everyone Can Chat
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                        All channel members can post messages and attachments
+                      </div>
                     </div>
                   </label>
 
@@ -636,20 +730,46 @@ const GroupInfoModal = ({
                       padding: '10px 12px',
                       borderRadius: 'var(--radius-md)',
                       border: `1px solid ${editPermission === 'adminOnly' ? 'var(--color-warning)' : 'var(--color-border)'}`,
-                      backgroundColor: editPermission === 'adminOnly' ? 'var(--color-warning-soft)' : 'var(--color-surface)',
+                      backgroundColor:
+                        editPermission === 'adminOnly'
+                          ? 'var(--color-warning-soft)'
+                          : 'var(--color-surface)',
                       cursor: 'pointer',
                     }}
                   >
-                    <input type="radio" name="modalChatPerm" checked={editPermission === 'adminOnly'} onChange={() => {}} style={{ marginTop: '2px' }} />
+                    <input
+                      type="radio"
+                      name="modalChatPerm"
+                      checked={editPermission === 'adminOnly'}
+                      onChange={() => {}}
+                      style={{ marginTop: '2px' }}
+                    />
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>Only Admin Can Chat (Broadcast Mode)</div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Members can read messages, but only workspace admins can post</div>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '13px',
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
+                        Only Admin Can Chat (Broadcast Mode)
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                        Members can read messages, but only workspace admins can post
+                      </div>
                     </div>
                   </label>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '10px',
+                  marginTop: '6px',
+                }}
+              >
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
@@ -675,7 +795,9 @@ const GroupInfoModal = ({
           {/* Members List Section (WhatsApp style) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+              <div
+                style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)' }}
+              >
                 {members.length} Participants
               </div>
 
@@ -684,7 +806,13 @@ const GroupInfoModal = ({
                   type="button"
                   className="btn btn-primary btn-sm"
                   onClick={() => setIsAddMembersOpen(true)}
-                  style={{ fontSize: '12px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  style={{
+                    fontSize: '12px',
+                    padding: '4px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
                 >
                   <UserPlus size={13} /> Add Member
                 </button>
@@ -706,18 +834,27 @@ const GroupInfoModal = ({
             )}
 
             {/* Member List */}
-            <div style={{
-              maxHeight: '220px',
-              overflowY: 'auto',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '4px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '2px',
-            }}>
+            <div
+              style={{
+                maxHeight: '220px',
+                overflowY: 'auto',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              }}
+            >
               {filteredMembers.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '20px',
+                    fontSize: '13px',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
                   No members found.
                 </div>
               ) : (
@@ -737,27 +874,56 @@ const GroupInfoModal = ({
                         backgroundColor: isSelf ? 'var(--color-surface-alt)' : 'transparent',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
                         <Avatar name={m.name} src={m.avatar} size="sm" />
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                              {m.name} {isSelf && <span style={{ color: 'var(--color-primary)', fontWeight: 500 }}>(You)</span>}
+                            <span
+                              style={{
+                                fontWeight: 600,
+                                fontSize: '13px',
+                                color: 'var(--color-text-primary)',
+                              }}
+                            >
+                              {m.name}{' '}
+                              {isSelf && (
+                                <span style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+                                  (You)
+                                </span>
+                              )}
                             </span>
                             {isMemberAdmin && (
-                              <span style={{
-                                fontSize: '9.5px',
-                                fontWeight: 800,
-                                backgroundColor: 'var(--color-primary-soft)',
-                                color: 'var(--color-primary)',
-                                padding: '1px 5px',
-                                borderRadius: '4px',
-                              }}>
+                              <span
+                                style={{
+                                  fontSize: '9.5px',
+                                  fontWeight: 800,
+                                  backgroundColor: 'var(--color-primary-soft)',
+                                  color: 'var(--color-primary)',
+                                  padding: '1px 5px',
+                                  borderRadius: '4px',
+                                }}
+                              >
                                 ADMIN
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          <div
+                            style={{
+                              fontSize: '11.5px',
+                              color: 'var(--color-text-secondary)',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
                             {m.post || m.email}
                           </div>
                         </div>
@@ -784,13 +950,15 @@ const GroupInfoModal = ({
 
           {/* Danger Zone: Delete Channel (Only Admin) */}
           {userIsAdmin && (
-            <div style={{
-              borderTop: '1px solid var(--color-border)',
-              paddingTop: '12px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
+            <div
+              style={{
+                borderTop: '1px solid var(--color-border)',
+                paddingTop: '12px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)' }}>
                   Delete this channel

@@ -6,7 +6,8 @@ const crypto = require('crypto');
  */
 const generateFallbackMeetLink = () => {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
-  const randStr = (len) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const randStr = (len) =>
+    Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   return `https://meet.google.com/${randStr(3)}-${randStr(4)}-${randStr(3)}`;
 };
 
@@ -15,19 +16,29 @@ const generateFallbackMeetLink = () => {
  */
 const getCalendarClient = () => {
   try {
-    if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+    if (
+      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+      process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    ) {
       const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n');
       const auth = new google.auth.JWT(
         process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         null,
         privateKey,
-        ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events'],
+        [
+          'https://www.googleapis.com/auth/calendar',
+          'https://www.googleapis.com/auth/calendar.events',
+        ],
         process.env.GOOGLE_IMPERSONATED_ADMIN_EMAIL || undefined
       );
       return google.calendar({ version: 'v3', auth });
     }
 
-    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN) {
+    if (
+      process.env.GOOGLE_CLIENT_ID &&
+      process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_REFRESH_TOKEN
+    ) {
       const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
@@ -71,14 +82,19 @@ const createEventWithMeet = async ({ summary, description, start, end, attendeeE
         },
       });
 
-      const hangoutLink = res.data.hangoutLink || res.data.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === 'video')?.uri;
+      const hangoutLink =
+        res.data.hangoutLink ||
+        res.data.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === 'video')?.uri;
 
       return {
         eventId: res.data.id,
         meetLink: hangoutLink || generateFallbackMeetLink(),
       };
     } catch (err) {
-      console.warn('[Google Calendar API Error]: Falling back to standard Meet link generation:', err.message);
+      console.warn(
+        '[Google Calendar API Error]: Falling back to standard Meet link generation:',
+        err.message
+      );
     }
   }
 

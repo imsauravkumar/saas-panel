@@ -13,7 +13,12 @@ const authenticate = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Authentication required. No token provided.' });
+    const msg = 'Authentication required. No token provided.';
+    return res.status(401).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 
   try {
@@ -28,14 +33,22 @@ const authenticate = async (req, res, next) => {
         // checkRevoked: true ensures revoked sessions / disabled users fail instantly
         const decodedFirebase = await admin.auth().verifyIdToken(token, true);
         decodedUser = await User.findOne({
-          $or: [{ firebaseUid: decodedFirebase.uid }, { email: decodedFirebase.email?.toLowerCase() }],
+          $or: [
+            { firebaseUid: decodedFirebase.uid },
+            { email: decodedFirebase.email?.toLowerCase() },
+          ],
         });
         authType = 'firebase';
         tokenClaimRole = decodedFirebase.role || null;
       } catch (fbErr) {
         // If revoked or invalid, do not fall back silently if it was a Firebase token
         if (fbErr.code === 'auth/id-token-revoked' || fbErr.code === 'auth/user-disabled') {
-          return res.status(401).json({ success: false, message: 'Your session has been revoked. Please sign in again.' });
+          const msg = 'Your session has been revoked. Please sign in again.';
+          return res.status(401).json({
+            success: false,
+            error: msg,
+            message: msg,
+          });
         }
       }
     }
@@ -49,16 +62,29 @@ const authenticate = async (req, res, next) => {
     }
 
     if (!decodedUser) {
-      return res.status(401).json({ success: false, message: 'User not found or token expired.' });
+      const msg = 'User not found or token expired.';
+      return res.status(401).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
     if (decodedUser.status === 'disabled') {
-      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Please contact your workspace administrator.' });
+      const msg = 'Your account has been deactivated. Please contact your workspace administrator.';
+      return res.status(403).json({
+        success: false,
+        error: msg,
+        message: msg,
+      });
     }
 
     // 3. Backend Forced Password Reset Guard
     // If user must reset initial password, block access to all routes except reset/password and logout
-    if (decodedUser.role !== 'admin' && (decodedUser.mustResetPassword || decodedUser.mustChangePassword)) {
+    if (
+      decodedUser.role !== 'admin' &&
+      (decodedUser.mustResetPassword || decodedUser.mustChangePassword)
+    ) {
       const allowedPaths = [
         '/me/password',
         '/users/me/password',
@@ -76,10 +102,13 @@ const authenticate = async (req, res, next) => {
       const isAllowed = allowedPaths.some((p) => currentPath.includes(p));
 
       if (!isAllowed) {
+        const msg =
+          'Initial temporary password reset is required before accessing workspace resources.';
         return res.status(403).json({
           success: false,
           code: 'MUST_RESET_PASSWORD',
-          message: 'Initial temporary password reset is required before accessing workspace resources.',
+          error: msg,
+          message: msg,
         });
       }
     }
@@ -90,7 +119,12 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('[Auth Middleware Error]:', error.message);
-    return res.status(401).json({ success: false, message: 'Invalid or expired authentication token.' });
+    const msg = 'Invalid or expired authentication token.';
+    return res.status(401).json({
+      success: false,
+      error: msg,
+      message: msg,
+    });
   }
 };
 
@@ -99,17 +133,21 @@ const authenticate = async (req, res, next) => {
  */
 const requireAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
+    const msg = 'Access denied. Administrator privileges are required for this action.';
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Administrator privileges are required for this action.',
+      error: msg,
+      message: msg,
     });
   }
 
   // Cross-check token claim if present
   if (req.tokenClaimRole && req.tokenClaimRole !== 'admin') {
+    const msg = 'Security alert: Role mismatch between authentication claim and database role.';
     return res.status(403).json({
       success: false,
-      message: 'Security alert: Role mismatch between authentication claim and database role.',
+      error: msg,
+      message: msg,
     });
   }
 
@@ -129,7 +167,7 @@ const optionalAuth = async (req, res, next) => {
       const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decodedJwt.id);
     }
-  } catch (err) {
+  } catch (_err) {
     // Ignore error in optional auth
   }
   next();

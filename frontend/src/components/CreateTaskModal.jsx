@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { CheckSquare, Calendar, Clock, AlertCircle, Users, Search, X, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { CheckSquare, AlertCircle, Search, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -42,7 +42,9 @@ const CreateTaskModal = ({
       // Default deadline: 3 days from now
       const defaultDeadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
       defaultDeadline.setHours(18, 0, 0, 0);
-      const dlStr = new Date(defaultDeadline.getTime() - defaultDeadline.getTimezoneOffset() * 60000)
+      const dlStr = new Date(
+        defaultDeadline.getTime() - defaultDeadline.getTimezoneOffset() * 60000
+      )
         .toISOString()
         .slice(0, 16);
 
@@ -61,9 +63,10 @@ const CreateTaskModal = ({
 
   // Candidates for assignment (if group is selected, filter by group members)
   const selectedGroup = groups.find((g) => g._id === formData.groupId);
-  const candidateUsers = selectedGroup && selectedGroup.memberIds?.length > 0
-    ? allUsers.filter((u) => selectedGroup.memberIds.some((m) => (m._id || m) === u._id))
-    : allUsers;
+  const candidateUsers =
+    selectedGroup && selectedGroup.memberIds?.length > 0
+      ? allUsers.filter((u) => selectedGroup.memberIds.some((m) => (m._id || m) === u._id))
+      : allUsers;
 
   const filteredUsers = candidateUsers.filter(
     (u) =>
@@ -135,7 +138,10 @@ const CreateTaskModal = ({
       title={isEdit ? 'Edit Work Task' : 'Create & Assign Work Task'}
       maxWidth="620px"
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
         {error && (
           <div
             style={{
@@ -226,7 +232,14 @@ const CreateTaskModal = ({
 
         {/* Assignees Selection Checklist */}
         <div className="form-group" style={{ marginBottom: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+            }}
+          >
             <label className="form-label" style={{ marginBottom: 0 }}>
               Assign Teammates ({formData.assignedTo.length} selected) *
             </label>
@@ -286,7 +299,14 @@ const CreateTaskModal = ({
             }}
           >
             {filteredUsers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '16px',
+                  fontSize: '12px',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
                 No active users found.
               </div>
             ) : (
@@ -303,7 +323,9 @@ const CreateTaskModal = ({
                       padding: '8px 10px',
                       borderRadius: 'var(--radius-sm)',
                       backgroundColor: isSelected ? 'var(--color-surface)' : 'transparent',
-                      border: isSelected ? '1px solid var(--color-border)' : '1px solid transparent',
+                      border: isSelected
+                        ? '1px solid var(--color-border)'
+                        : '1px solid transparent',
                       cursor: 'pointer',
                       transition: 'all 120ms ease',
                     }}
@@ -350,7 +372,12 @@ const CreateTaskModal = ({
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ minWidth: '150px' }}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+            style={{ minWidth: '150px' }}
+          >
             {loading ? (
               <>
                 <Loader2 size={16} className="spin-animation" />

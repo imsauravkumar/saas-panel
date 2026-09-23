@@ -71,7 +71,9 @@ async function runSocketLoadSimulation() {
   const connectDuration = Date.now() - connectStartTime;
   console.log(`✓ ${totalClients} sockets connected and joined room in ${connectDuration}ms`);
 
-  console.log(`\n[Phase 2]: Transmitting messages (${totalClients} clients × ${messagesPerClient} msgs)...`);
+  console.log(
+    `\n[Phase 2]: Transmitting messages (${totalClients} clients × ${messagesPerClient} msgs)...`
+  );
   const transmitStartTime = Date.now();
 
   for (let round = 0; round < messagesPerClient; round++) {
@@ -107,7 +109,9 @@ async function runSocketLoadSimulation() {
   console.log(`• Median Broadcast Latency      : ${medianLatency} ms (<300ms target PASSED)`);
   console.log(`• 95th Percentile Latency (p95) : ${p95Latency} ms`);
   console.log(`• 99th Percentile Latency (p99) : ${p99Latency} ms`);
-  console.log(`• Heap Used                     : ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+  console.log(
+    `• Heap Used                     : ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`
+  );
   console.log(`• RSS Memory                    : ${(memUsage.rss / 1024 / 1024).toFixed(2)} MB`);
   console.log('====================================================\n');
 

@@ -31,7 +31,9 @@ const getFiles = async (req, res) => {
       // Validate that user is allowed to access this group's files
       const hasAccess = userGroupIds.some((id) => id.toString() === groupId.toString());
       if (!hasAccess && req.user.role !== 'admin') {
-        return res.status(403).json({ success: false, message: 'Access denied to files in this channel' });
+        return res
+          .status(403)
+          .json({ success: false, message: 'Access denied to files in this channel' });
       }
       query.groupId = groupId;
     } else {
