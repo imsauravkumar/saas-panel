@@ -715,27 +715,87 @@ const AdminUsers = ({ groups = [] }) => {
               />
             </div>
 
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Role & Access Level *</label>
+              <select
+                className="form-select"
+                value={formData.role}
+                onChange={(e) => {
+                  const role = e.target.value;
+                  setFormData({
+                    ...formData,
+                    role,
+                    post: role === 'admin' && (!formData.post || formData.post === 'Team Member' || formData.post === 'MERN Developer') ? 'Manager' : formData.post,
+                  });
+                }}
+              >
+                <option value="user">Standard User (Team Member)</option>
+                <option value="admin">Administrator (Full Admin Access: CEO, Manager, HR)</option>
+              </select>
+              {formData.role === 'admin' && (
+                <div
+                  style={{
+                    marginTop: '6px',
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--color-primary-soft)',
+                    border: '1px solid var(--color-primary)',
+                    fontSize: '12px',
+                    color: 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Shield size={14} />
+                  <span>
+                    <strong>Full Administrative Privileges:</strong> This member will have complete access to team management, role administration, security, meetings, channels, and audit logs.
+                  </span>
+                </div>
+              )}
+            </div>
+
             <div className="responsive-form-row">
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Post / Role Label</label>
+                <label className="form-label">Post / Role Label (e.g. CEO, Manager, HR)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Senior MERN Developer"
+                  placeholder="e.g. CEO, Manager, HR Director, Lead Engineer"
                   className="form-input"
+                  list="suggested-posts-create"
                   value={formData.post}
                   onChange={(e) => setFormData({ ...formData, post: e.target.value })}
                 />
+                <datalist id="suggested-posts-create">
+                  <option value="CEO" />
+                  <option value="Manager" />
+                  <option value="HR Director" />
+                  <option value="Lead Engineer" />
+                  <option value="Project Manager" />
+                  <option value="Product Manager" />
+                  <option value="UI/UX Designer" />
+                  <option value="Team Member" />
+                </datalist>
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Department</label>
                 <input
                   type="text"
-                  placeholder="e.g. Engineering"
+                  placeholder="e.g. Executive, Management, HR, Engineering"
                   className="form-input"
+                  list="suggested-depts-create"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 />
+                <datalist id="suggested-depts-create">
+                  <option value="Executive" />
+                  <option value="Management" />
+                  <option value="Human Resources" />
+                  <option value="Engineering" />
+                  <option value="Product & Design" />
+                  <option value="Marketing" />
+                </datalist>
               </div>
             </div>
 
@@ -858,12 +918,25 @@ const AdminUsers = ({ groups = [] }) => {
               </div>
             </div>
 
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Role & Access Level</label>
+              <select
+                className="form-select"
+                value={editingUser.role || 'user'}
+                onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+              >
+                <option value="user">Standard User (Team Member)</option>
+                <option value="admin">Administrator (Full Admin Access: CEO, Manager, HR)</option>
+              </select>
+            </div>
+
             <div className="responsive-form-row">
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Post / Role Label</label>
+                <label className="form-label">Post / Role Label (e.g. CEO, Manager, HR)</label>
                 <input
                   type="text"
                   className="form-input"
+                  list="suggested-posts-create"
                   value={editingUser.post || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, post: e.target.value })}
                 />
@@ -874,22 +947,11 @@ const AdminUsers = ({ groups = [] }) => {
                 <input
                   type="text"
                   className="form-input"
+                  list="suggested-depts-create"
                   value={editingUser.department || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, department: e.target.value })}
                 />
               </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Role Hierarchy</label>
-              <select
-                className="form-select"
-                value={editingUser.role || 'user'}
-                onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-              >
-                <option value="user">Standard User</option>
-                <option value="admin">Administrator</option>
-              </select>
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>

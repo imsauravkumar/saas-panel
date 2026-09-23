@@ -131,22 +131,32 @@ const AuthPage = ({ onBackToLanding, initialLoginMode = true }) => {
         position: 'relative',
       }}
     >
-      {/* Back to Landing Page Link */}
+      {/* Back to Landing Page Link - Stable Fixed Position */}
       {onBackToLanding && (
         <button
           type="button"
           onClick={onBackToLanding}
           className="btn btn-ghost"
           style={{
-            position: 'absolute',
-            top: '24px',
-            left: '24px',
-            color: '#94A3B8',
-            fontSize: '13.5px',
+            position: 'fixed',
+            top: '20px',
+            left: '20px',
+            zIndex: 100,
+            color: '#E2E8F0',
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 14px',
+            fontSize: '13px',
+            fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             textDecoration: 'none',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+            cursor: 'pointer',
+            transition: 'all var(--transition-fast)',
           }}
         >
           <ArrowLeft size={16} />
