@@ -176,7 +176,7 @@ const GroupInfoModal = ({
           await api.patch(`/groups/${group._id}/permission`, {
             chatPermission: editPermission,
           });
-        } catch (_permErr) {
+        } catch (permErr) {
           console.warn('Permission patch fallback note:', permErr);
         }
       }

@@ -74,7 +74,6 @@ const VoiceRecorder = ({ onRecordingComplete, onCancel }) => {
 
       mediaRecorder.start(200);
       setIsRecording(true);
-      setIsPaused(false);
       setRecordingTime(0);
 
       timerRef.current = setInterval(() => {

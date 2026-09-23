@@ -66,7 +66,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
             await api.put(`/groups/${data.group._id}/avatar`, avatarFormData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
-          } catch (_avatarErr) {
+          } catch (avatarErr) {
             console.warn('Avatar upload failed on creation:', avatarErr);
           }
         }

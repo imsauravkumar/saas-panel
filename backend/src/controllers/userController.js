@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Task = require('../models/Task');
+const Meeting = require('../models/Meeting');
+const Message = require('../models/Message');
 const ActivityLog = require('../models/ActivityLog');
 const { admin, getFirebaseApp } = require('../config/firebase');
 const { logActivity } = require('../middleware/activityLogger');
@@ -55,7 +57,7 @@ const getUsers = async (req, res) => {
       limit,
       totalPages: Math.ceil(total / limit) || 1,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get Users Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch users directory' });
   }
@@ -116,7 +118,7 @@ const getUserById = async (req, res) => {
       },
       recentActivity,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get User Detail Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch user details' });
   }
@@ -175,7 +177,7 @@ const createUser = async (req, res) => {
         try {
           const existingFb = await admin.auth().getUserByEmail(emailLower);
           firebaseUid = existingFb.uid;
-        } catch (_e) {
+        } catch (e) {
           // Continue with fallback uid if local dev
         }
       }
@@ -244,7 +246,7 @@ const createUser = async (req, res) => {
       },
       temporaryPassword: password,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Create User Error]:', error);
     return res
       .status(500)
@@ -330,7 +332,7 @@ const updateUser = async (req, res) => {
       message: 'User details updated successfully',
       user: populatedUser,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Update User Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update user' });
   }
@@ -368,7 +370,7 @@ const updateUserPost = async (req, res) => {
       message: 'Role/Post label updated',
       user,
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to update user post',
@@ -443,7 +445,7 @@ const toggleUserStatus = async (req, res) => {
       message: `User account is now ${newStatus}`,
       status: user.status,
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to change user status',
@@ -503,7 +505,7 @@ const adminResetUserPassword = async (req, res) => {
       message: 'Temporary password generated successfully.',
       temporaryPassword: newTempPassword,
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to reset user password',
@@ -579,7 +581,7 @@ const deleteUser = async (req, res) => {
       success: true,
       message: 'User permanently removed from workspace.',
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to delete user',
@@ -663,7 +665,7 @@ const bulkUserAction = async (req, res) => {
       error: 'Unsupported bulk action',
       message: 'Unsupported bulk action',
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to process bulk user action',
@@ -730,7 +732,7 @@ const changeMyPassword = async (req, res) => {
       success: true,
       message: 'Password updated successfully.',
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to update password',
@@ -777,7 +779,7 @@ const getMyProfile = async (req, res) => {
         createdAt: user.createdAt,
       },
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch profile',
@@ -816,7 +818,7 @@ const updateProfile = async (req, res) => {
         phone: user.phone,
       },
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to update profile',
@@ -870,7 +872,7 @@ const updateMyAvatar = async (req, res) => {
         avatar: user.avatar,
       },
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Update Avatar Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update avatar' });
   }
@@ -901,7 +903,7 @@ const getMyActivity = async (req, res) => {
         recentLogs,
       },
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get My Activity Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to load personal activity' });
   }
@@ -957,7 +959,7 @@ const updateNotificationPreferences = async (req, res) => {
       message: 'Notification preferences updated successfully',
       notificationPreferences: user.notificationPreferences,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Update Notification Preferences Error]:', error);
     return res
       .status(500)

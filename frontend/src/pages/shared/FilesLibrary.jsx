@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FolderOpen, FileText, Search, Download, Grid, List, Hash, X } from 'lucide-react';
+import {
+  FolderOpen,
+  FileText,
+  Search,
+  Download,
+  Grid,
+  List,
+  Hash,
+  X,
+  Image as ImageIcon,
+} from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../../components/Avatar';
 

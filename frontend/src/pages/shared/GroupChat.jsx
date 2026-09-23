@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Send,
   Paperclip,
@@ -25,6 +25,10 @@ import {
   Folder,
   Lock,
   MessageSquare,
+  Users,
+  User as UserIcon,
+  Video as VideoIcon,
+  Image as ImageIcon,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -51,14 +55,16 @@ const GroupChat = ({
   onSelectGroup,
   embedded = false,
   allUsers = [],
+  activeDirectUserId = null,
+  onSelectDirectUser = null,
 }) => {
   const { user, isAdmin } = useAuth();
   const { socket, onlineUsers, joinGroupRoom, leaveGroupRoom } = useSocket();
   const { addToast } = useNotification();
 
   // Navigation / Mode State
-  const [sidebarTab, setSidebarTab] = useState('channels'); // 'channels' | 'direct'
-  const [chatMode, setChatMode] = useState('group'); // 'group' | 'direct'
+  const [sidebarTab, setSidebarTab] = useState(activeDirectUserId ? 'direct' : 'channels'); // 'channels' | 'direct'
+  const [chatMode, setChatMode] = useState(activeDirectUserId ? 'direct' : 'group'); // 'group' | 'direct'
   const [currentGroup, setCurrentGroup] = useState(null);
   const [currentRecipient, setCurrentRecipient] = useState(null);
   const [directConversations, setDirectConversations] = useState([]);
@@ -179,6 +185,28 @@ const GroupChat = ({
       }
     }
   }, [activeGroupId, groups, onSelectGroup]);
+
+  // Auto-select direct recipient when activeDirectUserId prop changes
+  useEffect(() => {
+    if (activeDirectUserId && workspaceUsers.length > 0) {
+      const found = workspaceUsers.find(
+        (u) => (u._id || u.id || '').toString() === activeDirectUserId.toString()
+      );
+      if (found) {
+        setSidebarTab('direct');
+        setChatMode('direct');
+        const isSelf =
+          (found._id || found.id || '').toString() === (user?.id || user?._id || '').toString();
+        setCurrentRecipient({
+          ...found,
+          _id: (found._id || found.id).toString(),
+          name: isSelf ? `${user?.name || found.name} (You)` : found.name,
+          isSelf,
+        });
+        setCurrentGroup(null);
+      }
+    }
+  }, [activeDirectUserId, workspaceUsers, user]);
 
   // Fetch Messages for Current Group or Direct Recipient
   const fetchMessages = useCallback(async () => {
@@ -859,14 +887,67 @@ const GroupChat = ({
     return groups.filter((g) => g.name.toLowerCase().includes(sidebarSearch.toLowerCase()));
   }, [groups, sidebarSearch]);
 
+  // Combine all workspace users + active direct conversations so all team members appear
+  const allTeammatesList = useMemo(() => {
+    const map = new Map();
+
+    // 1. Add current user first
+    if (user) {
+      map.set((user.id || user._id || '').toString(), {
+        teammate: {
+          _id: user.id || user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          post: user.post || 'Team Member',
+          department: user.department,
+          role: user.role,
+        },
+        isSelf: true,
+        lastMessage: null,
+      });
+    }
+
+    // 2. Add all workspace users
+    (workspaceUsers || []).forEach((u) => {
+      const uId = (u._id || u.id || '').toString();
+      const isSelf = uId === (user?.id || user?._id || '').toString();
+      if (!map.has(uId)) {
+        map.set(uId, {
+          teammate: u,
+          isSelf,
+          lastMessage: null,
+        });
+      }
+    });
+
+    // 3. Merge recent direct conversations last message info
+    (directConversations || []).forEach((c) => {
+      if (c.teammate) {
+        const tId = (c.teammate._id || c.teammate.id || '').toString();
+        if (map.has(tId)) {
+          map.set(tId, {
+            ...map.get(tId),
+            ...c,
+          });
+        } else {
+          map.set(tId, c);
+        }
+      }
+    });
+
+    return Array.from(map.values());
+  }, [workspaceUsers, directConversations, user]);
+
   const filteredTeammates = useMemo(() => {
-    return directConversations.filter((c) => {
+    const query = sidebarSearch.toLowerCase();
+    return allTeammatesList.filter((c) => {
       const name = c.teammate?.name || '';
       const email = c.teammate?.email || '';
-      const query = sidebarSearch.toLowerCase();
-      return name.toLowerCase().includes(query) || email.toLowerCase().includes(query);
+      const post = c.teammate?.post || '';
+      return name.toLowerCase().includes(query) || email.toLowerCase().includes(query) || post.toLowerCase().includes(query);
     });
-  }, [directConversations, sidebarSearch]);
+  }, [allTeammatesList, sidebarSearch]);
 
   // Filtered In-Chat Messages for Search
   const displayMessages = useMemo(() => {
@@ -894,7 +975,7 @@ const GroupChat = ({
             backgroundColor: 'var(--color-surface)',
           }}
         >
-          {/* Top Tabs Switcher: Channels vs Direct */}
+          {/* Top Tabs Switcher: Channels vs Team Members */}
           <div
             style={{
               display: 'flex',
@@ -923,7 +1004,7 @@ const GroupChat = ({
                 gap: '5px',
               }}
             >
-              <Hash size={14} /> Channels
+              <Hash size={14} /> Channels ({groups.length})
             </button>
 
             <button
@@ -943,7 +1024,7 @@ const GroupChat = ({
                 gap: '5px',
               }}
             >
-              <UserIcon size={14} /> Direct ({directConversations.length})
+              <Users size={14} /> Team Members ({allTeammatesList.length})
             </button>
           </div>
 
@@ -1103,8 +1184,9 @@ const GroupChat = ({
                     key={teammate._id}
                     onClick={() => {
                       if (onSelectGroup) onSelectGroup(null);
-                      setChatMode('direct');
                       const targetId = (teammate._id?._id || teammate._id || '').toString();
+                      if (onSelectDirectUser) onSelectDirectUser(targetId);
+                      setChatMode('direct');
                       setCurrentRecipient({
                         ...teammate,
                         _id: targetId,

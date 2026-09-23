@@ -174,11 +174,7 @@ const LandingPage = ({ onNavigateAuth }) => {
           >
             Why Nexus
           </a>
-          <a
-            href="#faq"
-            className="landing-nav-link"
-            onClick={(e) => handleNavClick(e, 'faq')}
-          >
+          <a href="#faq" className="landing-nav-link" onClick={(e) => handleNavClick(e, 'faq')}>
             FAQ
           </a>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
@@ -388,8 +384,8 @@ const LandingPage = ({ onNavigateAuth }) => {
                                 lineHeight: 1.4,
                               }}
                             >
-                              Team, I've scheduled our Sprint Sync on Google Meet. Let's review the API
-                              task board.
+                              Team, I've scheduled our Sprint Sync on Google Meet. Let's review the
+                              API task board.
                             </div>
                           </div>
                         </div>
@@ -479,7 +475,7 @@ const LandingPage = ({ onNavigateAuth }) => {
               </div>
               <div className="landing-stat-chip">
                 <CheckSquare size={18} className="landing-stat-chip-icon" />
-                <span>Kanban Task Tracking</span>
+                <span>Work & Tasks</span>
               </div>
             </div>
           </div>
@@ -693,8 +689,8 @@ const LandingPage = ({ onNavigateAuth }) => {
                   <li className="landing-diff-item">
                     <span>✅</span>
                     <span>
-                      Automated Google Meet scheduling and Kanban task synchronization with real-time
-                      push updates.
+                      Automated Google Meet scheduling and Kanban task synchronization with
+                      real-time push updates.
                     </span>
                   </li>
                 </ul>
@@ -875,7 +871,9 @@ const LandingPage = ({ onNavigateAuth }) => {
           </div>
 
           <div className="landing-footer-bottom">
-            <span>&copy; {new Date().getFullYear()} SAAS Nexus Technologies Inc. All rights reserved.</span>
+            <span>
+              &copy; {new Date().getFullYear()} SAAS Nexus Technologies Inc. All rights reserved.
+            </span>
             <span>Enterprise Internal Workspace Platform</span>
           </div>
         </div>

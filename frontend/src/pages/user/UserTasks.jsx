@@ -39,8 +39,6 @@ const UserTasks = () => {
       }
     } catch (_err) {
       addToast('Failed to load tasks', 'error');
-    } finally {
-      setLoading(false);
     }
   }, [selectedPriority, addToast]);
 
@@ -295,9 +293,9 @@ const UserTasks = () => {
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '32px 16px',
+                  padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '12.5px',
+                  fontSize: '13px',
                 }}
               >
                 No tasks to do
@@ -314,20 +312,16 @@ const UserTasks = () => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        gap: '6px',
-                      }}
-                    >
+                    <div className="task-card-header">
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
                         <span
                           style={{
                             fontSize: '11px',
-                            color: 'var(--color-text-secondary)',
+                            color: 'var(--color-primary)',
+                            backgroundColor: 'var(--color-primary-soft)',
+                            padding: '2px 7px',
+                            borderRadius: 'var(--radius-full)',
                             fontWeight: 600,
                           }}
                         >
@@ -336,22 +330,15 @@ const UserTasks = () => {
                       )}
                     </div>
 
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      {task.title}
-                    </div>
+                    <div className="task-card-title">{task.title}</div>
+                    {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {isOverdue && (
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '5px',
                           fontSize: '11px',
                           color: 'var(--color-danger)',
                           fontWeight: 700,
@@ -361,40 +348,33 @@ const UserTasks = () => {
                       </div>
                     )}
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderTop: '1px solid var(--color-border)',
-                        paddingTop: '8px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '11.5px',
-                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
-                        }}
-                      >
-                        <Calendar size={12} />
-                        <span>{new Date(task.deadline).toLocaleDateString()}</span>
+                    <div className="task-card-footer">
+                      <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
+                        <Calendar size={13} />
+                        <span>
+                          Due{' '}
+                          {new Date(task.deadline).toLocaleDateString([], {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      style={{ width: '100%', fontSize: '12px', marginTop: '2px' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(task._id, 'inprogress');
-                      }}
-                    >
-                      Start Working <ArrowRight size={13} />
-                    </button>
+                    <div className="task-card-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        style={{ width: '100%', fontSize: '11.5px', padding: '5px 8px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(task._id, 'inprogress');
+                        }}
+                        title="Start working on task"
+                      >
+                        Start Working <ArrowRight size={13} />
+                      </button>
+                    </div>
                   </div>
                 );
               })
@@ -422,9 +402,9 @@ const UserTasks = () => {
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '32px 16px',
+                  padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '12.5px',
+                  fontSize: '13px',
                 }}
               >
                 No tasks in progress
@@ -441,20 +421,16 @@ const UserTasks = () => {
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        gap: '6px',
-                      }}
-                    >
+                    <div className="task-card-header">
                       {getPriorityBadge(task.priority)}
                       {task.groupId && (
                         <span
                           style={{
                             fontSize: '11px',
-                            color: 'var(--color-text-secondary)',
+                            color: 'var(--color-primary)',
+                            backgroundColor: 'var(--color-primary-soft)',
+                            padding: '2px 7px',
+                            borderRadius: 'var(--radius-full)',
                             fontWeight: 600,
                           }}
                         >
@@ -463,22 +439,15 @@ const UserTasks = () => {
                       )}
                     </div>
 
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      {task.title}
-                    </div>
+                    <div className="task-card-title">{task.title}</div>
+                    {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {isOverdue && (
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '5px',
                           fontSize: '11px',
                           color: 'var(--color-danger)',
                           fontWeight: 700,
@@ -488,41 +457,31 @@ const UserTasks = () => {
                       </div>
                     )}
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderTop: '1px solid var(--color-border)',
-                        paddingTop: '8px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '11.5px',
-                          color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-secondary)',
-                        }}
-                      >
-                        <Calendar size={12} />
-                        <span>{new Date(task.deadline).toLocaleDateString()}</span>
+                    <div className="task-card-footer">
+                      <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
+                        <Calendar size={13} />
+                        <span>
+                          Due{' '}
+                          {new Date(task.deadline).toLocaleDateString([], {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                    <div className="task-card-actions">
                       <button
                         type="button"
-                        className="btn btn-ghost btn-sm"
-                        style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                        className="btn btn-ghost btn-icon"
+                        style={{ width: '30px', height: '30px' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'todo');
                         }}
                         title="Move back to To Do"
                       >
-                        <ArrowLeft size={12} />
+                        <ArrowLeft size={13} />
                       </button>
 
                       <button
@@ -530,7 +489,8 @@ const UserTasks = () => {
                         className="btn btn-primary btn-sm"
                         style={{
                           flex: 1,
-                          fontSize: '12px',
+                          fontSize: '11.5px',
+                          padding: '5px 8px',
                           backgroundColor: 'var(--color-success)',
                           borderColor: 'var(--color-success)',
                         }}
@@ -538,6 +498,7 @@ const UserTasks = () => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'completed');
                         }}
+                        title="Mark Complete"
                       >
                         Mark Done ✓
                       </button>
@@ -569,9 +530,9 @@ const UserTasks = () => {
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '32px 16px',
+                  padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '12.5px',
+                  fontSize: '13px',
                 }}
               >
                 No completed deliverables
@@ -582,25 +543,20 @@ const UserTasks = () => {
                   key={task._id}
                   className="task-card"
                   style={{
-                    opacity: 0.9,
                     borderLeft: '3px solid #10B981',
                   }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: '6px',
-                    }}
-                  >
+                  <div className="task-card-header">
                     <Badge variant="success">DONE</Badge>
                     {task.groupId && (
                       <span
                         style={{
                           fontSize: '11px',
-                          color: 'var(--color-text-secondary)',
+                          color: 'var(--color-primary)',
+                          backgroundColor: 'var(--color-primary-soft)',
+                          padding: '2px 7px',
+                          borderRadius: 'var(--radius-full)',
                           fontWeight: 600,
                         }}
                       >
@@ -610,48 +566,38 @@ const UserTasks = () => {
                   </div>
 
                   <div
-                    style={{
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      color: 'var(--color-text-primary)',
-                      textDecoration: 'line-through',
-                    }}
+                    className="task-card-title"
+                    style={{ textDecoration: 'line-through', opacity: 0.8 }}
                   >
                     {task.title}
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      borderTop: '1px solid var(--color-border)',
-                      paddingTop: '8px',
-                    }}
-                  >
+                  <div className="task-card-footer">
                     <span
                       style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}
                     >
-                      Completed
+                      ✓ Completed
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    style={{
-                      width: '100%',
-                      fontSize: '11.5px',
-                      marginTop: '2px',
-                      color: 'var(--color-text-muted)',
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStatusChange(task._id, 'inprogress');
-                    }}
-                  >
-                    Reopen Task
-                  </button>
+                  <div className="task-card-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      style={{
+                        width: '100%',
+                        fontSize: '11.5px',
+                        color: 'var(--color-text-muted)',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(task._id, 'inprogress');
+                      }}
+                      title="Reopen task"
+                    >
+                      Reopen Task ↺
+                    </button>
+                  </div>
                 </div>
               ))
             )}

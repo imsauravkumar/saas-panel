@@ -79,7 +79,7 @@ const getGroupMessages = async (req, res) => {
       canChat: userCanChat,
       pinnedMessages,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get Group Messages Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch messages' });
   }
@@ -203,7 +203,7 @@ const getDirectMessages = async (req, res) => {
       recipient: recipientObj,
       pinnedMessages,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get Direct Messages Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch direct messages' });
   }
@@ -310,7 +310,7 @@ const getDirectConversations = async (req, res) => {
       success: true,
       conversations,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get Direct Conversations Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch conversations' });
   }
@@ -463,7 +463,7 @@ const sendMessage = async (req, res) => {
       success: true,
       message: responseData,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Send Message Error]:', error);
     return res
       .status(500)
@@ -527,7 +527,7 @@ const editMessage = async (req, res) => {
       success: true,
       message: populated,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Edit Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to edit message' });
   }
@@ -594,7 +594,7 @@ const toggleReaction = async (req, res) => {
       success: true,
       reactions: populated.reactions,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Reaction Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to update reaction' });
   }
@@ -641,7 +641,7 @@ const togglePinMessage = async (req, res) => {
       success: true,
       message: populated,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Pin Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to pin/unpin message' });
   }
@@ -674,7 +674,7 @@ const toggleStarMessage = async (req, res) => {
       isStarred,
       message: isStarred ? 'Message saved to starred list' : 'Message removed from starred',
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Star Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to star message' });
   }
@@ -756,7 +756,7 @@ const deleteMessage = async (req, res) => {
       messageId: message._id,
       mode: 'everyone',
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Delete Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete message' });
   }
@@ -797,7 +797,7 @@ const forwardMessage = async (req, res) => {
     };
 
     return sendMessage(req, res);
-  } catch (_error) {
+  } catch (error) {
     console.error('[Forward Message Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to forward message' });
   }
@@ -838,7 +838,7 @@ const markAsRead = async (req, res) => {
     }
 
     return res.status(200).json({ success: true });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to mark messages as read',
@@ -886,7 +886,7 @@ const getSharedMedia = async (req, res) => {
       success: true,
       media: items,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Get Shared Media Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch shared media' });
   }
@@ -925,7 +925,7 @@ const uploadAttachment = async (req, res) => {
       fileMimeType: req.file.mimetype,
       type,
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Upload Error]:', error);
     return res.status(500).json({ success: false, message: 'File upload failed' });
   }

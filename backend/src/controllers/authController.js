@@ -88,7 +88,7 @@ const registerAdmin = async (req, res) => {
         workspaceName: workspace.name,
       },
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Auth Register Admin Error]:', error);
     const msg = error.message || 'Server error creating workspace';
     return res.status(500).json({
@@ -171,7 +171,7 @@ const login = async (req, res) => {
         workspaceName: user.workspaceId?.name || 'SAAS Workspace',
       },
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('[Auth Login Error]:', error);
     const msg = error.message || 'Server error during login';
     return res.status(500).json({
@@ -211,7 +211,7 @@ const getMe = async (req, res) => {
         workspaceName: user.workspaceId?.name || 'SAAS Workspace',
       },
     });
-  } catch (_error) {
+  } catch (error) {
     const msg = 'Failed to fetch user profile';
     return res.status(500).json({
       success: false,
@@ -269,7 +269,7 @@ const updatePassword = async (req, res) => {
       success: true,
       message: 'Password updated successfully!',
     });
-  } catch (_error) {
+  } catch (error) {
     const msg = error.message || 'Failed to update password';
     return res.status(500).json({
       success: false,

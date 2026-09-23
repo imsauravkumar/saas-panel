@@ -35,8 +35,8 @@ router.put('/profile', updateProfile);
 // Admin-only Bulk Actions
 router.post('/bulk-action', requireAdmin, bulkUserAction);
 
-// Admin User Directory & CRUD
-router.get('/', requireAdmin, getUsers);
+// Workspace Team Directory & CRUD
+router.get('/', getUsers);
 router.post('/', requireAdmin, userCreateLimiter, validate(createUserSchema), createUser);
 router.get('/:id', getUserById);
 router.put('/:id', requireAdmin, updateUser);

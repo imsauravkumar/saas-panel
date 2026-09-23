@@ -92,7 +92,7 @@ const setupSocket = (io) => {
             socket.data.user = user;
             socket.workspaceId = user.workspaceId ? user.workspaceId.toString() : null;
           }
-        } catch (_e) {
+        } catch (e) {
           console.warn('[Register User Lookup Error]:', e.message);
         }
       }
@@ -456,7 +456,7 @@ const setupSocket = (io) => {
             targetId: userId,
           });
         }
-      } catch (_e) {
+      } catch (e) {
         console.error('[Socket Read Receipt Error]:', e);
       }
     });

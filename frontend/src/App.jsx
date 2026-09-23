@@ -87,6 +87,7 @@ function App() {
 
   const [currentTab, setCurrentTab] = useState(getInitialTab);
   const [activeGroupId, setActiveGroupId] = useState(getInitialGroupId);
+  const [activeDirectUserId, setActiveDirectUserId] = useState(null);
   const [selectedDashboardGroupId, setSelectedDashboardGroupId] = useState(null);
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
@@ -94,7 +95,23 @@ function App() {
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     return localStorage.getItem('nexus_theme') === 'dark';
   });
+  const [fontSize, setFontSize] = useState(() => {
+    return localStorage.getItem('nexus_font_size') || 'default';
+  });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Dynamic Font Size Handler
+  const changeFontSize = (newSize) => {
+    setFontSize(newSize);
+    localStorage.setItem('nexus_font_size', newSize);
+    document.documentElement.setAttribute('data-font-size', newSize);
+  };
+
+  // Restore font size on mount
+  useEffect(() => {
+    const savedFontSize = localStorage.getItem('nexus_font_size') || 'default';
+    document.documentElement.setAttribute('data-font-size', savedFontSize);
+  }, []);
 
   // Sync active tab to URL hash and localStorage when authenticated
   useEffect(() => {
@@ -118,6 +135,30 @@ function App() {
     }
   }, [currentTab, activeGroupId, user]);
 
+  // When user is authenticated (e.g. reopen closed tab), automatically start on the workspace dashboard
+  useEffect(() => {
+    if (!user) return;
+    const hash = window.location.hash.replace(/^#/, '');
+    const visitorHashes = [
+      '',
+      'landing',
+      'auth',
+      'login',
+      'signup',
+      'features',
+      'how-it-works',
+      'why-different',
+      'faq',
+    ];
+    if (visitorHashes.includes(hash)) {
+      const stored = localStorage.getItem('nexus_current_tab');
+      const targetTab = stored && validTabs.includes(stored) ? stored : 'dashboard';
+      setCurrentTab(targetTab);
+      window.location.hash = targetTab;
+      localStorage.setItem('nexus_current_tab', targetTab);
+    }
+  }, [user]);
+
   // Listen to browser forward/back hashchange
   useEffect(() => {
     const handleHashChange = () => {
@@ -129,7 +170,11 @@ function App() {
         } else if (hash === 'signup') {
           setInitialLoginMode(false);
           setVisitorView('auth');
-        } else if (hash === 'landing' || !hash || ['features', 'how-it-works', 'why-different', 'faq'].includes(hash)) {
+        } else if (
+          hash === 'landing' ||
+          !hash ||
+          ['features', 'how-it-works', 'why-different', 'faq'].includes(hash)
+        ) {
           setVisitorView('landing');
         }
         return;
@@ -143,7 +188,10 @@ function App() {
         if (hash !== 'chat') setActiveGroupId(null);
         setCurrentTab(hash);
       } else {
+        // Logged-in user navigated to empty or visitor hash -> route to dashboard
         setCurrentTab('dashboard');
+        window.location.hash = 'dashboard';
+        localStorage.setItem('nexus_current_tab', 'dashboard');
       }
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -187,30 +235,41 @@ function App() {
       setGroups([]);
       setUsers([]);
       setActiveGroupId(null);
+      setActiveDirectUserId(null);
       setSelectedDashboardGroupId(null);
       setSearchTerm('');
     }
   }, [user]);
 
-  // Load Groups and Users when logged in
+  // Load Groups and Users for all workspace members when logged in
   const fetchWorkspaceData = useCallback(async () => {
     if (!user) return;
     try {
-      const groupsRes = await api.get('/groups');
-      if (groupsRes.data.success) {
-        setGroups(groupsRes.data.groups);
+      const [groupsRes, usersRes] = await Promise.all([
+        api.get('/groups'),
+        api.get('/users?limit=100').catch(() => ({ data: { success: false, users: [] } })),
+      ]);
+      if (groupsRes.data?.success) {
+        setGroups(groupsRes.data.groups || []);
       }
-
-      if (isAdmin) {
-        const usersRes = await api.get('/users?limit=100');
-        if (usersRes.data.success) {
-          setUsers(usersRes.data.users);
-        }
+      if (usersRes.data?.success) {
+        setUsers(usersRes.data.users || []);
       }
     } catch (err) {
-      console.warn('Failed to fetch initial workspace channels:', err);
+      console.warn('Failed to fetch workspace channels and teammates:', err);
     }
-  }, [user, isAdmin]);
+  }, [user]);
+
+  const handleSelectDirectUser = (userId) => {
+    if (userId) {
+      setSelectedDashboardGroupId(null);
+      setActiveGroupId(null);
+      setActiveDirectUserId(userId);
+      setCurrentTab('chat');
+    } else {
+      setActiveDirectUserId(null);
+    }
+  };
 
   useEffect(() => {
     fetchWorkspaceData();
@@ -361,13 +420,17 @@ function App() {
           if (tab !== 'chat' && tab !== 'group-dashboard') {
             setActiveGroupId(null);
             setSelectedDashboardGroupId(null);
+            setActiveDirectUserId(null);
           }
         }}
         groups={groups}
+        users={users}
         activeGroupId={activeGroupId || selectedDashboardGroupId}
+        activeDirectUserId={activeDirectUserId}
         onSelectGroup={(groupId) => {
           if (groupId) {
             setSelectedDashboardGroupId(null);
+            setActiveDirectUserId(null);
             setActiveGroupId(groupId);
             setCurrentTab('chat');
           } else {
@@ -375,6 +438,7 @@ function App() {
             setSelectedDashboardGroupId(null);
           }
         }}
+        onSelectDirectUser={handleSelectDirectUser}
         onOpenCreateGroup={isAdmin ? () => setCurrentTab('groups') : null}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
@@ -421,15 +485,15 @@ function App() {
               'chat',
             ].includes(currentTab) ||
               currentTab === 'dashboard') && (
-              <AdminDashboard
-                setTab={setCurrentTab}
-                onOpenCreateUser={() => setCurrentTab('users')}
-                onOpenCreateGroup={() => setCurrentTab('groups')}
-                onOpenCreateTask={() => setCurrentTab('tasks')}
-                onOpenCreateMeeting={() => setCurrentTab('meetings')}
-                onOpenCreateAnnouncement={() => setCurrentTab('announcements')}
-              />
-            )}
+                <AdminDashboard
+                  setTab={setCurrentTab}
+                  onOpenCreateUser={() => setCurrentTab('users')}
+                  onOpenCreateGroup={() => setCurrentTab('groups')}
+                  onOpenCreateTask={() => setCurrentTab('tasks')}
+                  onOpenCreateMeeting={() => setCurrentTab('meetings')}
+                  onOpenCreateAnnouncement={() => setCurrentTab('announcements')}
+                />
+              )}
             {currentTab === 'users' && <AdminUsers groups={groups} />}
             {currentTab === 'groups' && (
               <AdminGroups
@@ -464,6 +528,8 @@ function App() {
                 activeGroupId={activeGroupId}
                 onSelectGroup={setActiveGroupId}
                 allUsers={users}
+                activeDirectUserId={activeDirectUserId}
+                onSelectDirectUser={setActiveDirectUserId}
               />
             )}
           </>
@@ -480,14 +546,14 @@ function App() {
               'chat',
             ].includes(currentTab) ||
               currentTab === 'dashboard') && (
-              <UserDashboard
-                setTab={setCurrentTab}
-                onSelectGroup={(groupId) => {
-                  setSelectedDashboardGroupId(groupId);
-                  setCurrentTab('group-dashboard');
-                }}
-              />
-            )}
+                <UserDashboard
+                  setTab={setCurrentTab}
+                  onSelectGroup={(groupId) => {
+                    setSelectedDashboardGroupId(groupId);
+                    setCurrentTab('group-dashboard');
+                  }}
+                />
+              )}
             {currentTab === 'groups' && (
               <UserGroups
                 groups={groups}
@@ -510,13 +576,21 @@ function App() {
             )}
             {currentTab === 'announcements' && <UserAnnouncements />}
             {(currentTab === 'settings' || currentTab === 'profile') && (
-              <SettingsPage isDarkTheme={isDarkTheme} onToggleTheme={toggleTheme} />
+              <SettingsPage
+                isDarkTheme={isDarkTheme}
+                onToggleTheme={toggleTheme}
+                fontSize={fontSize}
+                onFontSizeChange={changeFontSize}
+              />
             )}
             {currentTab === 'chat' && (
               <GroupChat
                 groups={groups}
                 activeGroupId={activeGroupId}
                 onSelectGroup={setActiveGroupId}
+                allUsers={users}
+                activeDirectUserId={activeDirectUserId}
+                onSelectDirectUser={setActiveDirectUserId}
               />
             )}
           </>

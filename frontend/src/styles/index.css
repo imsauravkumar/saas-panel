@@ -129,15 +129,18 @@ h6 {
 h1 {
   font-size: 24px;
 }
+
 h2 {
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
 }
+
 h3 {
   font-size: 16px;
   font-weight: 600;
 }
+
 h4 {
   font-size: 14px;
   font-weight: 600;
@@ -755,11 +758,11 @@ textarea {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.switch-toggle input:checked + .switch-slider {
+.switch-toggle input:checked+.switch-slider {
   background-color: var(--color-primary);
 }
 
-.switch-toggle input:checked + .switch-slider:before {
+.switch-toggle input:checked+.switch-slider:before {
   transform: translateX(20px);
 }
 
@@ -767,17 +770,21 @@ textarea {
   .credential-grid {
     grid-template-columns: 1fr;
   }
+
   .settings-hero-card {
     padding: 18px 16px;
   }
+
   .settings-hero-main {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
+
   .settings-hero-actions {
     width: 100%;
   }
+
   .settings-hero-actions .btn {
     flex: 1;
   }
@@ -1300,11 +1307,13 @@ textarea {
   .filter-bar-container {
     gap: 8px;
   }
+
   .filter-search-input {
     flex: 1 1 100%;
     min-width: 100%;
     max-width: 100%;
   }
+
   .filter-select {
     flex: 1 1 calc(50% - 4px);
     min-width: 110px;
@@ -1379,6 +1388,7 @@ textarea {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1389,6 +1399,7 @@ textarea {
     opacity: 0;
     transform: translateY(16px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2394,12 +2405,10 @@ svg {
 
 .settings-hero-accent {
   height: 48px;
-  background: linear-gradient(
-    135deg,
-    rgba(79, 70, 229, 0.25) 0%,
-    rgba(6, 182, 212, 0.25) 50%,
-    rgba(245, 158, 11, 0.2) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(79, 70, 229, 0.25) 0%,
+      rgba(6, 182, 212, 0.25) 50%,
+      rgba(245, 158, 11, 0.2) 100%);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -2630,6 +2639,7 @@ svg {
     font-size: 10.5px;
     gap: 3px;
   }
+
   .settings-tab-btn svg {
     width: 13px;
     height: 13px;
@@ -3374,6 +3384,7 @@ svg {
 
 /* Mobile (< 640px) */
 @media (max-width: 640px) {
+
   .landing-nav-links,
   .landing-nav-actions {
     display: none;
@@ -3468,7 +3479,423 @@ svg {
   .landing-hero h1 {
     font-size: 26px;
   }
+
   .landing-container {
     padding: 0 16px;
   }
+}
+
+/* ==========================================================================
+   KANBAN BOARD & TASK MANAGEMENT SYSTEM
+   ========================================================================== */
+
+.filter-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: var(--color-surface);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+}
+
+.filter-search-input {
+  flex: 1 1 240px;
+  max-width: 380px;
+  min-width: 180px;
+}
+
+.filter-select {
+  flex: 1 1 150px;
+  min-width: 130px;
+  height: 38px;
+  font-size: 13px;
+}
+
+.kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.kanban-col {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 480px;
+}
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.kanban-col-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.task-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.task-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-card-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.task-card-desc {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.task-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+  gap: 8px;
+}
+
+.task-card-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.task-card-date.is-overdue {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.task-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+@media (max-width: 1024px) {
+  .kanban-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* ==========================================================================
+   ENTERPRISE DATA TABLES & DIRECTORY SYSTEM
+   ========================================================================== */
+
+.table-wrapper {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+.custom-table thead th {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.custom-table thead th:first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+
+.custom-table thead th:last-child {
+  border-top-right-radius: var(--radius-lg);
+}
+
+.custom-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.custom-table tbody tr:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.custom-table tbody tr.is-selected {
+  background-color: var(--color-primary-soft);
+}
+
+.custom-table tbody td {
+  padding: 14px 18px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.custom-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Column Helpers */
+.member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.member-cell-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.member-cell-name {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.member-cell-email {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.role-title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.role-title-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.dept-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.channel-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 220px;
+}
+
+.channel-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.channel-tag-chip.is-more {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+/* Status Indicator Dot */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-pill.is-active {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.status-pill.is-disabled {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Table Action Buttons Group */
+.table-actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.table-action-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.table-action-btn:hover {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.table-action-btn.is-primary:hover {
+  background-color: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.table-action-btn.is-warning:hover {
+  background-color: var(--color-warning-soft);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.table-action-btn.is-danger:hover {
+  background-color: var(--color-danger-soft);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* Modern Pagination Bar */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 18px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pagination-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pagination-nav-btn:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-text-muted);
+}
+
+.pagination-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

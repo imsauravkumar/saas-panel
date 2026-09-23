@@ -453,11 +453,9 @@ const AdminUsers = ({ groups = [] }) => {
                 return (
                   <tr
                     key={u._id}
-                    style={{
-                      backgroundColor: isSelected ? 'var(--color-primary-soft)' : undefined,
-                    }}
+                    className={isSelected ? 'is-selected' : ''}
                   >
-                    <td>
+                    <td style={{ width: '40px' }}>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -466,103 +464,78 @@ const AdminUsers = ({ groups = [] }) => {
                     </td>
 
                     <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => handleOpenDetail(u)}
-                      >
+                      <div className="member-cell" onClick={() => handleOpenDetail(u)}>
                         <Avatar name={u.name} src={u.avatar} size="md" />
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                            {u.name}
-                          </div>
-                          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                            {u.email}
-                          </div>
+                        <div className="member-cell-info">
+                          <div className="member-cell-name">{u.name}</div>
+                          <div className="member-cell-email">{u.email}</div>
                         </div>
                       </div>
                     </td>
 
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {u.role === 'admin' ? (
-                          <Badge variant="primary" icon={Shield}>
-                            Admin
-                          </Badge>
-                        ) : (
-                          <Badge variant="neutral">Member</Badge>
-                        )}
-                        <span
-                          style={{
-                            fontSize: '12.5px',
-                            color: 'var(--color-text-secondary)',
-                            fontWeight: 500,
-                          }}
-                        >
-                          {u.post || 'No title'}
-                        </span>
+                      <div className="role-title-cell">
+                        <div>
+                          {u.role === 'admin' ? (
+                            <Badge variant="primary" icon={Shield}>
+                              Admin
+                            </Badge>
+                          ) : (
+                            <Badge variant="neutral">Member</Badge>
+                          )}
+                        </div>
+                        <div className="role-title-text">{u.post || 'Team Member'}</div>
                       </div>
                     </td>
 
                     <td>
-                      <span style={{ fontSize: '13px' }}>{u.department || 'General'}</span>
+                      <span className="dept-pill">{u.department || 'General'}</span>
                     </td>
 
                     <td>
-                      <div
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '200px' }}
-                      >
+                      <div className="channel-tag-group">
                         {u.groupIds && u.groupIds.length > 0 ? (
-                          u.groupIds.map((g) => (
-                            <span
-                              key={g._id || g}
-                              style={{
-                                fontSize: '11px',
-                                padding: '2px 6px',
-                                borderRadius: 'var(--radius-sm)',
-                                backgroundColor: 'var(--color-surface-alt)',
-                                border: '1px solid var(--color-border)',
-                                color: 'var(--color-text-secondary)',
-                              }}
-                            >
-                              #{g.name || 'group'}
-                            </span>
-                          ))
+                          <>
+                            {u.groupIds.slice(0, 2).map((g) => (
+                              <span key={g._id || g} className="channel-tag-chip">
+                                #{g.name || 'channel'}
+                              </span>
+                            ))}
+                            {u.groupIds.length > 2 && (
+                              <span
+                                className="channel-tag-chip is-more"
+                                title={u.groupIds.slice(2).map((g) => '#' + (g.name || 'channel')).join(', ')}
+                              >
+                                +{u.groupIds.length - 2} more
+                              </span>
+                            )}
+                          </>
                         ) : (
                           <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                            None
+                            No channels
                           </span>
                         )}
                       </div>
                     </td>
 
                     <td>
-                      <Badge variant={u.status === 'active' ? 'success' : 'danger'}>
-                        {u.status === 'active' ? 'Active' : 'Disabled'}
-                      </Badge>
+                      <span className={`status-pill ${u.status === 'active' ? 'is-active' : 'is-disabled'}`}>
+                        <span className="status-dot" />
+                        <span>{u.status === 'active' ? 'Active' : 'Disabled'}</span>
+                      </span>
                     </td>
 
-                    <td style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
-                      {new Date(u.createdAt).toLocaleDateString()}
+                    <td>
+                      <span style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                        {new Date(u.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
                     </td>
 
                     <td style={{ textAlign: 'right' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          gap: '4px',
-                        }}
-                      >
+                      <div className="table-actions-group">
                         {/* Assign Work / Task */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px', color: 'var(--color-primary)' }}
+                          className="table-action-btn is-primary"
                           title="Assign Work / Task"
                           onClick={() => setAssignTaskUser(u)}
                         >
@@ -571,9 +544,8 @@ const AdminUsers = ({ groups = [] }) => {
 
                         {/* View Detail Panel */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px' }}
-                          title="View Profile Summary & Activity"
+                          className="table-action-btn"
+                          title="View Profile & Activity"
                           onClick={() => handleOpenDetail(u)}
                         >
                           <Eye size={14} />
@@ -581,9 +553,8 @@ const AdminUsers = ({ groups = [] }) => {
 
                         {/* Edit User */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px' }}
-                          title="Edit User"
+                          className="table-action-btn"
+                          title="Edit User Details"
                           onClick={() => {
                             setEditingUser({
                               ...u,
@@ -597,9 +568,8 @@ const AdminUsers = ({ groups = [] }) => {
 
                         {/* Admin Reset Password */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px', color: 'var(--color-primary)' }}
-                          title="Generate New Temporary Password"
+                          className="table-action-btn is-primary"
+                          title="Generate Temporary Password"
                           onClick={() => {
                             setResetPwdUser(u);
                             const chars =
@@ -618,15 +588,7 @@ const AdminUsers = ({ groups = [] }) => {
 
                         {/* Toggle Disable / Enable */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{
-                            width: '30px',
-                            height: '30px',
-                            color:
-                              u.status === 'active'
-                                ? 'var(--color-warning)'
-                                : 'var(--color-success)',
-                          }}
+                          className={`table-action-btn ${u.status === 'active' ? 'is-warning' : 'is-primary'}`}
                           title={u.status === 'active' ? 'Disable Account' : 'Enable Account'}
                           onClick={() => handleToggleStatus(u)}
                         >
@@ -635,8 +597,7 @@ const AdminUsers = ({ groups = [] }) => {
 
                         {/* Delete User */}
                         <button
-                          className="btn btn-ghost btn-icon"
-                          style={{ width: '30px', height: '30px', color: 'var(--color-danger)' }}
+                          className="table-action-btn is-danger"
                           title="Permanently Remove User"
                           onClick={() => handleDeleteUser(u)}
                         >
@@ -653,16 +614,16 @@ const AdminUsers = ({ groups = [] }) => {
       </div>
 
       {/* Pagination Footer */}
-      <div className="pagination-footer">
-        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-          Showing <strong>{Math.min(total, (page - 1) * limit + 1)}</strong> -{' '}
+      <div className="pagination-bar">
+        <div>
+          Showing <strong>{Math.min(total, (page - 1) * limit + 1)}</strong> –{' '}
           <strong>{Math.min(total, page * limit)}</strong> of <strong>{total}</strong> members
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="pagination-controls">
           <select
             className="form-select"
-            style={{ width: '110px', height: '32px', fontSize: '12.5px' }}
+            style={{ width: '110px', height: '34px', fontSize: '12.5px' }}
             value={limit}
             onChange={(e) => {
               setLimit(parseInt(e.target.value));
@@ -675,19 +636,19 @@ const AdminUsers = ({ groups = [] }) => {
           </select>
 
           <button
-            className="btn btn-secondary btn-sm"
+            className="pagination-nav-btn"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             <ChevronLeft size={14} /> Prev
           </button>
 
-          <span style={{ fontSize: '13px', fontWeight: 600, padding: '0 6px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, padding: '0 4px' }}>
             Page {page} of {totalPages}
           </span>
 
           <button
-            className="btn btn-secondary btn-sm"
+            className="pagination-nav-btn"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           >

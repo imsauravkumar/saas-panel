@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { useNotification } from '../context/NotificationContext';
 import Avatar from './Avatar';
 
@@ -21,24 +22,40 @@ const Sidebar = ({
   currentTab,
   setTab,
   groups = [],
+  users = [],
   activeGroupId,
+  activeDirectUserId,
   onSelectGroup,
+  onSelectDirectUser,
   onOpenCreateGroup,
   isOpen = false,
   onClose,
 }) => {
   const { user, isAdmin, logout } = useAuth();
+  const { onlineUsers = [] } = useSocket() || {};
   const { confirm } = useNotification();
 
   const handleNavClick = (tabId) => {
     if (onSelectGroup) onSelectGroup(null);
+    if (onSelectDirectUser) onSelectDirectUser(null);
     setTab(tabId);
     if (onClose) onClose();
   };
 
   const handleGroupClick = (groupId) => {
+    if (onSelectDirectUser) onSelectDirectUser(null);
     if (onSelectGroup) {
       onSelectGroup(groupId);
+    } else {
+      setTab('chat');
+    }
+    if (onClose) onClose();
+  };
+
+  const handleUserClick = (userId, userObj) => {
+    if (onSelectGroup) onSelectGroup(null);
+    if (onSelectDirectUser) {
+      onSelectDirectUser(userId, userObj);
     } else {
       setTab('chat');
     }
@@ -159,7 +176,8 @@ const Sidebar = ({
             {groups.map((group) => {
               const isActive =
                 (currentTab === 'chat' || currentTab === 'group-dashboard') &&
-                activeGroupId === group._id;
+                activeGroupId === group._id &&
+                !activeDirectUserId;
               const isLocked = group.chatPermission === 'adminOnly';
               return (
                 <li
@@ -178,6 +196,71 @@ const Sidebar = ({
             })}
           </ul>
         </div>
+
+        {/* Team Members Direct Chat Section */}
+        {users.length > 0 && (
+          <div style={{ marginTop: '12px' }}>
+            <div className="sidebar-section-title">
+              <span>Team Members ({users.length})</span>
+            </div>
+            <ul className="sidebar-nav-list">
+              {users.map((member) => {
+                const memberId = (member._id || member.id || '').toString();
+                const isSelf = memberId === (user?.id || user?._id || '').toString();
+                const isOnline = isSelf ? true : onlineUsers.includes(memberId);
+                const isActive = currentTab === 'chat' && activeDirectUserId === memberId;
+
+                return (
+                  <li
+                    key={memberId}
+                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => handleUserClick(memberId, member)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '5px 8px',
+                    }}
+                    title={`Chat with ${member.name} (${isOnline ? 'Online' : 'Offline'})`}
+                  >
+                    <div style={{ position: 'relative', flexShrink: 0, display: 'flex' }}>
+                      <Avatar
+                        name={member.name}
+                        src={member.avatar}
+                        size="xs"
+                        imgStyle={{ width: '22px', height: '22px', fontSize: '10px' }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          bottom: '-1px',
+                          right: '-1px',
+                          width: '7px',
+                          height: '7px',
+                          borderRadius: '50%',
+                          backgroundColor: isOnline ? '#22c55e' : '#64748b',
+                          border: '1.5px solid var(--color-sidebar-bg)',
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        flex: 1,
+                        fontSize: '12.5px',
+                        color: isActive ? '#FFFFFF' : '#CBD5E1',
+                      }}
+                    >
+                      {member.name} {isSelf && '(You)'}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Current User Card in Sidebar Footer */}
