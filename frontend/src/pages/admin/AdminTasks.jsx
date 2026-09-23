@@ -309,7 +309,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No tasks in To Do
@@ -322,26 +322,60 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     key={task._id}
                     className="task-card"
                     style={{
-                      borderLeft: isOverdue ? '3px solid var(--color-danger)' : '3px solid #94A3B8',
+                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #94A3B8',
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
-                      {getPriorityBadge(task.priority)}
-                      {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
+                      <div className="task-card-header-left">
+                        {getPriorityBadge(task.priority)}
+                        {task.groupId && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-soft)',
+                              padding: '2px 7px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{task.groupId?.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="task-card-header-right">
+                        <button
+                          type="button"
+                          className="task-card-quick-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTask(task);
+                            setIsCreateOpen(true);
                           }}
+                          title="Edit Task"
                         >
-                          #{task.groupId?.name}
-                        </span>
-                      )}
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          className="task-card-quick-btn danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirm({
+                              title: 'Delete Task',
+                              message: `Are you sure you want to delete task "${task.title}"?`,
+                              confirmText: 'Delete Task',
+                              type: 'danger',
+                              onConfirm: () => handleDeleteTask(task._id),
+                            });
+                          }}
+                          title="Delete Task"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="task-card-title">{task.title}</div>
@@ -390,8 +424,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <div className="task-card-actions">
                       <button
                         type="button"
-                        className="btn btn-secondary btn-sm"
-                        style={{ flex: 1, fontSize: '11.5px', padding: '5px 8px' }}
+                        className="btn btn-secondary task-card-action-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'inprogress');
@@ -399,19 +432,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         title="Move to In Progress"
                       >
                         Start Work →
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '28px', height: '28px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingTask(task);
-                          setIsCreateOpen(true);
-                        }}
-                        title="Edit Task"
-                      >
-                        <Edit2 size={12} />
                       </button>
                     </div>
                   </div>
@@ -443,7 +463,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No active work in progress
@@ -456,26 +476,60 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     key={task._id}
                     className="task-card"
                     style={{
-                      borderLeft: isOverdue ? '3px solid var(--color-danger)' : '3px solid #F59E0B',
+                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #F59E0B',
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
-                      {getPriorityBadge(task.priority)}
-                      {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
+                      <div className="task-card-header-left">
+                        {getPriorityBadge(task.priority)}
+                        {task.groupId && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-soft)',
+                              padding: '2px 7px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{task.groupId?.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="task-card-header-right">
+                        <button
+                          type="button"
+                          className="task-card-quick-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTask(task);
+                            setIsCreateOpen(true);
                           }}
+                          title="Edit Task"
                         >
-                          #{task.groupId?.name}
-                        </span>
-                      )}
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          className="task-card-quick-btn danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirm({
+                              title: 'Delete Task',
+                              message: `Are you sure you want to delete task "${task.title}"?`,
+                              confirmText: 'Delete Task',
+                              type: 'danger',
+                              onConfirm: () => handleDeleteTask(task._id),
+                            });
+                          }}
+                          title="Delete Task"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="task-card-title">{task.title}</div>
@@ -524,8 +578,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <div className="task-card-actions">
                       <button
                         type="button"
-                        className="btn btn-primary btn-sm"
-                        style={{ flex: 1, fontSize: '11.5px', padding: '5px 8px' }}
+                        className="btn btn-primary task-card-action-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'completed');
@@ -533,19 +586,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         title="Mark Complete"
                       >
                         Mark Done ✓
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '28px', height: '28px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingTask(task);
-                          setIsCreateOpen(true);
-                        }}
-                        title="Edit Task"
-                      >
-                        <Edit2 size={12} />
                       </button>
                     </div>
                   </div>
@@ -577,7 +617,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No completed deliverables
@@ -588,26 +628,48 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   key={task._id}
                   className="task-card"
                   style={{
-                    borderLeft: '3px solid #10B981',
+                    borderLeft: '3.5px solid #10B981',
                   }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
                   <div className="task-card-header">
-                    <Badge variant="success">DONE</Badge>
-                    {task.groupId && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          color: 'var(--color-primary)',
-                          backgroundColor: 'var(--color-primary-soft)',
-                          padding: '2px 7px',
-                          borderRadius: 'var(--radius-full)',
-                          fontWeight: 600,
+                    <div className="task-card-header-left">
+                      <Badge variant="success">DONE</Badge>
+                      {task.groupId && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-primary)',
+                            backgroundColor: 'var(--color-primary-soft)',
+                            padding: '2px 7px',
+                            borderRadius: 'var(--radius-full)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          #{task.groupId?.name}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="task-card-header-right">
+                      <button
+                        type="button"
+                        className="task-card-quick-btn danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirm({
+                            title: 'Delete Task',
+                            message: `Are you sure you want to delete task "${task.title}"?`,
+                            confirmText: 'Delete Task',
+                            type: 'danger',
+                            onConfirm: () => handleDeleteTask(task._id),
+                          });
                         }}
+                        title="Delete Task"
                       >
-                        #{task.groupId?.name}
-                      </span>
-                    )}
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
 
                   <div
@@ -640,8 +702,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   <div className="task-card-actions">
                     <button
                       type="button"
-                      className="btn btn-ghost btn-sm"
-                      style={{ flex: 1, fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                      className="btn btn-ghost task-card-action-btn"
+                      style={{ color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStatusChange(task._id, 'inprogress');
@@ -649,29 +711,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       title="Reopen task"
                     >
                       Reopen ↺
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-icon"
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        fontSize: '11px',
-                        color: 'var(--color-danger)',
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        confirm({
-                          title: 'Delete Task',
-                          message: `Are you sure you want to delete "${task.title}"?`,
-                          confirmText: 'Delete',
-                          type: 'danger',
-                          onConfirm: () => handleDeleteTask(task._id),
-                        });
-                      }}
-                      title="Delete Task"
-                    >
-                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>

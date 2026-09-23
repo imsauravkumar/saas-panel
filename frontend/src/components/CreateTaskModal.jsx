@@ -136,7 +136,7 @@ const CreateTaskModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={isEdit ? 'Edit Work Task' : 'Create & Assign Work Task'}
-      maxWidth="620px"
+      maxWidth="480px"
     >
       <form
         onSubmit={handleSubmit}

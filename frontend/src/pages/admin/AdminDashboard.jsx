@@ -50,74 +50,76 @@ const AdminDashboard = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '28px',
+          marginBottom: '14px',
           flexWrap: 'wrap',
-          gap: '16px',
+          gap: '12px',
         }}
       >
         <div>
           <h1
             style={{
-              fontSize: '26px',
+              fontSize: '18px',
               fontWeight: 700,
               color: 'var(--color-text)',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
+              margin: 0,
             }}
           >
-            <Shield size={28} color="var(--color-primary)" />
+            <Shield size={20} color="var(--color-primary)" />
             Admin Command Center
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginTop: '2px', margin: 0 }}>
             Workspace oversight, team directory, channels, and security controls
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn btn-primary" onClick={onOpenCreateUser}>
-            <Plus size={16} /> Add Team Member
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-primary btn-sm" onClick={onOpenCreateUser}>
+            <Plus size={14} /> Add Team Member
           </button>
         </div>
       </div>
 
       {/* Row 1 — Quick Stats Row */}
-      <div className="stat-grid" style={{ marginBottom: '28px' }}>
+      <div className="stat-grid" style={{ marginBottom: '16px' }}>
         {/* Total Users */}
         <div
           onClick={() => setTab('users')}
           className="card"
           style={{
             background: 'var(--color-surface)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
+            gap: '12px',
             transition: 'transform var(--transition-fast)',
           }}
         >
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-md)',
+              width: '36px',
+              height: '36px',
+              borderRadius: 'var(--radius-sm)',
               background: 'rgba(99, 102, 241, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'var(--color-primary)',
+              flexShrink: 0,
             }}
           >
-            <Users size={24} />
+            <Users size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
               {summary?.userCount || 0}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
               Active Members
             </div>
           </div>
@@ -129,34 +131,35 @@ const AdminDashboard = ({
           className="card"
           style={{
             background: 'var(--color-surface)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
+            gap: '12px',
           }}
         >
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-md)',
+              width: '36px',
+              height: '36px',
+              borderRadius: 'var(--radius-sm)',
               background: 'rgba(59, 130, 246, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#3B82F6',
+              flexShrink: 0,
             }}
           >
-            <MessageSquare size={24} />
+            <MessageSquare size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
               {summary?.activeGroupCount || 0}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
               Active Channels
             </div>
           </div>
@@ -168,34 +171,35 @@ const AdminDashboard = ({
           className="card"
           style={{
             background: 'var(--color-surface)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
+            gap: '12px',
           }}
         >
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-md)',
+              width: '36px',
+              height: '36px',
+              borderRadius: 'var(--radius-sm)',
               background: 'rgba(245, 158, 11, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#F59E0B',
+              flexShrink: 0,
             }}
           >
-            <CheckSquare size={24} />
+            <CheckSquare size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
               {summary?.tasksInProgressCount || 0}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
               Tasks in Progress
             </div>
           </div>
@@ -207,34 +211,35 @@ const AdminDashboard = ({
           className="card"
           style={{
             background: 'var(--color-surface)',
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
+            padding: '12px 14px',
+            borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
+            gap: '12px',
           }}
         >
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-md)',
+              width: '36px',
+              height: '36px',
+              borderRadius: 'var(--radius-sm)',
               background: 'rgba(16, 185, 129, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#10B981',
+              flexShrink: 0,
             }}
           >
-            <Video size={24} />
+            <Video size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-text)' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
               {summary?.meetingsThisWeekCount || 0}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
               Meetings This Week
             </div>
           </div>
@@ -242,14 +247,14 @@ const AdminDashboard = ({
       </div>
 
       {/* Row 2 — Main Grid: Company-wide Activity Feed (65%) + Quick Actions Panel (35%) */}
-      <div className="responsive-split">
+      <div className="responsive-split" style={{ gap: '16px' }}>
         {/* Left Column: Live Company Activity Stream */}
         <div
           className="card"
           style={{
             background: 'var(--color-surface)',
-            padding: '24px',
-            borderRadius: 'var(--radius-lg)',
+            padding: '14px 16px',
+            borderRadius: 'var(--radius-md)',
           }}
         >
           <div
@@ -257,43 +262,43 @@ const AdminDashboard = ({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '20px',
+              marginBottom: '12px',
             }}
           >
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                 Live Workspace Activity Feed
               </h3>
               <p
-                style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}
+                style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px', margin: 0 }}
               >
                 Real-time audit log of team and administrative events
               </p>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => setTab('activity')}>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: '11.5px', padding: '4px 8px' }} onClick={() => setTab('activity')}>
               Full audit log →
             </button>
           </div>
 
           {loading ? (
             <div
-              style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-secondary)' }}
+              style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '12.5px' }}
             >
               Loading audit feed...
             </div>
           ) : summary?.recentActivity?.length === 0 ? (
             <div
               style={{
-                padding: '30px',
+                padding: '24px',
                 textAlign: 'center',
                 color: 'var(--color-text-secondary)',
-                fontSize: '13px',
+                fontSize: '12.5px',
               }}
             >
               No recorded events yet in this workspace.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {summary?.recentActivity?.map((log) => (
                 <div
                   key={log._id}
@@ -301,18 +306,18 @@ const AdminDashboard = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '12px 14px',
-                    borderRadius: 'var(--radius-md)',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'var(--color-surface-hover)',
                     border: '1px solid var(--color-border)',
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                   }}
                 >
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px',
+                      gap: '10px',
                       flex: 1,
                       minWidth: 0,
                     }}
@@ -322,7 +327,7 @@ const AdminDashboard = ({
                       src={log.actorId?.avatar}
                       size="xs"
                     />
-                    <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ minWidth: 0, flex: 1, fontSize: '12px' }}>
                       <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                         {log.actorId?.name || 'System Administrator'}
                       </span>{' '}
@@ -333,10 +338,10 @@ const AdminDashboard = ({
                   </div>
                   <span
                     style={{
-                      fontSize: '11px',
+                      fontSize: '10.5px',
                       color: 'var(--color-text-tertiary)',
                       flexShrink: 0,
-                      marginLeft: '12px',
+                      marginLeft: '10px',
                     }}
                   >
                     {formatTime(log.createdAt)}
@@ -348,45 +353,47 @@ const AdminDashboard = ({
         </div>
 
         {/* Right Column: Quick Actions Shortcuts Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div
             className="card"
             style={{
               background: 'var(--color-surface)',
-              padding: '24px',
-              borderRadius: 'var(--radius-lg)',
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
             }}
           >
             <h3
               style={{
-                fontSize: '16px',
+                fontSize: '14px',
                 fontWeight: 600,
                 color: 'var(--color-text)',
-                marginBottom: '8px',
+                marginBottom: '4px',
+                margin: 0,
               }}
             >
               Quick Action Shortcuts
             </h3>
             <p
               style={{
-                fontSize: '13px',
+                fontSize: '11.5px',
                 color: 'var(--color-text-secondary)',
-                marginBottom: '20px',
+                marginBottom: '12px',
+                marginTop: '2px',
               }}
             >
               Direct access to create and dispatch workspace resources
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Shortcut 1: Add User */}
               <div
                 onClick={onOpenCreateUser}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
+                  gap: '10px',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--color-surface-hover)',
                   border: '1px solid var(--color-border)',
                   cursor: 'pointer',
@@ -395,27 +402,28 @@ const AdminDashboard = ({
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: 'var(--radius-md)',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'rgba(99, 102, 241, 0.12)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'var(--color-primary)',
+                    flexShrink: 0,
                   }}
                 >
-                  <Users size={18} />
+                  <Users size={15} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '12.5px' }}>
                     Create Team Member
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Provision credentials & assign corporate role
                   </div>
                 </div>
-                <Plus size={16} color="var(--color-text-tertiary)" />
+                <Plus size={14} color="var(--color-text-tertiary)" />
               </div>
 
               {/* Shortcut 2: Create Group */}
@@ -424,9 +432,9 @@ const AdminDashboard = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
+                  gap: '10px',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--color-surface-hover)',
                   border: '1px solid var(--color-border)',
                   cursor: 'pointer',
@@ -435,27 +443,28 @@ const AdminDashboard = ({
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: 'var(--radius-md)',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'rgba(59, 130, 246, 0.12)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#3B82F6',
+                    flexShrink: 0,
                   }}
                 >
-                  <MessageSquare size={18} />
+                  <MessageSquare size={15} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '12.5px' }}>
                     Create Channel
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Set up a new team space with chat permissions
                   </div>
                 </div>
-                <Plus size={16} color="var(--color-text-tertiary)" />
+                <Plus size={14} color="var(--color-text-tertiary)" />
               </div>
 
               {/* Shortcut 3: Schedule Meeting */}
@@ -464,9 +473,9 @@ const AdminDashboard = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
+                  gap: '10px',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--color-surface-hover)',
                   border: '1px solid var(--color-border)',
                   cursor: 'pointer',
@@ -475,27 +484,28 @@ const AdminDashboard = ({
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: 'var(--radius-md)',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'rgba(16, 185, 129, 0.12)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#10B981',
+                    flexShrink: 0,
                   }}
                 >
-                  <Video size={18} />
+                  <Video size={15} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '12.5px' }}>
                     Schedule Google Meet
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Auto-generate Google Meet link & notify team
                   </div>
                 </div>
-                <Plus size={16} color="var(--color-text-tertiary)" />
+                <Plus size={14} color="var(--color-text-tertiary)" />
               </div>
 
               {/* Shortcut 4: Post Announcement */}
@@ -504,9 +514,9 @@ const AdminDashboard = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
+                  gap: '10px',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--color-surface-hover)',
                   border: '1px solid var(--color-border)',
                   cursor: 'pointer',
@@ -515,27 +525,28 @@ const AdminDashboard = ({
               >
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: 'var(--radius-md)',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: 'var(--radius-sm)',
                     background: 'rgba(245, 158, 11, 0.12)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#F59E0B',
+                    flexShrink: 0,
                   }}
                 >
-                  <Megaphone size={18} />
+                  <Megaphone size={15} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '12.5px' }}>
                     Post Announcement
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Company bulletin or pinned channel announcement
                   </div>
                 </div>
-                <Plus size={16} color="var(--color-text-tertiary)" />
+                <Plus size={14} color="var(--color-text-tertiary)" />
               </div>
             </div>
           </div>

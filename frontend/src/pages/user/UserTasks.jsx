@@ -295,7 +295,7 @@ const UserTasks = () => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No tasks to do
@@ -308,26 +308,28 @@ const UserTasks = () => {
                     key={task._id}
                     className="task-card"
                     style={{
-                      borderLeft: isOverdue ? '3px solid var(--color-danger)' : '3px solid #94A3B8',
+                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #94A3B8',
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
-                      {getPriorityBadge(task.priority)}
-                      {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
-                          }}
-                        >
-                          #{task.groupId?.name}
-                        </span>
-                      )}
+                      <div className="task-card-header-left">
+                        {getPriorityBadge(task.priority)}
+                        {task.groupId && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-soft)',
+                              padding: '2px 7px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{task.groupId?.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="task-card-title">{task.title}</div>
@@ -364,8 +366,7 @@ const UserTasks = () => {
                     <div className="task-card-actions">
                       <button
                         type="button"
-                        className="btn btn-secondary btn-sm"
-                        style={{ width: '100%', fontSize: '11.5px', padding: '5px 8px' }}
+                        className="btn btn-secondary task-card-action-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'inprogress');
@@ -404,7 +405,7 @@ const UserTasks = () => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No tasks in progress
@@ -417,26 +418,28 @@ const UserTasks = () => {
                     key={task._id}
                     className="task-card"
                     style={{
-                      borderLeft: isOverdue ? '3px solid var(--color-danger)' : '3px solid #F59E0B',
+                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #F59E0B',
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
-                      {getPriorityBadge(task.priority)}
-                      {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
-                          }}
-                        >
-                          #{task.groupId?.name}
-                        </span>
-                      )}
+                      <div className="task-card-header-left">
+                        {getPriorityBadge(task.priority)}
+                        {task.groupId && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-soft)',
+                              padding: '2px 7px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{task.groupId?.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="task-card-title">{task.title}</div>
@@ -473,8 +476,8 @@ const UserTasks = () => {
                     <div className="task-card-actions">
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '30px', height: '30px' }}
+                        className="btn btn-ghost task-card-action-btn"
+                        style={{ width: '30px', height: '30px', padding: 0, flexShrink: 0, border: '1px solid var(--color-border)' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStatusChange(task._id, 'todo');
@@ -486,11 +489,9 @@ const UserTasks = () => {
 
                       <button
                         type="button"
-                        className="btn btn-primary btn-sm"
+                        className="btn btn-primary task-card-action-btn"
                         style={{
                           flex: 1,
-                          fontSize: '11.5px',
-                          padding: '5px 8px',
                           backgroundColor: 'var(--color-success)',
                           borderColor: 'var(--color-success)',
                         }}
@@ -532,7 +533,7 @@ const UserTasks = () => {
                   textAlign: 'center',
                   padding: '48px 16px',
                   color: 'var(--color-text-muted)',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                 }}
               >
                 No completed deliverables
@@ -543,26 +544,28 @@ const UserTasks = () => {
                   key={task._id}
                   className="task-card"
                   style={{
-                    borderLeft: '3px solid #10B981',
+                    borderLeft: '3.5px solid #10B981',
                   }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
                   <div className="task-card-header">
-                    <Badge variant="success">DONE</Badge>
-                    {task.groupId && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          color: 'var(--color-primary)',
-                          backgroundColor: 'var(--color-primary-soft)',
-                          padding: '2px 7px',
-                          borderRadius: 'var(--radius-full)',
-                          fontWeight: 600,
-                        }}
-                      >
-                        #{task.groupId?.name}
-                      </span>
-                    )}
+                    <div className="task-card-header-left">
+                      <Badge variant="success">DONE</Badge>
+                      {task.groupId && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-primary)',
+                            backgroundColor: 'var(--color-primary-soft)',
+                            padding: '2px 7px',
+                            borderRadius: 'var(--radius-full)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          #{task.groupId?.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div
@@ -583,11 +586,11 @@ const UserTasks = () => {
                   <div className="task-card-actions">
                     <button
                       type="button"
-                      className="btn btn-ghost btn-sm"
+                      className="btn btn-ghost task-card-action-btn"
                       style={{
                         width: '100%',
-                        fontSize: '11.5px',
                         color: 'var(--color-text-muted)',
+                        border: '1px solid var(--color-border)',
                       }}
                       onClick={(e) => {
                         e.stopPropagation();

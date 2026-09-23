@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  Eye,
   ChevronLeft,
   ChevronRight,
   Activity,
@@ -542,15 +541,6 @@ const AdminUsers = ({ groups = [] }) => {
                           <CheckSquare size={14} />
                         </button>
 
-                        {/* View Detail Panel */}
-                        <button
-                          className="table-action-btn"
-                          title="View Profile & Activity"
-                          onClick={() => handleOpenDetail(u)}
-                        >
-                          <Eye size={14} />
-                        </button>
-
                         {/* Edit User */}
                         <button
                           className="table-action-btn"
@@ -1071,105 +1061,306 @@ const AdminUsers = ({ groups = [] }) => {
             setDetailData(null);
           }}
           title="User Profile Summary"
-          maxWidth="640px"
+          maxWidth="500px"
         >
           {detailLoading ? (
             <div
-              style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-secondary)' }}
+              style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-secondary)', fontSize: '13px' }}
             >
               Loading user profile & activity...
             </div>
           ) : detailData ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Profile Card Top */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '16px',
-                  padding: '16px',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
                   backgroundColor: 'var(--color-surface-alt)',
                   border: '1px solid var(--color-border)',
+                  flexWrap: 'wrap',
                 }}
               >
-                <Avatar name={detailData.user.name} src={detailData.user.avatar} size="xl" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h2 style={{ fontSize: '18px' }}>{detailData.user.name}</h2>
-                    <Badge variant={detailData.user.role === 'admin' ? 'primary' : 'neutral'}>
-                      {detailData.user.role?.toUpperCase()}
-                    </Badge>
-                    <Badge variant={detailData.user.status === 'active' ? 'success' : 'danger'}>
-                      {detailData.user.status?.toUpperCase()}
-                    </Badge>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '200px', flex: 1 }}>
+                  <Avatar name={detailData.user.name} src={detailData.user.avatar} size="lg" />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: '15.5px', fontWeight: 700, margin: 0 }}>{detailData.user.name}</h3>
+                      <Badge variant={detailData.user.role === 'admin' ? 'primary' : 'neutral'}>
+                        {detailData.user.role?.toUpperCase()}
+                      </Badge>
+                      <Badge variant={detailData.user.status === 'active' ? 'success' : 'danger'}>
+                        {detailData.user.status?.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--color-text-secondary)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {detailData.user.email} • {detailData.user.post || 'Team Member'}
+                    </div>
+                    <div
+                      style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}
+                    >
+                      Member since {new Date(detailData.user.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: '13px',
-                      color: 'var(--color-text-secondary)',
-                      marginTop: '2px',
+                </div>
+
+                {/* Quick Icon Action Buttons Group */}
+                <div className="table-actions-group" style={{ flexShrink: 0 }}>
+                  <button
+                    className="table-action-btn is-primary"
+                    title="Assign Work / Task"
+                    onClick={() => {
+                      setAssignTaskUser(detailData.user);
+                      setDetailUser(null);
                     }}
                   >
-                    {detailData.user.email} • {detailData.user.post || 'Team Member'}
-                  </div>
-                  <div
-                    style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}
+                    <CheckSquare size={13} />
+                  </button>
+
+                  <button
+                    className="table-action-btn"
+                    title="Edit User Details"
+                    onClick={() => {
+                      setEditingUser({
+                        ...detailData.user,
+                        groupIds: detailData.user.groupIds?.map((g) => g._id || g) || [],
+                      });
+                      setIsEditOpen(true);
+                      setDetailUser(null);
+                    }}
                   >
-                    Member since {new Date(detailData.user.createdAt).toLocaleDateString()}
-                  </div>
+                    <Edit2 size={13} />
+                  </button>
+
+                  <button
+                    className="table-action-btn is-primary"
+                    title="Generate Temporary Password"
+                    onClick={() => {
+                      setResetPwdUser(detailData.user);
+                      const chars =
+                        'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+                      setNewTempPwd(
+                        Array.from(
+                          { length: 10 },
+                          () => chars[Math.floor(Math.random() * chars.length)]
+                        ).join('')
+                      );
+                      setResetPwdCopied(false);
+                      setDetailUser(null);
+                    }}
+                  >
+                    <Key size={13} />
+                  </button>
+
+                  <button
+                    className={`table-action-btn ${detailData.user.status === 'active' ? 'is-warning' : 'is-primary'}`}
+                    title={detailData.user.status === 'active' ? 'Disable Account' : 'Enable Account'}
+                    onClick={async () => {
+                      await handleToggleStatus(detailData.user);
+                      setDetailData((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              user: {
+                                ...prev.user,
+                                status: prev.user.status === 'active' ? 'disabled' : 'active',
+                              },
+                            }
+                          : prev
+                      );
+                    }}
+                  >
+                    {detailData.user.status === 'active' ? <UserX size={13} /> : <UserCheck size={13} />}
+                  </button>
+
+                  <button
+                    className="table-action-btn is-danger"
+                    title="Permanently Remove User"
+                    onClick={() => {
+                      setDetailUser(null);
+                      handleDeleteUser(detailData.user);
+                    }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </div>
 
+              {/* Action Buttons Toolbar with Labels */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flexWrap: 'wrap',
+                  padding: '8px 12px',
+                  backgroundColor: 'var(--color-surface-alt)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '11.5px', padding: '4px 9px' }}
+                  title="Assign Task"
+                  onClick={() => {
+                    setAssignTaskUser(detailData.user);
+                    setDetailUser(null);
+                  }}
+                >
+                  <CheckSquare size={12} color="var(--color-primary)" />
+                  <span>Assign Task</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '11.5px', padding: '4px 9px' }}
+                  title="Edit Profile"
+                  onClick={() => {
+                    setEditingUser({
+                      ...detailData.user,
+                      groupIds: detailData.user.groupIds?.map((g) => g._id || g) || [],
+                    });
+                    setIsEditOpen(true);
+                    setDetailUser(null);
+                  }}
+                >
+                  <Edit2 size={12} />
+                  <span>Edit Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '11.5px', padding: '4px 9px' }}
+                  title="Reset Password"
+                  onClick={() => {
+                    setResetPwdUser(detailData.user);
+                    const chars =
+                      'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+                    setNewTempPwd(
+                      Array.from(
+                        { length: 10 },
+                        () => chars[Math.floor(Math.random() * chars.length)]
+                      ).join('')
+                    );
+                    setResetPwdCopied(false);
+                    setDetailUser(null);
+                  }}
+                >
+                  <Key size={12} color="#F59E0B" />
+                  <span>Reset Password</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`btn btn-sm ${detailData.user.status === 'active' ? 'btn-secondary' : 'btn-primary'}`}
+                  style={{ fontSize: '11.5px', padding: '4px 9px' }}
+                  title={detailData.user.status === 'active' ? 'Disable Account' : 'Enable Account'}
+                  onClick={async () => {
+                    await handleToggleStatus(detailData.user);
+                    setDetailData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            user: {
+                              ...prev.user,
+                              status: prev.user.status === 'active' ? 'disabled' : 'active',
+                            },
+                          }
+                        : prev
+                    );
+                  }}
+                >
+                  {detailData.user.status === 'active' ? (
+                    <>
+                      <UserX size={12} color="var(--color-warning)" />
+                      <span>Disable Account</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck size={12} />
+                      <span>Enable Account</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  style={{ fontSize: '11.5px', padding: '4px 9px' }}
+                  title="Delete Member"
+                  onClick={() => {
+                    setDetailUser(null);
+                    handleDeleteUser(detailData.user);
+                  }}
+                >
+                  <Trash2 size={12} />
+                  <span>Delete Member</span>
+                </button>
+              </div>
+
               {/* Statistics Grid */}
-              <div className="responsive-grid-3" style={{ gap: '12px' }}>
+              <div className="responsive-grid-3" style={{ gap: '8px' }}>
                 <div
                   style={{
-                    padding: '12px',
+                    padding: '8px 10px',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--color-surface-alt)',
                     border: '1px solid var(--color-border)',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-primary)' }}>
+                  <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--color-primary)' }}>
                     {detailData.stats?.groupsCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Channels
                   </div>
                 </div>
 
                 <div
                   style={{
-                    padding: '12px',
+                    padding: '8px 10px',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--color-surface-alt)',
                     border: '1px solid var(--color-border)',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-warning)' }}>
+                  <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--color-warning)' }}>
                     {detailData.stats?.openTasksCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Open Deliverables
                   </div>
                 </div>
 
                 <div
                   style={{
-                    padding: '12px',
+                    padding: '8px 10px',
                     borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--color-surface-alt)',
                     border: '1px solid var(--color-border)',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-success)' }}>
+                  <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--color-success)' }}>
                     {detailData.stats?.completedTasksCount || 0}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                     Completed Tasks
                   </div>
                 </div>
@@ -1177,10 +1368,12 @@ const AdminUsers = ({ groups = [] }) => {
 
               {/* Channels List */}
               <div>
-                <h4 style={{ fontSize: '13.5px', marginBottom: '8px' }}>Assigned Channels</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: 'var(--color-text-primary)' }}>
+                  Assigned Channels
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                   {detailData.user.groupIds?.length === 0 ? (
-                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
                       No channels assigned.
                     </span>
                   ) : (
@@ -1188,11 +1381,11 @@ const AdminUsers = ({ groups = [] }) => {
                       <span
                         key={g._id}
                         style={{
-                          padding: '4px 10px',
+                          padding: '3px 8px',
                           borderRadius: 'var(--radius-sm)',
                           backgroundColor: 'var(--color-surface-alt)',
                           border: '1px solid var(--color-border)',
-                          fontSize: '12px',
+                          fontSize: '11.5px',
                           fontWeight: 500,
                         }}
                       >
@@ -1205,28 +1398,30 @@ const AdminUsers = ({ groups = [] }) => {
 
               {/* Activity Log Audit Trail */}
               <div>
-                <h4
-                  style={{
-                    fontSize: '13.5px',
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Activity size={15} /> User Activity Audit Trail (Last 10 Actions)
-                </h4>
                 <div
                   style={{
-                    maxHeight: '180px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <Activity size={13} /> User Activity Audit Trail (Last 10 Actions)
+                </div>
+                <div
+                  style={{
+                    maxHeight: '140px',
                     overflowY: 'auto',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px',
+                    gap: '6px',
                   }}
                 >
                   {detailData.recentActivity?.length === 0 ? (
-                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
                       No activity logs recorded.
                     </span>
                   ) : (

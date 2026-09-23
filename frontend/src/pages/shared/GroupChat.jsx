@@ -963,8 +963,8 @@ const GroupChat = ({
 
   return (
     <div className={`chat-layout-wrapper ${embedded ? 'embedded' : ''}`}>
-      {/* Left Sidebar (Only in Standalone Mode) */}
-      {!embedded && (
+      {/* Left Sidebar (Disabled in favor of main application Sidebar) */}
+      {false && (
         <div
           className="chat-sidebar"
           style={{
@@ -1367,18 +1367,17 @@ const GroupChat = ({
         {currentGroup || currentRecipient ? (
           <>
             {/* Header */}
-            {!embedded && (
-              <div
-                className="chat-header"
-                style={{
-                  padding: '10px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                }}
-              >
+            <div
+              className="chat-header"
+              style={{
+                padding: '10px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-surface)',
+              }}
+            >
                 {chatMode === 'group' ? (
                   /* Channel Header */
                   <div
@@ -1612,7 +1611,6 @@ const GroupChat = ({
                   )}
                 </div>
               </div>
-            )}
 
             {/* In-Chat Search Bar Dropdown */}
             {isSearchOpen && (
