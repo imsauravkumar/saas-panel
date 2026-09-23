@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Bell,
-  Users,
   CheckCheck,
   Calendar,
   CheckSquare,
@@ -11,7 +10,6 @@ import {
   Settings,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext';
 import { useNotification } from '../context/NotificationContext';
 import Avatar from './Avatar';
 import NotificationPreferencesModal from './NotificationPreferencesModal';
@@ -26,7 +24,6 @@ const TopBar = ({
   onToggleMobileSidebar,
 }) => {
   const { user } = useAuth();
-  const { onlineUsers } = useSocket();
   const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
     useNotification();
 
@@ -112,24 +109,6 @@ const TopBar = ({
       </div>
 
       <div className="topbar-right">
-        {/* Live Online Badge */}
-        <div
-          className="topbar-online-badge"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12.5px',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
-          <Users size={15} color="var(--color-success)" />
-          <span>
-            <strong>{Math.max(1, onlineUsers.length)}</strong>{' '}
-            <span className="online-indicator-text">Online</span>
-          </span>
-        </div>
-
         {/* Notification Center Bell Dropdown */}
         <div style={{ position: 'relative' }} ref={dropdownRef}>
           <button

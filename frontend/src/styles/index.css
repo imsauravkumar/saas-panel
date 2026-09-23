@@ -972,6 +972,13 @@ textarea {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.stat-card > div:last-child {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .stat-icon-wrapper {
@@ -981,6 +988,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .stat-val {
@@ -995,6 +1003,9 @@ textarea {
   color: var(--color-text-secondary);
   font-weight: 500;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================================================
@@ -2118,7 +2129,7 @@ svg {
   }
 
   .stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .card {
@@ -2141,6 +2152,8 @@ svg {
 
   .table-wrapper {
     border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .custom-table th,

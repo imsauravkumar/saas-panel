@@ -64,7 +64,7 @@ const Sidebar = ({
 
   const adminNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'users', label: 'Team Directory', icon: Users },
+    { id: 'users', label: 'Team Management', icon: Users },
     { id: 'groups', label: 'Group Channels', icon: MessageSquare },
     { id: 'tasks', label: 'Work & Tasks', icon: CheckSquare },
     { id: 'meetings', label: 'Meetings', icon: Video },

@@ -30,9 +30,9 @@ const AdminUsers = ({ groups = [] }) => {
   // Directory state
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
+  const [_total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 10;
   const [totalPages, setTotalPages] = useState(1);
 
   // Filter state
@@ -267,7 +267,7 @@ const AdminUsers = ({ groups = [] }) => {
       {/* Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Team Directory & User Management</h1>
+          <h1>Team Management</h1>
           <p>
             Provision user accounts, configure role titles, sync channels, and audit team
             activities.
@@ -419,27 +419,26 @@ const AdminUsers = ({ groups = [] }) => {
               <th>Channel Memberships</th>
               <th>Status</th>
               <th>Created Date</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="7"
                   style={{
                     textAlign: 'center',
                     padding: '36px',
                     color: 'var(--color-text-secondary)',
                   }}
                 >
-                  Loading team directory...
+                  Loading team members...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="7"
                   style={{ textAlign: 'center', padding: '36px', color: 'var(--color-text-muted)' }}
                 >
                   No members found matching your search criteria.
@@ -529,72 +528,6 @@ const AdminUsers = ({ groups = [] }) => {
                         {new Date(u.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </td>
-
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="table-actions-group">
-                        {/* Assign Work / Task */}
-                        <button
-                          className="table-action-btn is-primary"
-                          title="Assign Work / Task"
-                          onClick={() => setAssignTaskUser(u)}
-                        >
-                          <CheckSquare size={14} />
-                        </button>
-
-                        {/* Edit User */}
-                        <button
-                          className="table-action-btn"
-                          title="Edit User Details"
-                          onClick={() => {
-                            setEditingUser({
-                              ...u,
-                              groupIds: u.groupIds?.map((g) => g._id || g) || [],
-                            });
-                            setIsEditOpen(true);
-                          }}
-                        >
-                          <Edit2 size={14} />
-                        </button>
-
-                        {/* Admin Reset Password */}
-                        <button
-                          className="table-action-btn is-primary"
-                          title="Generate Temporary Password"
-                          onClick={() => {
-                            setResetPwdUser(u);
-                            const chars =
-                              'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-                            setNewTempPwd(
-                              Array.from(
-                                { length: 10 },
-                                () => chars[Math.floor(Math.random() * chars.length)]
-                              ).join('')
-                            );
-                            setResetPwdCopied(false);
-                          }}
-                        >
-                          <Key size={14} />
-                        </button>
-
-                        {/* Toggle Disable / Enable */}
-                        <button
-                          className={`table-action-btn ${u.status === 'active' ? 'is-warning' : 'is-primary'}`}
-                          title={u.status === 'active' ? 'Disable Account' : 'Enable Account'}
-                          onClick={() => handleToggleStatus(u)}
-                        >
-                          {u.status === 'active' ? <UserX size={14} /> : <UserCheck size={14} />}
-                        </button>
-
-                        {/* Delete User */}
-                        <button
-                          className="table-action-btn is-danger"
-                          title="Permanently Remove User"
-                          onClick={() => handleDeleteUser(u)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 );
               })
@@ -603,48 +536,27 @@ const AdminUsers = ({ groups = [] }) => {
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="pagination-bar">
-        <div>
-          Showing <strong>{Math.min(total, (page - 1) * limit + 1)}</strong> –{' '}
-          <strong>{Math.min(total, page * limit)}</strong> of <strong>{total}</strong> members
-        </div>
-
-        <div className="pagination-controls">
-          <select
-            className="form-select"
-            style={{ width: '110px', height: '34px', fontSize: '12.5px' }}
-            value={limit}
-            onChange={(e) => {
-              setLimit(parseInt(e.target.value));
-              setPage(1);
-            }}
-          >
-            <option value={10}>10 / page</option>
-            <option value={20}>20 / page</option>
-            <option value={50}>50 / page</option>
-          </select>
-
-          <button
-            className="pagination-nav-btn"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            <ChevronLeft size={14} /> Prev
-          </button>
-
-          <span style={{ fontSize: '13px', fontWeight: 600, padding: '0 4px' }}>
-            Page {page} of {totalPages}
-          </span>
-
-          <button
-            className="pagination-nav-btn"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Next <ChevronRight size={14} />
-          </button>
-        </div>
+      {/* Compact Page Change Controls */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+        <button
+          className="pagination-nav-btn"
+          style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
+          disabled={page <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
+          <ChevronLeft size={13} /> Prev
+        </button>
+        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600, padding: '0 4px' }}>
+          Page {page} of {totalPages || 1}
+        </span>
+        <button
+          className="pagination-nav-btn"
+          style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        >
+          Next <ChevronRight size={13} />
+        </button>
       </div>
 
       {/* 1.2 Modal: Create User */}

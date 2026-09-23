@@ -71,7 +71,7 @@ const AdminDashboard = ({
             Admin Command Center
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginTop: '2px', margin: 0 }}>
-            Workspace oversight, team directory, channels, and security controls
+            Workspace oversight, team management, channels, and security controls
           </p>
         </div>
 
@@ -85,163 +85,46 @@ const AdminDashboard = ({
       {/* Row 1 — Quick Stats Row */}
       <div className="stat-grid" style={{ marginBottom: '16px' }}>
         {/* Total Users */}
-        <div
-          onClick={() => setTab('users')}
-          className="card"
-          style={{
-            background: 'var(--color-surface)',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            transition: 'transform var(--transition-fast)',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(99, 102, 241, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--color-primary)',
-              flexShrink: 0,
-            }}
-          >
+        <div onClick={() => setTab('users')} className="stat-card" style={{ cursor: 'pointer' }}>
+          <div className="stat-icon-wrapper" style={{ background: 'rgba(99, 102, 241, 0.12)', color: 'var(--color-primary)' }}>
             <Users size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
-              {summary?.userCount || 0}
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-              Active Members
-            </div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="stat-val">{summary?.userCount || 0}</div>
+            <div className="stat-lbl">Active Members</div>
           </div>
         </div>
 
         {/* Active Groups */}
-        <div
-          onClick={() => setTab('groups')}
-          className="card"
-          style={{
-            background: 'var(--color-surface)',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(59, 130, 246, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#3B82F6',
-              flexShrink: 0,
-            }}
-          >
+        <div onClick={() => setTab('groups')} className="stat-card" style={{ cursor: 'pointer' }}>
+          <div className="stat-icon-wrapper" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6' }}>
             <MessageSquare size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
-              {summary?.activeGroupCount || 0}
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-              Active Channels
-            </div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="stat-val">{summary?.activeGroupCount || 0}</div>
+            <div className="stat-lbl">Active Channels</div>
           </div>
         </div>
 
         {/* Tasks in Progress */}
-        <div
-          onClick={() => setTab('tasks')}
-          className="card"
-          style={{
-            background: 'var(--color-surface)',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(245, 158, 11, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#F59E0B',
-              flexShrink: 0,
-            }}
-          >
+        <div onClick={() => setTab('tasks')} className="stat-card" style={{ cursor: 'pointer' }}>
+          <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B' }}>
             <CheckSquare size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
-              {summary?.tasksInProgressCount || 0}
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-              Tasks in Progress
-            </div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="stat-val">{summary?.tasksInProgressCount || 0}</div>
+            <div className="stat-lbl">Tasks in Progress</div>
           </div>
         </div>
 
         {/* Meetings this week */}
-        <div
-          onClick={() => setTab('meetings')}
-          className="card"
-          style={{
-            background: 'var(--color-surface)',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(16, 185, 129, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#10B981',
-              flexShrink: 0,
-            }}
-          >
+        <div onClick={() => setTab('meetings')} className="stat-card" style={{ cursor: 'pointer' }}>
+          <div className="stat-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
             <Video size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
-              {summary?.meetingsThisWeekCount || 0}
-            </div>
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-              Meetings This Week
-            </div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="stat-val">{summary?.meetingsThisWeekCount || 0}</div>
+            <div className="stat-lbl">Meetings This Week</div>
           </div>
         </div>
       </div>
