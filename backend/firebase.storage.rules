@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Group Channel Shared Media & Documents
+    match /groups/{groupId}/chat/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 25 * 1024 * 1024
+                   && request.resource.contentType.matches(
+                        'image/.*|application/pdf|application/vnd.*|text/plain|application/zip');
+    }
+
+    // User Profile Avatars
+    match /avatars/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Default Fallback: Block all other unmatched paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
