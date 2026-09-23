@@ -68,11 +68,8 @@ const AdminDashboard = ({
             }}
           >
             <Shield size={20} color="var(--color-primary)" />
-            Admin Command Center
+            Admin Panel
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginTop: '2px', margin: 0 }}>
-            Workspace oversight, team management, channels, and security controls
-          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>

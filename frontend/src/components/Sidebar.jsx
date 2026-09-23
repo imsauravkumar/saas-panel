@@ -140,7 +140,7 @@ const Sidebar = ({
                   className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => handleNavClick(item.id)}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                   <span>{item.label}</span>
                 </li>
               );
@@ -168,7 +168,7 @@ const Sidebar = ({
                 }}
                 title="Create New Group"
               >
-                <Plus size={15} />
+                <Plus size={14} />
               </button>
             )}
           </div>
@@ -185,7 +185,7 @@ const Sidebar = ({
                   className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => handleGroupClick(group._id)}
                 >
-                  {isLocked ? <Lock size={16} color="#F59E0B" /> : <Hash size={16} />}
+                  {isLocked ? <Lock size={15} color="#F59E0B" /> : <Hash size={15} />}
                   <span
                     style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
@@ -264,18 +264,18 @@ const Sidebar = ({
       </div>
 
       {/* Current User Card in Sidebar Footer */}
-      <div className="sidebar-footer" style={{ gap: '8px' }}>
+      <div className="sidebar-footer" style={{ gap: '6px', padding: '10px 12px' }}>
         <div
           onClick={() => handleNavClick('settings')}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '8px',
             overflow: 'hidden',
             flex: 1,
             cursor: 'pointer',
             padding: '4px 6px',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-sm)',
             transition: 'background-color var(--transition-fast)',
           }}
           title="Open Profile & Settings"
@@ -284,18 +284,19 @@ const Sidebar = ({
           }
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          <Avatar name={user?.name} src={user?.avatar} isOnline={true} size="md" />
+          <Avatar name={user?.name} src={user?.avatar} isOnline={true} size="sm" />
           <div
             style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}
           >
             <span
               style={{
                 color: '#F8FAFC',
-                fontSize: '13px',
+                fontSize: '12.5px',
                 fontWeight: 600,
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
+                lineHeight: 1.25,
               }}
             >
               {user?.name}
@@ -303,10 +304,11 @@ const Sidebar = ({
             <span
               style={{
                 color: '#94A3B8',
-                fontSize: '11px',
+                fontSize: '10.5px',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
+                marginTop: '1px',
               }}
             >
               {user?.email}
@@ -331,14 +333,15 @@ const Sidebar = ({
           className="btn btn-ghost btn-icon"
           style={{
             color: '#EF4444',
-            width: '34px',
-            height: '34px',
+            width: '30px',
+            height: '30px',
             flexShrink: 0,
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-sm)',
+            padding: 0,
           }}
           title="Sign Out / Logout"
         >
-          <LogOut size={16} />
+          <LogOut size={15} />
         </button>
       </div>
     </aside>
