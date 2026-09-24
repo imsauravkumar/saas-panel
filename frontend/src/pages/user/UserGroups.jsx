@@ -40,9 +40,8 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
         <div className="page-header-title">
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <MessageSquare size={26} color="var(--color-primary)" />
-            My Channels & Team Spaces
+            Group Management
           </h1>
-          <p>Browse active project rooms, announcements, and team discussion channels</p>
         </div>
 
         {/* Search Bar */}

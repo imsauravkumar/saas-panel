@@ -471,6 +471,9 @@ const GroupDashboard = ({
             padding: '3px',
             border: '1px solid var(--color-border)',
             gap: '2px',
+            overflowX: 'auto',
+            maxWidth: '100%',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           <button

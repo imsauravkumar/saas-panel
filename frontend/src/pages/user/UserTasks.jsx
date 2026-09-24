@@ -22,6 +22,7 @@ const UserTasks = () => {
   const { socket } = useSocket();
 
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -29,6 +30,7 @@ const UserTasks = () => {
 
   const fetchTasks = useCallback(async () => {
     try {
+      setLoading(true);
       const params = {};
       if (selectedPriority) params.priority = selectedPriority;
 
@@ -39,6 +41,8 @@ const UserTasks = () => {
       }
     } catch (_err) {
       addToast('Failed to load tasks', 'error');
+    } finally {
+      setLoading(false);
     }
   }, [selectedPriority, addToast]);
 
@@ -207,11 +211,7 @@ const UserTasks = () => {
       {/* Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>My Assigned Tasks & Work</h1>
-          <p>
-            Track your deliverables through To Do → In Progress → Submitted for Review →
-            Admin Verification.
-          </p>
+          <h1>Task Management</h1>
         </div>
 
         {/* View Mode Toggle */}
@@ -340,13 +340,20 @@ const UserTasks = () => {
         </select>
       </div>
 
-      {/* Kanban Board View — 4 Columns */}
-      {viewMode === 'kanban' ? (
+      {/* Loading Skeleton / Kanban / List View */}
+      {loading ? (
+        <div className="kanban-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="kanban-col">
+              <div className="skeleton-shimmer" style={{ height: '28px', marginBottom: '8px' }} />
+              <div className="skeleton-shimmer" style={{ height: '110px', borderRadius: 'var(--radius-md)' }} />
+              <div className="skeleton-shimmer" style={{ height: '110px', borderRadius: 'var(--radius-md)' }} />
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'kanban' ? (
         <div
           className="kanban-grid"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          }}
         >
           {/* Column 1: To Do */}
           <div className="kanban-col">

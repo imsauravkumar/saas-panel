@@ -1560,7 +1560,7 @@ const GroupChat = ({
                       onClick={() => setIsMeetingModalOpen(true)}
                       className="btn btn-ghost btn-icon"
                       title="Start or Schedule Google Meet Call"
-                      style={{ width: '32px', height: '32px', color: '#EA4335' }}
+                      style={{ width: '32px', height: '32px', color: 'var(--color-primary)' }}
                     >
                       <VideoIcon size={16} />
                     </button>

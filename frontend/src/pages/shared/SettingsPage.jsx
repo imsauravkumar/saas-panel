@@ -18,6 +18,7 @@ import {
   AlertCircle,
   ShieldCheck,
   Lock,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -46,6 +47,8 @@ const SettingsPage = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const [previewPhoto, setPreviewPhoto] = useState(false);
 
   // Close photo menu on outside click
   useEffect(() => {
@@ -191,74 +194,122 @@ const SettingsPage = () => {
       {/* ========================================================================= */}
       <div className="settings-hero-card">
         <div className="settings-hero-main">
-          {/* Avatar with Camera Management Menu */}
-          <div
-            className="settings-avatar-container"
-            ref={photoMenuRef}
-            onClick={() => setShowPhotoMenu(!showPhotoMenu)}
-            title="Click to manage profile photo"
-          >
-            <Avatar
-              name={user?.name || 'User'}
-              src={user?.avatar}
-              size="xl"
-              imgStyle={{
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
-                border: '3px solid var(--color-surface)',
-              }}
-            />
-            <div className="settings-avatar-overlay">
-              <Camera size={20} />
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPhotoMenu(!showPhotoMenu);
-              }}
-              disabled={avatarLoading}
-              className="settings-avatar-camera-btn"
-              title="Change Photo"
+          {/* Avatar with Camera Management Menu & Permanent Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div
+              className="settings-avatar-container"
+              ref={photoMenuRef}
+              onClick={() => setShowPhotoMenu(!showPhotoMenu)}
+              title="Click to manage profile photo"
             >
-              <Camera size={14} />
-            </button>
+              <Avatar
+                name={user?.name || 'User'}
+                src={user?.avatar}
+                size="xl"
+                imgStyle={{
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
+                  border: '3px solid var(--color-surface)',
+                }}
+              />
+              <div className="settings-avatar-overlay">
+                <Camera size={20} />
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPhotoMenu(!showPhotoMenu);
+                }}
+                disabled={avatarLoading}
+                className="settings-avatar-camera-btn"
+                title="Change Photo"
+              >
+                <Camera size={14} />
+              </button>
 
-            {/* Photo Action Dropdown */}
-            {showPhotoMenu && (
-              <div className="settings-photo-dropdown" onClick={(e) => e.stopPropagation()}>
-                <div className="settings-photo-dropdown-header">
-                  <span>Profile Photo</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPhotoMenu(false);
-                    fileInputRef.current?.click();
-                  }}
-                  disabled={avatarLoading}
-                  className="settings-photo-dropdown-item"
+              {/* Photo Action Dropdown */}
+              {showPhotoMenu && (
+                <div
+                  className="settings-photo-dropdown"
+                  style={{ zIndex: 99999, minWidth: '220px' }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Upload size={15} color="var(--color-primary)" />
-                  <span>Upload New Photo</span>
-                </button>
+                  <div className="settings-photo-dropdown-header">
+                    <span>Profile Photo Options</span>
+                  </div>
 
-                {user?.avatar && (
                   <button
                     type="button"
                     onClick={() => {
                       setShowPhotoMenu(false);
-                      handleRemovePhoto();
+                      fileInputRef.current?.click();
                     }}
                     disabled={avatarLoading}
-                    className="settings-photo-dropdown-item danger"
+                    className="settings-photo-dropdown-item"
                   >
-                    <Trash2 size={15} color="var(--color-danger)" />
-                    <span>Remove Photo</span>
+                    <Upload size={15} color="var(--color-primary)" />
+                    <span>{user?.avatar ? 'Change / Upload Photo' : 'Upload Profile Photo'}</span>
                   </button>
-                )}
-              </div>
-            )}
+
+                  {user?.avatar && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPhotoMenu(false);
+                        setPreviewPhoto(true);
+                      }}
+                      className="settings-photo-dropdown-item"
+                    >
+                      <Eye size={15} color="var(--color-accent)" />
+                      <span>View Profile Photo</span>
+                    </button>
+                  )}
+
+                  {user?.avatar && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPhotoMenu(false);
+                        handleRemovePhoto();
+                      }}
+                      disabled={avatarLoading}
+                      className="settings-photo-dropdown-item danger"
+                    >
+                      <Trash2 size={15} color="var(--color-danger)" />
+                      <span>Remove Profile Photo</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Permanent Quick Action Buttons */}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '11.5px', padding: '3px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarLoading}
+                title="Upload Photo"
+              >
+                <Upload size={12} color="var(--color-primary)" />
+                <span>{user?.avatar ? 'Change' : 'Upload'}</span>
+              </button>
+              {user?.avatar && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ fontSize: '11.5px', padding: '3px 8px', color: 'var(--color-danger)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={handleRemovePhoto}
+                  disabled={avatarLoading}
+                  title="Remove Photo"
+                >
+                  <Trash2 size={12} />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Profile Identity Details */}
@@ -862,6 +913,54 @@ const SettingsPage = () => {
           </div>
         </form>
       </div>
+      {/* Lightbox Modal for Profile Photo */}
+      {previewPhoto && user?.avatar && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '24px',
+          }}
+          onClick={() => setPreviewPhoto(false)}
+        >
+          <div
+            style={{ position: 'relative', maxWidth: '400px', maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewPhoto(false)}
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: 0,
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={28} />
+            </button>
+            <img
+              src={user.avatar}
+              alt={user.name || 'Profile'}
+              style={{
+                width: '100%',
+                maxHeight: '80vh',
+                borderRadius: 'var(--radius-lg)',
+                objectFit: 'contain',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

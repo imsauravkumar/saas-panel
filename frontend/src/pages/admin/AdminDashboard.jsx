@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, CheckSquare, Video, Plus, Megaphone, Shield, Clock } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../../components/Avatar';
+import NextMeetingWidget from '../../components/NextMeetingWidget';
 
 const AdminDashboard = ({
   setTab,
@@ -296,8 +297,14 @@ const AdminDashboard = ({
           )}
         </div>
 
-        {/* Right Column: Quick Actions Shortcuts Panel */}
+        {/* Right Column: Next Meeting Widget + Quick Actions Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <NextMeetingWidget
+            meeting={summary?.nextMeeting}
+            onScheduleClick={onOpenCreateMeeting}
+            onViewAllClick={() => setTab('meetings')}
+          />
+
           <div
             className="card"
             style={{

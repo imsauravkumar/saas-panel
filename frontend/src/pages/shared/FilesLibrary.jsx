@@ -78,7 +78,6 @@ const FilesLibrary = ({ groups = [], onSelectGroup: _onSelectGroup }) => {
             <FolderOpen size={26} color="var(--color-primary)" />
             Files Hub
           </h1>
-          <p>Aggregated repository of photos, PDFs, and assets shared across your channels</p>
         </div>
 
         {/* View Toggle */}
@@ -225,12 +224,31 @@ const FilesLibrary = ({ groups = [], onSelectGroup: _onSelectGroup }) => {
             gap: '16px',
           }}
         >
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div
-              key={i}
+              key={`skel-file-${i}`}
               className="card"
-              style={{ height: '180px', background: 'var(--color-surface)', opacity: 0.6 }}
-            />
+              style={{
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--color-border)',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                padding: '0 0 14px 0',
+              }}
+            >
+              <div className="skeleton-shimmer" style={{ height: '140px', width: '100%' }} />
+              <div style={{ padding: '0 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="skeleton-shimmer" style={{ height: '15px', width: '70%', borderRadius: '4px' }} />
+                <div className="skeleton-shimmer" style={{ height: '12px', width: '45%', borderRadius: '4px' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  <div className="skeleton-shimmer" style={{ height: '22px', width: '22px', borderRadius: '50%' }} />
+                  <div className="skeleton-shimmer" style={{ height: '26px', width: '70px', borderRadius: 'var(--radius-sm)' }} />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : files.length === 0 ? (

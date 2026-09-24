@@ -68,8 +68,7 @@ const UserAnnouncements = () => {
       {/* Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Company Bulletins & Notices</h1>
-          <p>Official workspace broadcasts, company news, and channel-level announcements.</p>
+          <h1>Announcements</h1>
         </div>
       </div>
 
@@ -99,11 +98,23 @@ const UserAnnouncements = () => {
       {/* Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading ? (
-          <div
-            style={{ textAlign: 'center', padding: '48px', color: 'var(--color-text-secondary)' }}
-          >
-            Loading bulletins...
-          </div>
+          Array.from({ length: 3 }).map((_, idx) => (
+            <div key={`skel-ann-${idx}`} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '4px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="skeleton-shimmer" style={{ width: '110px', height: '20px', borderRadius: '4px' }} />
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '14px', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="skeleton-shimmer" style={{ width: '45%', height: '18px', borderRadius: '4px' }} />
+                <div className="skeleton-shimmer" style={{ width: '90%', height: '14px', borderRadius: '4px' }} />
+                <div className="skeleton-shimmer" style={{ width: '75%', height: '14px', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                <div className="skeleton-shimmer" style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                <div className="skeleton-shimmer" style={{ width: '130px', height: '12px', borderRadius: '4px' }} />
+              </div>
+            </div>
+          ))
         ) : filteredAnnouncements.length === 0 ? (
           <div
             className="card"

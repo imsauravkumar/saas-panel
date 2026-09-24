@@ -7,22 +7,22 @@ import {
   Check,
   ExternalLink,
   Edit2,
-  XCircle,
-  CalendarPlus,
+  Trash2,
+  AlertTriangle,
+  Users,
+  Info,
+  Shield,
+  Ban,
+  MessageSquare,
 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import Badge from './Badge';
-import { useNotification } from '../context/NotificationContext';
-
-const TYPE_EMOJIS = {
-  general: { label: 'General Call', emoji: '📹' },
-  standup: { label: 'Daily Standup', emoji: '⚡' },
-  sync: { label: '1-on-1 Sync', emoji: '👥' },
-  review: { label: 'Design / Code Review', emoji: '🔍' },
-  demo: { label: 'Product Demo', emoji: '🚀' },
-  allhands: { label: 'All-Hands', emoji: '🏢' },
-};
+import {
+  TYPE_METADATA,
+  formatMeetingDateTime,
+  getMeetingCountdown,
+} from '../utils/meetingUtils';
 
 const MeetingDetailModal = ({
   isOpen,
@@ -33,354 +33,376 @@ const MeetingDetailModal = ({
   onEdit = null,
   onCancel = null,
 }) => {
-  const { addToast, confirm } = useNotification();
   const [copied, setCopied] = useState(false);
-  const [countdownText, setCountdownText] = useState('');
+  const [countdownInfo, setCountdownInfo] = useState({ label: '', isLive: false, isPast: false });
+  const [isCancelConfirming, setIsCancelConfirming] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
 
   // Live countdown timer calculation
   useEffect(() => {
     if (!meeting || !meeting.dateTime) return;
 
-    const calculateCountdown = () => {
-      const start = new Date(meeting.dateTime).getTime();
-      const durationMs = (meeting.durationMinutes || 45) * 60 * 1000;
-      const end = start + durationMs;
-      const now = Date.now();
-
-      if (meeting.status === 'cancelled') {
-        setCountdownText('Cancelled');
-        return;
-      }
-
-      if (now > end) {
-        setCountdownText('Concluded');
-        return;
-      }
-
-      if (now >= start && now <= end) {
-        setCountdownText('🟢 Live Now');
-        return;
-      }
-
-      const diffMs = start - now;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-
-      if (diffDays > 0) {
-        const remainingHours = diffHours % 24;
-        setCountdownText(`Starts in ${diffDays}d ${remainingHours}h`);
-      } else if (diffHours > 0) {
-        const remainingMins = diffMins % 60;
-        setCountdownText(`Starts in ${diffHours}h ${remainingMins}m`);
-      } else if (diffMins > 0) {
-        setCountdownText(`Starts in ${diffMins} mins`);
-      } else {
-        setCountdownText('Starting momentarily');
-      }
+    const updateCountdown = () => {
+      setCountdownInfo(
+        getMeetingCountdown(meeting.dateTime, meeting.durationMinutes, meeting.status)
+      );
     };
 
-    calculateCountdown();
-    const interval = setInterval(calculateCountdown, 30000);
-    return () => clearInterval(interval);
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 15000);
+    return () => clearInterval(timer);
   }, [meeting]);
+
+  useEffect(() => {
+    setIsCancelConfirming(false);
+    setCancelReason('');
+    setCancelling(false);
+  }, [isOpen, meeting?._id]);
 
   if (!meeting) return null;
 
-  const meetDate = new Date(meeting.dateTime);
-  const endDate = new Date(meetDate.getTime() + (meeting.durationMinutes || 45) * 60 * 1000);
+  const dateTimeInfo = formatMeetingDateTime(meeting.dateTime, meeting.durationMinutes);
   const isCancelled = meeting.status === 'cancelled';
-  const isUpcoming = meeting.status === 'upcoming';
-  const typeInfo = TYPE_EMOJIS[meeting.meetingType] || TYPE_EMOJIS.general;
+  const isCompleted = meeting.status === 'completed' || dateTimeInfo.isPast;
+  const isLive = dateTimeInfo.isLive && !isCancelled;
+  const typeMeta = TYPE_METADATA[meeting.meetingType] || TYPE_METADATA.general;
 
   const isCreator =
     currentUserId &&
     (meeting.createdBy?._id === currentUserId || meeting.createdBy === currentUserId);
   const canManage = isAdmin || isCreator;
+  const meetLink = meeting.googleMeetLink || meeting.meetLink;
 
-  const handleCopyLink = () => {
-    if (!meeting.googleMeetLink) return;
-    navigator.clipboard.writeText(meeting.googleMeetLink);
+  const handleCopy = () => {
+    if (!meetLink) return;
+    navigator.clipboard.writeText(meetLink);
     setCopied(true);
-    addToast('Google Meet link copied to clipboard!', 'success');
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const getGoogleCalendarUrl = () => {
-    if (!meeting || !meeting.dateTime) return '#';
-    const start = new Date(meeting.dateTime);
-    const end = new Date(start.getTime() + (meeting.durationMinutes || 45) * 60 * 1000);
-    const formatTime = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
-    const title = encodeURIComponent(meeting.title || 'Google Meet');
-    const details = encodeURIComponent(
-      `${meeting.description || ''}\n\nJoin Google Meet: ${meeting.googleMeetLink || ''}`
-    );
-    const location = encodeURIComponent(meeting.googleMeetLink || 'Google Meet');
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatTime(start)}/${formatTime(end)}&details=${details}&location=${location}`;
+  const handleConfirmCancel = async () => {
+    if (!onCancel) return;
+    setCancelling(true);
+    try {
+      await onCancel(meeting, cancelReason);
+      setIsCancelConfirming(false);
+    } catch (err) {
+      console.error('Failed to cancel meeting:', err);
+    } finally {
+      setCancelling(false);
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Google Meet Details" maxWidth="640px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {/* Header Summary */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: '14px',
-          }}
-        >
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '6px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <Badge variant={isCancelled ? 'danger' : isUpcoming ? 'primary' : 'success'}>
-                {meeting.status?.toUpperCase()}
-              </Badge>
-
-              <span
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  backgroundColor: 'var(--color-surface-alt)',
-                  color: 'var(--color-text-primary)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
-                {typeInfo.emoji} {typeInfo.label}
-              </span>
-
-              {meeting.groupId && (
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>
-                  #{meeting.groupId?.name || 'Channel'}
-                </span>
-              )}
-
-              {countdownText && (
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: countdownText.includes('🟢')
-                      ? 'var(--color-success)'
-                      : 'var(--color-text-secondary)',
-                    backgroundColor: 'var(--color-surface-alt)',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                  }}
-                >
-                  {countdownText}
-                </span>
-              )}
-            </div>
-
-            <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.3px', margin: 0 }}>
-              {meeting.title}
-            </h2>
-          </div>
-        </div>
-
-        {/* Schedule & Timezone Box */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface-alt)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            padding: '14px 16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '14px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <Calendar size={18} color="var(--color-primary)" style={{ marginTop: '2px' }} />
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                }}
-              >
-                DATE
-              </div>
-              <div
-                style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
-              >
-                {meetDate.toLocaleDateString(undefined, {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <Clock size={18} color="var(--color-primary)" style={{ marginTop: '2px' }} />
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                }}
-              >
-                TIME & DURATION
-              </div>
-              <div
-                style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--color-text-primary)' }}
-              >
-                {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
-                {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (
-                {meeting.durationMinutes} mins)
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Primary Google Meet Join CTA */}
-        {!isCancelled && (
+    <Modal isOpen={isOpen} onClose={onClose} title="Session Overview & Details" maxWidth="620px">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* 1. Cancelled Alert Banner */}
+        {isCancelled && (
           <div
             style={{
-              padding: '16px',
+              padding: '14px 16px',
               borderRadius: 'var(--radius-md)',
-              background:
-                'linear-gradient(135deg, rgba(234, 67, 53, 0.08), rgba(66, 133, 244, 0.08))',
-              border: '1px solid rgba(66, 133, 244, 0.3)',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#B91C1C',
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'flex-start',
               gap: '12px',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '10px',
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: '15px',
-                    color: 'var(--color-text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <span style={{ fontSize: '18px' }}>🟢</span> Google Meet Video Conference
-                </div>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--color-text-secondary)',
-                    marginTop: '2px',
-                  }}
-                >
-                  Click below to launch the video call or add to your Google Calendar
-                </div>
+            <Ban size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#DC2626' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                This meeting was cancelled
               </div>
-
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <a
-                  href={getGoogleCalendarUrl()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-secondary btn-sm"
-                  title="Add this event to Google Calendar"
-                  style={{ fontSize: '12px' }}
-                >
-                  <CalendarPlus size={14} />
-                  <span>Google Calendar</span>
-                </a>
-
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleCopyLink}
-                  title="Copy link"
-                  style={{ fontSize: '12px' }}
-                >
-                  {copied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
-                </button>
-
-                <a
-                  href={meeting.googleMeetLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#EA4335',
-                    borderColor: '#EA4335',
-                    padding: '6px 16px',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                  }}
-                >
-                  <Video size={15} /> Join Google Meet <ExternalLink size={12} />
-                </a>
+              <div style={{ fontSize: '12.5px', marginTop: '3px', lineHeight: 1.4 }}>
+                {meeting.cancelledBy && (
+                  <span>
+                    Cancelled by <strong>{meeting.cancelledBy.name || 'Organizer'}</strong>
+                    {meeting.cancelledAt && ` on ${new Date(meeting.cancelledAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`}.
+                  </span>
+                )}
+                {meeting.cancelReason && (
+                  <div style={{ marginTop: '4px', fontStyle: 'italic', color: '#991B1B' }}>
+                    &ldquo;{meeting.cancelReason}&rdquo;
+                  </div>
+                )}
               </div>
-            </div>
-
-            <div
-              style={{
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                backgroundColor: 'var(--color-surface)',
-                padding: '6px 10px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-secondary)',
-                wordBreak: 'break-all',
-              }}
-            >
-              {meeting.googleMeetLink}
             </div>
           </div>
         )}
 
-        {/* Description / Agenda */}
-        {meeting.description && (
-          <div>
-            <h4
+        {/* 2. Header Card */}
+        <div
+          style={{
+            padding: '16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--color-surface-alt)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '18px' }}>{typeMeta.emoji}</span>
+            <span
               style={{
                 fontSize: '12px',
-                color: 'var(--color-text-muted)',
-                textTransform: 'uppercase',
-                marginBottom: '6px',
-                fontWeight: 700,
+                fontWeight: 600,
+                color: 'var(--color-primary)',
+                background: 'var(--color-primary-soft)',
+                padding: '2px 8px',
+                borderRadius: '4px',
               }}
             >
-              Agenda / Notes
-            </h4>
+              {typeMeta.label}
+            </span>
+
+            {meeting.groupId && (
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--color-text-secondary)',
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                }}
+              >
+                #{meeting.groupId.name}
+              </span>
+            )}
+
+            {/* Status / Countdown badge */}
+            {isCancelled ? (
+              <Badge variant="danger">Cancelled</Badge>
+            ) : isLive ? (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: '#10B981',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                <span
+                  style={{
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    background: '#10B981',
+                    animation: 'pulse 1.5s infinite',
+                  }}
+                />
+                Live Right Now
+              </span>
+            ) : isCompleted ? (
+              <Badge variant="neutral">Concluded</Badge>
+            ) : (
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: countdownInfo.color,
+                  background: countdownInfo.bg,
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                }}
+              >
+                {countdownInfo.label}
+              </span>
+            )}
+
+            {meeting.isDemoLink && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#D97706',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+                title="Demo Mode: Simulated Google Meet URL"
+              >
+                Demo Link
+              </span>
+            )}
+          </div>
+
+          <h2
+            style={{
+              fontSize: '18px',
+              fontWeight: 700,
+              color: 'var(--color-text)',
+              margin: 0,
+              lineHeight: 1.3,
+            }}
+          >
+            {meeting.title}
+          </h2>
+
+          {/* Schedule Info Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '10px',
+              marginTop: '4px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--color-border)',
+              fontSize: '12.5px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={15} color="var(--color-primary)" />
+              <div>
+                <div style={{ color: 'var(--color-text-secondary)', fontSize: '11px' }}>Date</div>
+                <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                  {dateTimeInfo.dateStr || 'Not set'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={15} color="var(--color-primary)" />
+              <div>
+                <div style={{ color: 'var(--color-text-secondary)', fontSize: '11px' }}>Time & Zone</div>
+                <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                  {dateTimeInfo.timeRangeStr} ({dateTimeInfo.tzAbbr})
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Primary Google Meet CTA Section */}
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: isCancelled
+              ? 'var(--color-surface-alt)'
+              : 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)',
+            border: isCancelled ? '1px solid var(--color-border)' : '1px solid rgba(99, 102, 241, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Video size={18} color={isCancelled ? 'var(--color-text-muted)' : 'var(--color-primary)'} />
+              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text)' }}>
+                Google Meet Conference Room
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={handleCopy}
+              disabled={!meetLink}
+              style={{ fontSize: '12px', padding: '4px 8px' }}
+            >
+              {copied ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
+              <span>{copied ? 'Link Copied' : 'Copy Link'}</span>
+            </button>
+          </div>
+
+          {/* Join CTA Button */}
+          {isCancelled ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled
+              style={{ width: '100%', justifyContent: 'center', opacity: 0.6, cursor: 'not-allowed' }}
+            >
+              Meeting Cancelled
+            </button>
+          ) : isCompleted ? (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled
+                style={{ flex: 1, justifyContent: 'center', opacity: 0.7 }}
+              >
+                Session Ended
+              </button>
+              {meetLink && (
+                <a
+                  href={meetLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <ExternalLink size={13} /> Re-open Room
+                </a>
+              )}
+            </div>
+          ) : (
+            <a
+              href={meetLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontWeight: 600,
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                textDecoration: 'none',
+                boxShadow: '0 2px 8px rgba(99, 102, 241, 0.25)',
+              }}
+            >
+              <Video size={18} />
+              <span>Join Google Meet Now</span>
+              <ExternalLink size={15} style={{ marginLeft: '4px', opacity: 0.8 }} />
+            </a>
+          )}
+        </div>
+
+        {/* 4. Agenda / Description */}
+        {meeting.description && (
+          <div
+            style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--color-text-secondary)',
+                marginBottom: '6px',
+              }}
+            >
+              AGENDA & NOTES
+            </div>
             <div
               style={{
                 fontSize: '13px',
+                color: 'var(--color-text)',
                 lineHeight: 1.5,
-                color: 'var(--color-text-primary)',
-                backgroundColor: 'var(--color-surface-alt)',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-                whiteSpace: 'pre-line',
+                whiteSpace: 'pre-wrap',
               }}
             >
               {meeting.description}
@@ -388,153 +410,224 @@ const MeetingDetailModal = ({
           </div>
         )}
 
-        {/* Organizer & Attendees */}
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '8px',
-            }}
-          >
-            <h4
-              style={{
-                fontSize: '12px',
-                color: 'var(--color-text-muted)',
-                textTransform: 'uppercase',
-                margin: 0,
-                fontWeight: 700,
-              }}
-            >
-              Invited Attendees ({meeting.attendeeIds?.length || 0})
-            </h4>
-
-            {meeting.createdBy && (
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <span>Host:</span>
-                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+        {/* 5. Organizer & Attendees */}
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          {/* Organizer */}
+          {meeting.createdBy && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                ORGANIZER
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Avatar name={meeting.createdBy.name} src={meeting.createdBy.avatar} size="xs" />
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                   {meeting.createdBy.name}
                 </span>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  ({meeting.createdBy.post || meeting.createdBy.role || 'Member'})
+                </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-              gap: '8px',
-              maxHeight: '160px',
-              overflowY: 'auto',
-              paddingRight: '4px',
-            }}
-          >
-            {meeting.attendeeIds?.map((att) => (
-              <div
-                key={att._id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 8px',
-                  backgroundColor: 'var(--color-surface-alt)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
-                <Avatar name={att.name} src={att.avatar} size="xs" />
-                <div style={{ overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {att.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '10.5px',
-                      color: 'var(--color-text-secondary)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {att.post || att.department || 'Member'}
-                  </div>
+          {/* Attendees List */}
+          <div>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--color-text-secondary)',
+                marginBottom: '8px',
+              }}
+            >
+              INVITED ATTENDEES ({meeting.attendeeIds?.length || 0})
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '8px',
+                maxHeight: '140px',
+                overflowY: 'auto',
+              }}
+            >
+              {meeting.attendeeIds?.length === 0 ? (
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                  All channel members
                 </div>
-              </div>
-            ))}
+              ) : (
+                meeting.attendeeIds?.map((attendee) => (
+                  <div
+                    key={attendee._id || attendee}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      background: 'var(--color-surface-alt)',
+                      border: '1px solid var(--color-border)',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <Avatar name={attendee.name} src={attendee.avatar} size="xs" />
+                    <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          fontWeight: 500,
+                          color: 'var(--color-text)',
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {attendee.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '10.5px',
+                          color: 'var(--color-text-muted)',
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {attendee.post || attendee.email}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Action Bar (For Admin or Meeting Creator) */}
-        {canManage && (
+        {/* 6. Admin Danger Zone & Edit Actions */}
+        {canManage && !isCancelled && (
           <div
             style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-surface-alt)',
+              border: '1px solid var(--color-border)',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTop: '1px solid var(--color-border)',
-              paddingTop: '14px',
-              marginTop: '2px',
+              flexDirection: 'column',
+              gap: '10px',
             }}
           >
-            <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
-              {isAdmin ? 'Administrator Controls' : 'Meeting Creator Controls'}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                ORGANIZER CONTROLS
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {onEdit && !isCompleted && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      onEdit(meeting);
+                      onClose();
+                    }}
+                    style={{ fontSize: '12px' }}
+                  >
+                    <Edit2 size={13} /> Edit Schedule
+                  </button>
+                )}
+
+                {onCancel && (
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => setIsCancelConfirming(true)}
+                    style={{ fontSize: '12px' }}
+                  >
+                    <Ban size={13} /> Cancel Meeting
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {isUpcoming && onEdit && (
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => {
-                    onClose();
-                    onEdit(meeting);
-                  }}
-                >
-                  <Edit2 size={13} /> Edit
-                </button>
-              )}
+            {/* Inline Cancellation Reason Confirmation Panel */}
+            {isCancelConfirming && (
+              <div
+                style={{
+                  marginTop: '6px',
+                  padding: '12px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#B91C1C' }}>
+                  Are you sure you want to cancel this meeting?
+                </div>
+                <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', margin: 0 }}>
+                  This will notify all attendees, post a cancellation notice in the channel, and
+                  remove the event from Google Calendar.
+                </p>
 
-              {isUpcoming && onCancel && (
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--color-danger)' }}
-                  onClick={() => {
-                    confirm({
-                      title: 'Cancel Meeting',
-                      message: `Are you sure you want to cancel meeting "${meeting.title}"? Attendees will be notified.`,
-                      confirmText: 'Cancel Meeting',
-                      type: 'warning',
-                      onConfirm: () => {
-                        onCancel(meeting._id);
-                        onClose();
-                      },
-                    });
-                  }}
-                >
-                  <XCircle size={13} /> Cancel
-                </button>
-              )}
-            </div>
+                <input
+                  type="text"
+                  placeholder="Optional cancellation note / reason for attendees..."
+                  className="form-input"
+                  style={{ fontSize: '12px', padding: '6px 10px', height: '32px' }}
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  disabled={cancelling}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setIsCancelConfirming(false)}
+                    disabled={cancelling}
+                  >
+                    Keep Meeting
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={handleConfirmCancel}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? 'Cancelling...' : 'Confirm & Notify Attendees'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Modal Footer */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
     </Modal>
   );

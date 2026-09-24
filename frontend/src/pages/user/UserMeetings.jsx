@@ -9,27 +9,18 @@ import {
   Copy,
   Check,
   Eye,
-  Zap,
-  Edit2,
+  AlertCircle,
 } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../components/Badge';
+import Avatar from '../../components/Avatar';
 import MeetingDetailModal from '../../components/MeetingDetailModal';
-import CreateMeetingModal from '../../components/CreateMeetingModal';
+import { TYPE_METADATA, formatMeetingDateTime, getMeetingCountdown } from '../../utils/meetingUtils';
 
-const TYPE_EMOJIS = {
-  general: { label: 'General', emoji: '📹' },
-  standup: { label: 'Standup', emoji: '⚡' },
-  sync: { label: '1-on-1', emoji: '👥' },
-  review: { label: 'Review', emoji: '🔍' },
-  demo: { label: 'Demo', emoji: '🚀' },
-  allhands: { label: 'All-Hands', emoji: '🏢' },
-};
-
-const UserMeetings = ({ groups = [], users = [] }) => {
+const UserMeetings = ({ groups = [] }) => {
   const { addToast } = useNotification();
   const { socket } = useSocket();
   const { user } = useAuth();
@@ -40,9 +31,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
 
-  // Modals
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingMeeting, setEditingMeeting] = useState(null);
+  // Modals & clipboard
   const [viewingMeeting, setViewingMeeting] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
@@ -70,7 +59,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
     fetchMeetings();
   }, [fetchMeetings]);
 
-  // Real-time socket sync
+  // Socket real-time sync
   useEffect(() => {
     if (!socket) return;
 
@@ -88,42 +77,6 @@ const UserMeetings = ({ groups = [], users = [] }) => {
     };
   }, [socket, fetchMeetings]);
 
-  // Create or Update meeting submit
-  const handleSaveMeeting = async (formData) => {
-    if (editingMeeting) {
-      const { data } = await api.put(`/meetings/${editingMeeting._id}`, formData);
-      if (data.success) {
-        addToast('Meeting updated successfully!', 'success');
-        setEditingMeeting(null);
-        fetchMeetings();
-      }
-    } else {
-      const { data } = await api.post('/meetings', formData);
-      if (data.success) {
-        addToast(
-          formData.isInstant
-            ? '⚡ Instant Google Meet call started & shared in channel!'
-            : 'Meeting scheduled and Google Meet link generated!',
-          'success'
-        );
-        fetchMeetings();
-      }
-    }
-  };
-
-  // Cancel Meeting
-  const handleCancelMeeting = async (meetingId) => {
-    try {
-      const { data } = await api.patch(`/meetings/${meetingId}/cancel`);
-      if (data.success) {
-        addToast('Meeting cancelled', 'info');
-        fetchMeetings();
-      }
-    } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to cancel meeting', 'error');
-    }
-  };
-
   const handleCopyLink = (meetingId, link) => {
     if (!link) return;
     navigator.clipboard.writeText(link);
@@ -133,10 +86,11 @@ const UserMeetings = ({ groups = [], users = [] }) => {
   };
 
   const filteredMeetings = meetings.filter((m) => {
+    const q = searchTerm.toLowerCase();
     return (
-      m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.groupId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      m.title.toLowerCase().includes(q) ||
+      m.description?.toLowerCase().includes(q) ||
+      m.groupId?.name?.toLowerCase().includes(q)
     );
   });
 
@@ -145,26 +99,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
       {/* Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Google Meet Video Calls</h1>
-          <p>
-            Join upcoming team video conferences, launch instant Google Meet sessions, or schedule
-            calls with your teammates.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ backgroundColor: '#EA4335', borderColor: '#EA4335' }}
-            onClick={() => {
-              setEditingMeeting(null);
-              setIsCreateOpen(true);
-            }}
-          >
-            <Zap size={16} />
-            <span>+ Start or Schedule Call</span>
-          </button>
+          <h1>Meetings</h1>
         </div>
       </div>
 
@@ -175,7 +110,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '14px',
+          gap: '12px',
           backgroundColor: 'var(--color-surface)',
           padding: '12px 16px',
           borderRadius: 'var(--radius-md)',
@@ -196,8 +131,7 @@ const UserMeetings = ({ groups = [], users = [] }) => {
             className={`btn btn-ghost btn-sm ${activeTab === 'upcoming' ? 'active' : ''}`}
             style={{
               backgroundColor: activeTab === 'upcoming' ? 'var(--color-surface)' : 'transparent',
-              color:
-                activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'upcoming' ? 700 : 500,
             }}
             onClick={() => setActiveTab('upcoming')}
@@ -218,62 +152,85 @@ const UserMeetings = ({ groups = [], users = [] }) => {
           </button>
         </div>
 
-        {/* Filter by Channel */}
-        {groups.length > 0 && (
-          <select
-            className="form-select"
-            style={{ maxWidth: '200px', fontSize: '12.5px' }}
-            value={selectedGroupId}
-            onChange={(e) => setSelectedGroupId(e.target.value)}
-          >
-            <option value="">All Channels</option>
-            {groups.map((g) => (
-              <option key={g._id} value={g._id}>
-                #{g.name}
-              </option>
-            ))}
-          </select>
-        )}
-
+        {/* Filter by Channel & Search */}
         <div
-          className="search-input-box"
-          style={{ flex: '1 1 200px', maxWidth: '320px', minWidth: '160px' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            flex: '1 1 300px',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap',
+          }}
         >
-          <Search size={15} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search meetings by topic or channel..."
-            className="search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="search-input-box" style={{ flex: '1 1 180px', maxWidth: '280px' }}>
+            <Search size={15} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search meetings..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {groups.length > 0 && (
+            <select
+              className="form-select"
+              style={{ width: 'auto', minWidth: '130px', fontSize: '12.5px' }}
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+            >
+              <option value="">All Channels</option>
+              {groups.map((g) => (
+                <option key={g._id} value={g._id}>
+                  #{g.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
-      {/* Meetings Grid / List */}
+      {/* Content Grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              border: '3px solid var(--color-border)',
-              borderTopColor: 'var(--color-primary)',
-              animation: 'spin 0.8s linear infinite',
-              margin: '0 auto 12px',
-            }}
-          />
-          <div style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-            Loading Google Meet schedule...
-          </div>
-        </div>
-      ) : filteredMeetings.length === 0 ? (
+        /* Loading Skeleton */
         <div
           style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: '16px',
+          }}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="card"
+              style={{
+                height: '210px',
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                opacity: 0.6,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            >
+              <div style={{ height: '20px', width: '40%', background: 'var(--color-surface-hover)', borderRadius: '4px' }} />
+              <div style={{ height: '24px', width: '75%', background: 'var(--color-surface-hover)', borderRadius: '4px' }} />
+              <div style={{ height: '38px', width: '100%', background: 'var(--color-surface-hover)', borderRadius: '4px', marginTop: 'auto' }} />
+            </div>
+          ))}
+        </div>
+      ) : filteredMeetings.length === 0 ? (
+        /* Empty State */
+        <div
+          className="card"
+          style={{
             textAlign: 'center',
-            padding: '60px 20px',
-            backgroundColor: 'var(--color-surface)',
+            padding: '56px 20px',
+            background: 'var(--color-surface)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--color-border)',
           }}
@@ -283,55 +240,52 @@ const UserMeetings = ({ groups = [], users = [] }) => {
               width: '56px',
               height: '56px',
               borderRadius: '50%',
-              backgroundColor: 'var(--color-surface-alt)',
+              backgroundColor: 'var(--color-primary-soft)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              color: 'var(--color-text-muted)',
+              color: 'var(--color-primary)',
             }}
           >
             <Video size={28} />
           </div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text)' }}>
             {activeTab === 'upcoming' ? 'No Upcoming Video Calls' : 'No Past Meetings'}
           </h3>
           <p
             style={{
               color: 'var(--color-text-secondary)',
               fontSize: '13px',
-              maxWidth: '420px',
-              margin: '0 auto 18px',
+              maxWidth: '380px',
+              margin: '0 auto',
+              lineHeight: 1.5,
             }}
           >
             {activeTab === 'upcoming'
-              ? 'You have no scheduled Google Meet video conferences right now. Start an instant call or schedule one for your channel.'
-              : 'Past video sessions and recordings will appear here.'}
+              ? 'You have no scheduled Google Meet video conferences right now. When an admin schedules a meeting for your team, it will appear here.'
+              : 'Past video sessions will be listed here once concluded.'}
           </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => {
-              setEditingMeeting(null);
-              setIsCreateOpen(true);
-            }}
-          >
-            <Zap size={14} /> Start Call Now
-          </button>
         </div>
       ) : (
+        /* Cards Grid */
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
             gap: '16px',
           }}
         >
           {filteredMeetings.map((m) => {
             const isCancelled = m.status === 'cancelled';
-            const meetDate = new Date(m.dateTime);
-            const isCreator = user && (m.createdBy?._id === user.id || m.createdBy === user.id);
-            const typeInfo = TYPE_EMOJIS[m.meetingType] || TYPE_EMOJIS.general;
+            const isCompleted = m.status === 'completed';
+            const isUpcoming = m.status === 'upcoming';
+            const typeInfo = TYPE_METADATA[m.meetingType] || TYPE_METADATA.general;
+            const { formattedDate, formattedTime, timeZone } = formatMeetingDateTime(m.dateTime);
+            const countdown = getMeetingCountdown(m.dateTime, m.durationMinutes || 30);
+            const meetUrl = m.googleMeetLink || m.meetLink;
+            const isDemo = m.isDemoLink || m.provider === 'demo';
+            const isCopied = copiedId === m._id;
 
             return (
               <div
@@ -340,81 +294,137 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  padding: '16px 18px',
-                  borderRadius: 'var(--radius-md)',
+                  gap: '14px',
+                  borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--color-border)',
+                  borderLeft: isCancelled
+                    ? '4px solid var(--color-danger)'
+                    : countdown.isLive
+                      ? '4px solid var(--color-success)'
+                      : isUpcoming
+                        ? '4px solid var(--color-primary)'
+                        : '4px solid var(--color-border)',
                   backgroundColor: 'var(--color-surface)',
+                  padding: '16px 18px',
+                  opacity: isCancelled ? 0.8 : 1,
                   transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                  opacity: isCancelled ? 0.75 : 1,
                 }}
               >
-                <div>
-                  {/* Card Header Top */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '10px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          backgroundColor: 'var(--color-surface-alt)',
-                          padding: '2px 7px',
-                          borderRadius: '4px',
-                          border: '1px solid var(--color-border)',
-                        }}
-                      >
-                        {typeInfo.emoji} {typeInfo.label}
-                      </span>
-
-                      {m.groupId && (
-                        <span
-                          style={{
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: 'var(--color-primary)',
-                          }}
-                        >
-                          #{m.groupId.name}
-                        </span>
-                      )}
-                    </div>
-
+                {/* Header Meta */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                     <Badge
                       variant={
-                        isCancelled ? 'danger' : activeTab === 'upcoming' ? 'primary' : 'neutral'
+                        isCancelled ? 'danger' : isCompleted ? 'neutral' : countdown.isLive ? 'success' : 'primary'
                       }
                     >
-                      {m.status?.toUpperCase()}
+                      {isCancelled ? 'CANCELLED' : countdown.isLive ? 'LIVE NOW' : isUpcoming ? 'UPCOMING' : 'COMPLETED'}
                     </Badge>
+
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: 'var(--color-surface-alt)',
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-secondary)',
+                      }}
+                    >
+                      {typeInfo.emoji} {typeInfo.label}
+                    </span>
+
+                    {m.groupId && (
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'var(--color-primary)',
+                        }}
+                      >
+                        #{typeof m.groupId === 'object' ? m.groupId.name : m.groupId}
+                      </span>
+                    )}
+
+                    {isDemo && (
+                      <span
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 600,
+                          backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                          color: '#D97706',
+                          padding: '1px 5px',
+                          borderRadius: '3px',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
+                        }}
+                      >
+                        Demo Link
+                      </span>
+                    )}
                   </div>
 
-                  {/* Title & Description */}
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: '2px 6px', fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
+                    onClick={() => setViewingMeeting(m)}
+                    title="View Details"
+                  >
+                    <Eye size={13} /> View
+                  </button>
+                </div>
+
+                {/* Cancelled Alert Banner */}
+                {isCancelled && (
+                  <div
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                      fontSize: '12px',
+                      color: 'var(--color-danger)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <AlertCircle size={14} />
+                    <span>Cancelled: {m.cancelReason || 'Meeting was cancelled by organizer.'}</span>
+                  </div>
+                )}
+
+                {/* Title & Description */}
+                <div>
                   <h3
                     style={{
                       fontSize: '15px',
                       fontWeight: 700,
-                      marginBottom: '6px',
-                      color: 'var(--color-text-primary)',
+                      color: 'var(--color-text)',
                       cursor: 'pointer',
+                      margin: '0 0 4px 0',
+                      lineHeight: 1.3,
+                      textDecoration: isCancelled ? 'line-through' : 'none',
                     }}
                     onClick={() => setViewingMeeting(m)}
                   >
                     {m.title}
                   </h3>
-
                   {m.description && (
                     <p
                       style={{
                         fontSize: '12.5px',
                         color: 'var(--color-text-secondary)',
-                        marginBottom: '12px',
+                        margin: 0,
                         lineHeight: 1.4,
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
@@ -425,69 +435,98 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                       {m.description}
                     </p>
                   )}
+                </div>
 
-                  {/* Date & Time Info */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px',
-                      marginBottom: '14px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontSize: '12px',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      <Calendar size={14} color="var(--color-primary)" />
-                      <span>
-                        {meetDate.toLocaleDateString(undefined, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
+                {/* Localized Date & Time Box */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    fontSize: '12px',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Calendar size={13} color="var(--color-primary)" />
+                      <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formattedDate}</span>
                     </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontSize: '12px',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      <Clock size={14} color="var(--color-primary)" />
-                      <span>
-                        {meetDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (
-                        {m.durationMinutes} mins)
+                    {isUpcoming && countdown.text && (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: countdown.isLive ? '#10B981' : 'var(--color-primary)',
+                        }}
+                      >
+                        {countdown.text}
                       </span>
-                    </div>
+                    )}
+                  </div>
 
-                    {m.attendeeIds && m.attendeeIds.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={13} color="var(--color-primary)" />
+                    <span>
+                      {formattedTime} <strong style={{ color: 'var(--color-text-secondary)' }}>{timeZone}</strong> ({m.durationMinutes || 30} mins)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Attendees */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)' }}>
+                    <Users size={14} color="var(--color-text-tertiary)" />
+                    <span>{m.attendeeIds?.length || 0} attendees</span>
+                  </div>
+
+                  <div style={{ display: 'flex', marginRight: '4px' }}>
+                    {(m.attendeeIds || []).slice(0, 4).map((att, i) => (
+                      <div
+                        key={att._id || i}
+                        style={{
+                          marginLeft: i > 0 ? '-8px' : '0',
+                          border: '2px solid var(--color-surface)',
+                          borderRadius: '50%',
+                        }}
+                      >
+                        <Avatar name={att.name || 'User'} src={att.avatar} size="xs" />
+                      </div>
+                    ))}
+                    {(m.attendeeIds?.length || 0) > 4 && (
                       <div
                         style={{
+                          marginLeft: '-8px',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--color-surface-alt)',
+                          border: '2px solid var(--color-surface)',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          fontSize: '12px',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          fontWeight: 700,
                           color: 'var(--color-text-secondary)',
                         }}
                       >
-                        <Users size={14} />
-                        <span>{m.attendeeIds.length} invited attendees</span>
+                        +{m.attendeeIds.length - 4}
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Card Actions Footer */}
+                {/* Footer Join Actions */}
                 <div
                   style={{
                     display: 'flex',
@@ -495,68 +534,46 @@ const UserMeetings = ({ groups = [], users = [] }) => {
                     justifyContent: 'space-between',
                     borderTop: '1px solid var(--color-border)',
                     paddingTop: '12px',
-                    marginTop: '6px',
+                    marginTop: 'auto',
+                    gap: '8px',
                   }}
                 >
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setViewingMeeting(m)}
-                      title="View full details"
-                      style={{ padding: '4px 8px', fontSize: '12px' }}
-                    >
-                      <Eye size={14} />
-                    </button>
-
-                    {!isCancelled && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => handleCopyLink(m._id, m.googleMeetLink)}
-                        title="Copy Google Meet Link"
-                        style={{ padding: '4px 8px', fontSize: '12px' }}
-                      >
-                        {copiedId === m._id ? (
-                          <Check size={14} color="var(--color-success)" />
-                        ) : (
-                          <Copy size={14} />
-                        )}
-                      </button>
-                    )}
-
-                    {isCreator && !isCancelled && activeTab === 'upcoming' && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setEditingMeeting(m);
-                          setIsCreateOpen(true);
+                  {!isCancelled && meetUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                      <a
+                        href={meetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary btn-sm"
+                        style={{
+                          flex: 1,
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '12.5px',
+                          minHeight: '34px',
                         }}
-                        title="Edit Meeting"
-                        style={{ padding: '4px 8px', fontSize: '12px' }}
                       >
-                        <Edit2 size={13} />
-                      </button>
-                    )}
-                  </div>
+                        <Video size={14} /> Join Meet <ExternalLink size={11} />
+                      </a>
 
-                  {!isCancelled && (
-                    <a
-                      href={m.googleMeetLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-primary btn-sm"
-                      style={{
-                        backgroundColor: '#EA4335',
-                        borderColor: '#EA4335',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        padding: '5px 12px',
-                      }}
-                    >
-                      <Video size={13} /> Join Meet <ExternalLink size={11} />
-                    </a>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-icon"
+                        style={{ width: '34px', height: '34px' }}
+                        onClick={() => handleCopyLink(m._id, meetUrl)}
+                        title="Copy Meet Link"
+                      >
+                        {isCopied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
+                      </button>
+                    </div>
+                  ) : isCancelled ? (
+                    <span style={{ fontSize: '12px', color: 'var(--color-danger)', fontWeight: 600 }}>
+                      Meeting Cancelled
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      No link available
+                    </span>
                   )}
                 </div>
               </div>
@@ -565,34 +582,14 @@ const UserMeetings = ({ groups = [], users = [] }) => {
         </div>
       )}
 
-      {/* Create / Edit Modal */}
-      {isCreateOpen && (
-        <CreateMeetingModal
-          isOpen={isCreateOpen}
-          onClose={() => {
-            setIsCreateOpen(false);
-            setEditingMeeting(null);
-          }}
-          onSubmit={handleSaveMeeting}
-          initialData={editingMeeting}
-          groups={groups}
-          allUsers={users}
-        />
-      )}
-
-      {/* Details View Modal */}
+      {/* Details Modal */}
       {viewingMeeting && (
         <MeetingDetailModal
           isOpen={!!viewingMeeting}
           onClose={() => setViewingMeeting(null)}
           meeting={viewingMeeting}
           currentUserId={user?.id}
-          onEdit={(m) => {
-            setViewingMeeting(null);
-            setEditingMeeting(m);
-            setIsCreateOpen(true);
-          }}
-          onCancel={handleCancelMeeting}
+          isAdmin={false}
         />
       )}
     </div>

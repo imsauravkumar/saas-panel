@@ -125,11 +125,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
       {/* Page Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Channels & Group Management</h1>
-          <p>
-            Create collaboration spaces, adjust settings anytime, add team members, and configure
-            permissions.
-          </p>
+          <h1>Group Management</h1>
         </div>
 
         <button

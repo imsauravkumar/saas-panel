@@ -65,8 +65,8 @@ const Sidebar = ({
   const adminNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Team Management', icon: Users },
-    { id: 'groups', label: 'Group Channels', icon: MessageSquare },
-    { id: 'tasks', label: 'Work & Tasks', icon: CheckSquare },
+    { id: 'groups', label: 'Group Management', icon: MessageSquare },
+    { id: 'tasks', label: 'Task Management', icon: CheckSquare },
     { id: 'meetings', label: 'Meetings', icon: Video },
     { id: 'files', label: 'Files Hub', icon: FolderOpen },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
@@ -75,9 +75,9 @@ const Sidebar = ({
 
   const userNav = [
     { id: 'dashboard', label: 'My Workspace', icon: LayoutDashboard },
-    { id: 'groups', label: 'Group Channels', icon: MessageSquare },
-    { id: 'tasks', label: 'My Tasks', icon: CheckSquare },
-    { id: 'meetings', label: 'My Meetings', icon: Video },
+    { id: 'groups', label: 'Group Management', icon: MessageSquare },
+    { id: 'tasks', label: 'Task Management', icon: CheckSquare },
+    { id: 'meetings', label: 'Meetings', icon: Video },
     { id: 'files', label: 'Files Hub', icon: FolderOpen },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
   ];

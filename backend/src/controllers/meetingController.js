@@ -4,27 +4,69 @@ const User = require('../models/User');
 const Message = require('../models/Message');
 const ActivityLog = require('../models/ActivityLog');
 const {
-  createEventWithMeet,
-  updateEvent,
-  deleteOrCancelEvent,
-} = require('../services/googleCalendarService');
+  createMeetingEvent,
+  updateMeetingEvent,
+  cancelMeetingEvent,
+  isGoogleCredentialsConfigured,
+} = require('../services/googleMeetService');
 const { sendMeetingEmail } = require('../services/emailService');
 const { notify } = require('../services/notify');
 
 /**
- * Get meetings for current user
+ * Helper to auto-complete past upcoming meetings
+ */
+const updateExpiredUpcomingMeetings = async (workspaceId) => {
+  try {
+    const now = new Date();
+    await Meeting.updateMany(
+      {
+        workspaceId,
+        status: 'upcoming',
+        endTime: { $lt: now },
+      },
+      {
+        $set: { status: 'completed' },
+      }
+    );
+  } catch (err) {
+    console.warn('[Auto-complete Meetings Warning]:', err.message);
+  }
+};
+
+/**
+ * 1. Get meetings with status, group, and search filters
+ * Supports upcoming, past (completed/cancelled), and cancelled queries
  */
 const getMeetings = async (req, res) => {
   try {
-    const { status, groupId } = req.query;
-    let query = { workspaceId: req.user.workspaceId };
+    const { status, groupId, search } = req.query;
+    const workspaceId = req.user.workspaceId;
 
+    // Auto-update expired upcoming meetings in background
+    await updateExpiredUpcomingMeetings(workspaceId);
+
+    let query = { workspaceId };
+
+    // Role-based visibility: Admins see all workspace meetings; standard users see meetings for their groups or where they are attendees
     if (req.user.role !== 'admin') {
-      query.$or = [{ attendeeIds: req.user._id }, { groupId: { $in: req.user.groupIds || [] } }];
+      const userGroupIds = req.user.groupIds || [];
+      query.$or = [
+        { attendeeIds: req.user._id },
+        { groupId: { $in: userGroupIds } },
+        { createdBy: req.user._id },
+      ];
     }
 
     if (groupId) {
       query.groupId = groupId;
+    }
+
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [{ title: searchRegex }, { description: searchRegex }],
+      });
     }
 
     if (status) {
@@ -32,44 +74,53 @@ const getMeetings = async (req, res) => {
         query.status = 'upcoming';
       } else if (status === 'past') {
         query.status = { $in: ['completed', 'cancelled'] };
-      } else {
-        query.status = status;
+      } else if (status === 'cancelled') {
+        query.status = 'cancelled';
+      } else if (status === 'completed') {
+        query.status = 'completed';
       }
     }
 
+    const sortOrder = status === 'past' || status === 'completed' || status === 'cancelled'
+      ? { dateTime: -1 }
+      : { dateTime: 1 };
+
     const meetings = await Meeting.find(query)
-      .populate('groupId', 'name avatar chatPermission')
-      .populate('createdBy', 'name email avatar post')
-      .populate('attendeeIds', 'name email avatar post department')
-      .sort({ dateTime: status === 'past' ? -1 : 1 });
+      .populate('groupId', 'name avatar chatPermission memberIds')
+      .populate('createdBy', 'name email avatar post role')
+      .populate('attendeeIds', 'name email avatar post department role')
+      .populate('cancelledBy', 'name email avatar post')
+      .sort(sortOrder);
 
     return res.status(200).json({
       success: true,
       count: meetings.length,
+      isGoogleConfigured: isGoogleCredentialsConfigured(),
       meetings,
     });
   } catch (error) {
     console.error('[Get Meetings Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to fetch meetings' });
+    return res.status(500).json({ success: false, message: 'Failed to fetch meetings directory' });
   }
 };
 
 /**
- * Get single meeting detail
+ * 2. Get single meeting detail
  */
 const getMeetingById = async (req, res) => {
   try {
     const { id } = req.params;
     const meeting = await Meeting.findOne({ _id: id, workspaceId: req.user.workspaceId })
       .populate('groupId', 'name avatar chatPermission memberIds')
-      .populate('createdBy', 'name email avatar post')
-      .populate('attendeeIds', 'name email avatar post department');
+      .populate('createdBy', 'name email avatar post role')
+      .populate('attendeeIds', 'name email avatar post department role')
+      .populate('cancelledBy', 'name email avatar post');
 
     if (!meeting) {
       return res.status(404).json({ success: false, message: 'Meeting not found' });
     }
 
-    // Access authorization check
+    // Access authorization check for standard users
     if (req.user.role !== 'admin') {
       const isAttendee = meeting.attendeeIds?.some(
         (a) => a._id.toString() === req.user._id.toString()
@@ -77,16 +128,19 @@ const getMeetingById = async (req, res) => {
       const isGroupMember = meeting.groupId?.memberIds?.some(
         (m) => m.toString() === req.user._id.toString()
       );
-      if (!isAttendee && !isGroupMember) {
+      const isCreator = meeting.createdBy?._id?.toString() === req.user._id.toString();
+
+      if (!isAttendee && !isGroupMember && !isCreator) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied: You are not an attendee of this meeting',
+          message: 'Access denied: You are not authorized to view this meeting.',
         });
       }
     }
 
     return res.status(200).json({
       success: true,
+      isGoogleConfigured: isGoogleCredentialsConfigured(),
       meeting,
     });
   } catch (error) {
@@ -96,8 +150,7 @@ const getMeetingById = async (req, res) => {
 };
 
 /**
- * Create meeting with Google Calendar & Google Meet auto-generation
- * Accessible by Workspace Admins and Channel Members
+ * 3. Create a new Meeting with Google Calendar & Google Meet generation
  */
 const createMeeting = async (req, res) => {
   try {
@@ -106,17 +159,33 @@ const createMeeting = async (req, res) => {
       description = '',
       groupId,
       dateTime,
-      durationMinutes = 45,
+      durationMinutes = 30,
       attendeeIds,
       meetingType = 'general',
       isInstant = false,
       googleMeetLink,
     } = req.body;
 
-    if (!title || !groupId) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Title and target channel are required.' });
+    // Server-side validation
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Meeting title is required.',
+      });
+    }
+
+    if (title.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Meeting title must be at least 2 characters.',
+      });
+    }
+
+    if (!groupId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Target channel/group is required.',
+      });
     }
 
     const group = await Group.findOne({
@@ -124,8 +193,12 @@ const createMeeting = async (req, res) => {
       workspaceId: req.user.workspaceId,
       isDeleted: false,
     });
+
     if (!group) {
-      return res.status(404).json({ success: false, message: 'Selected group channel not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Selected channel was not found in this workspace.',
+      });
     }
 
     // Membership check for non-admin users
@@ -137,115 +210,145 @@ const createMeeting = async (req, res) => {
       });
     }
 
-    // Resolve attendee IDs (defaults to group members if not specified)
-    const finalAttendeeIds =
+    // Time validation
+    const parsedStartTime = isInstant || !dateTime ? new Date() : new Date(dateTime);
+    if (isNaN(parsedStartTime.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid date and time.',
+      });
+    }
+
+    // Prevent scheduling in the past (allow 60 seconds clock skew)
+    if (!isInstant && parsedStartTime.getTime() < Date.now() - 60000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Meeting date and time cannot be in the past. Please select a future time.',
+      });
+    }
+
+    const duration = Math.max(5, Math.min(480, parseInt(durationMinutes, 10) || 30));
+    const calculatedEndTime = new Date(parsedStartTime.getTime() + duration * 60000);
+
+    // Resolve attendee IDs (defaults to group memberIds if not explicitly passed)
+    const rawAttendeeIds =
       attendeeIds && Array.isArray(attendeeIds) && attendeeIds.length > 0
         ? attendeeIds
         : group.memberIds;
 
     const attendeeUsers = await User.find({
-      _id: { $in: finalAttendeeIds },
+      _id: { $in: rawAttendeeIds },
       workspaceId: req.user.workspaceId,
       status: { $ne: 'disabled' },
     }).select('email name');
 
+    const finalAttendeeIds = attendeeUsers.map((u) => u._id);
     const attendeeEmails = attendeeUsers.map((u) => u.email).filter(Boolean);
-
-    // Date & Time computation
-    const startTime = isInstant || !dateTime ? new Date() : new Date(dateTime);
-    const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
 
     let eventId = null;
     let finalMeetLink = googleMeetLink?.trim();
+    let isDemo = false;
+    let provider = 'demo';
 
     if (finalMeetLink) {
-      eventId = `custom_${Date.now()}`;
+      eventId = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      isDemo = false;
+      provider = 'custom';
     } else {
-      const meetData = await createEventWithMeet({
+      const meetData = await createMeetingEvent({
         summary: title.trim(),
         description: description.trim(),
-        start: startTime,
-        end: endTime,
+        start: parsedStartTime,
+        end: calculatedEndTime,
         attendeeEmails,
       });
       eventId = meetData.eventId;
       finalMeetLink = meetData.meetLink;
+      isDemo = meetData.isDemoLink;
+      provider = meetData.provider || (isDemo ? 'demo' : 'google');
     }
 
     const meeting = await Meeting.create({
       title: title.trim(),
       description: description.trim(),
       groupId,
-      dateTime: startTime,
-      durationMinutes,
+      dateTime: parsedStartTime,
+      durationMinutes: duration,
+      endTime: calculatedEndTime,
       googleEventId: eventId,
       googleMeetLink: finalMeetLink,
+      isDemoLink: isDemo,
+      provider,
       createdBy: req.user._id,
       attendeeIds: finalAttendeeIds,
       meetingType,
-      isInstant: !!isInstant,
+      isInstant: Boolean(isInstant),
       status: 'upcoming',
       workspaceId: req.user.workspaceId,
     });
 
     const populatedMeeting = await Meeting.findById(meeting._id)
-      .populate('groupId', 'name avatar')
-      .populate('createdBy', 'name email avatar post')
-      .populate('attendeeIds', 'name email avatar post department');
+      .populate('groupId', 'name avatar chatPermission memberIds')
+      .populate('createdBy', 'name email avatar post role')
+      .populate('attendeeIds', 'name email avatar post department role');
 
-    const typeLabels = {
-      standup: '⚡ Daily Standup',
-      sync: '🔄 Team Sync',
-      review: '🔍 Design & Code Review',
-      demo: '🚀 Product Demo',
-      allhands: '👥 All-Hands Sync',
-      general: '📹 Video Meeting',
-    };
-    const typeLabel = typeLabels[meetingType] || '📹 Video Meeting';
-
-    // Auto-post an interactive announcement card in the channel chat thread
+    // Post interactive announcement in channel chat
     const timeFormatted = isInstant
-      ? '🔴 Started Now (Instant Call)'
-      : `🕒 ${startTime.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+      ? '🔴 Live Now (Instant Call)'
+      : `🕒 ${parsedStartTime.toLocaleString([], {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}`;
 
     await Message.create({
       groupId,
       senderId: req.user._id,
       type: 'text',
-      content: `**${typeLabel}: ${meeting.title}**\n${timeFormatted} · ⏱️ ${durationMinutes} mins\n🔗 **Join Google Meet:** ${meeting.googleMeetLink}${description ? `\n\n📝 *Agenda:* ${description}` : ''}`,
+      content: `**📹 Meeting Scheduled: ${meeting.title}**\n${timeFormatted} · ⏱️ ${duration} mins\n🔗 **Google Meet Link:** ${meeting.googleMeetLink}${
+        description ? `\n\n📝 *Agenda:* ${description}` : ''
+      }`,
       workspaceId: req.user.workspaceId,
       readBy: [req.user._id],
     });
 
-    // Send email notifications to attendees
+    // Send email invitations
     if (attendeeEmails.length > 0) {
       sendMeetingEmail({
         to: attendeeEmails,
-        subject: `[SAAS Nexus] ${isInstant ? '🔴 Call Started' : 'Invitation'}: ${meeting.title}`,
+        subject: `[SAAS Nexus] ${isInstant ? '🔴 Live Call Started' : '📅 Meeting Invitation'}: ${meeting.title}`,
         meeting: populatedMeeting,
         action: isInstant ? 'started' : 'scheduled',
-      }).catch((e) => console.warn('Email send warning:', e));
+      }).catch((e) => console.warn('[Meeting Email Warning]:', e.message));
     }
 
-    // Log Activity
+    // Log Activity with clear Actor -> Action -> Target
     await ActivityLog.create({
       actorId: req.user._id,
       action: isInstant ? 'meeting.instant_start' : 'meeting.create',
       targetType: 'Meeting',
       targetId: meeting._id,
       details: `${req.user.name} ${isInstant ? 'started instant call' : 'scheduled meeting'} "${meeting.title}" in #${group.name}`,
-      metadata: { title: meeting.title, meetLink: meeting.googleMeetLink, dateTime: startTime },
+      metadata: {
+        title: meeting.title,
+        meetLink: meeting.googleMeetLink,
+        dateTime: parsedStartTime,
+        durationMinutes: duration,
+        isDemoLink: isDemo,
+      },
       workspaceId: req.user.workspaceId,
     });
 
     // Real-time Socket.IO Dispatches
     const io = req.app.get('io');
     if (io) {
-      // Channel broadcast
       io.to(`group:${groupId}`).emit('meeting:new', populatedMeeting);
       io.to(`group_${groupId}`).emit('meeting_created', populatedMeeting);
+      io.to(`workspace:${req.user.workspaceId}`).emit('meeting:new', populatedMeeting);
+      io.to(`workspace_${req.user.workspaceId}`).emit('meeting_created', populatedMeeting);
 
-      // Targeted user broadcasts to attendees
       finalAttendeeIds.forEach((attId) => {
         io.to(`user:${attId.toString()}`).emit('meeting:new', populatedMeeting);
       });
@@ -255,8 +358,8 @@ const createMeeting = async (req, res) => {
     await notify({
       userIds: finalAttendeeIds,
       type: 'meeting',
-      title: `${isInstant ? '🔴 Live Call' : '📅 Meeting Invitation'}: ${meeting.title}`,
-      body: `${isInstant ? 'Started just now' : `Scheduled for ${startTime.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`} in #${group.name}`,
+      title: `${isInstant ? '🔴 Live Video Call' : '📅 New Meeting Scheduled'}: ${meeting.title}`,
+      body: `${isInstant ? 'Started just now' : `Scheduled for ${parsedStartTime.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`} in #${group.name}`,
       linkTo: 'meetings',
       refId: meeting._id,
       workspaceId: req.user.workspaceId,
@@ -266,31 +369,41 @@ const createMeeting = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: isInstant
-        ? 'Instant Google Meet call started!'
-        : 'Meeting scheduled and Google Meet link generated!',
+        ? 'Instant video meeting started!'
+        : 'Meeting scheduled successfully and Google Meet link generated!',
+      isDemoLink: isDemo,
       meeting: populatedMeeting,
     });
   } catch (error) {
     console.error('[Create Meeting Error]:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Failed to create meeting: ' + error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to schedule meeting',
+    });
   }
 };
 
 /**
- * Admin: Update meeting
+ * 4. Update an existing meeting & sync changes to Google Calendar
  */
 const updateMeeting = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, dateTime, durationMinutes, attendeeIds } = req.body;
+    const { title, description, dateTime, durationMinutes, attendeeIds, meetingType } = req.body;
 
     const meeting = await Meeting.findOne({ _id: id, workspaceId: req.user.workspaceId });
     if (!meeting) {
       return res.status(404).json({ success: false, message: 'Meeting not found' });
     }
 
+    if (meeting.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cancelled meetings cannot be modified. Please schedule a new meeting.',
+      });
+    }
+
+    // Authorization: Admin or Creator
     if (req.user.role !== 'admin' && meeting.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -298,42 +411,86 @@ const updateMeeting = async (req, res) => {
       });
     }
 
-    if (title) meeting.title = title.trim();
-    if (description !== undefined) meeting.description = description.trim();
-    if (durationMinutes) meeting.durationMinutes = durationMinutes;
-    if (dateTime) meeting.dateTime = new Date(dateTime);
-    if (attendeeIds && Array.isArray(attendeeIds)) meeting.attendeeIds = attendeeIds;
+    if (title && typeof title === 'string' && title.trim()) {
+      meeting.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      meeting.description = typeof description === 'string' ? description.trim() : '';
+    }
+
+    if (meetingType) {
+      meeting.meetingType = meetingType;
+    }
+
+    if (durationMinutes) {
+      meeting.durationMinutes = Math.max(5, Math.min(480, parseInt(durationMinutes, 10) || 30));
+    }
+
+    if (dateTime) {
+      const newDate = new Date(dateTime);
+      if (isNaN(newDate.getTime())) {
+        return res.status(400).json({ success: false, message: 'Invalid date/time provided.' });
+      }
+      meeting.dateTime = newDate;
+    }
+
+    meeting.endTime = new Date(meeting.dateTime.getTime() + meeting.durationMinutes * 60000);
+
+    if (attendeeIds && Array.isArray(attendeeIds) && attendeeIds.length > 0) {
+      const validAttendees = await User.find({
+        _id: { $in: attendeeIds },
+        workspaceId: req.user.workspaceId,
+        status: { $ne: 'disabled' },
+      }).select('_id');
+      meeting.attendeeIds = validAttendees.map((u) => u._id);
+    }
 
     await meeting.save();
 
-    // Sync with Google Calendar if eventId exists
-    const startTime = meeting.dateTime;
-    const endTime = new Date(startTime.getTime() + meeting.durationMinutes * 60 * 1000);
-
-    const attendeeUsers = await User.find({ _id: { $in: meeting.attendeeIds } }).select('email');
+    // Sync updates to Google Calendar event
+    const attendeeUsers = await User.find({
+      _id: { $in: meeting.attendeeIds },
+      workspaceId: req.user.workspaceId,
+    }).select('email');
     const attendeeEmails = attendeeUsers.map((u) => u.email).filter(Boolean);
 
-    await updateEvent(meeting.googleEventId, {
-      summary: meeting.title,
-      description: meeting.description,
-      start: startTime,
-      end: endTime,
-      attendeeEmails,
-    });
+    if (meeting.googleEventId) {
+      await updateMeetingEvent(meeting.googleEventId, {
+        summary: meeting.title,
+        description: meeting.description,
+        start: meeting.dateTime,
+        end: meeting.endTime,
+        attendeeEmails,
+      });
+    }
 
     const populatedMeeting = await Meeting.findById(meeting._id)
-      .populate('groupId', 'name avatar')
-      .populate('createdBy', 'name email avatar post')
-      .populate('attendeeIds', 'name email avatar post department');
+      .populate('groupId', 'name avatar chatPermission memberIds')
+      .populate('createdBy', 'name email avatar post role')
+      .populate('attendeeIds', 'name email avatar post department role');
 
-    // Notify via email
+    // Notify attendees of update via in-app notification
+    const io = req.app.get('io');
+    await notify({
+      userIds: meeting.attendeeIds,
+      type: 'meeting',
+      title: `📝 Meeting Details Updated: ${meeting.title}`,
+      body: `Rescheduled for ${meeting.dateTime.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} (${meeting.durationMinutes} mins)`,
+      linkTo: 'meetings',
+      refId: meeting._id,
+      workspaceId: req.user.workspaceId,
+      io,
+    });
+
+    // Send updated email
     if (attendeeEmails.length > 0) {
       sendMeetingEmail({
         to: attendeeEmails,
-        subject: `[SAAS Nexus] Updated: ${meeting.title}`,
+        subject: `[SAAS Nexus] Updated Schedule: ${meeting.title}`,
         meeting: populatedMeeting,
         action: 'updated',
-      }).catch((e) => console.warn('Email send warning:', e));
+      }).catch((e) => console.warn('[Meeting Email Warning]:', e.message));
     }
 
     // Log Activity
@@ -342,14 +499,19 @@ const updateMeeting = async (req, res) => {
       action: 'meeting.edit',
       targetType: 'Meeting',
       targetId: meeting._id,
-      details: `${req.user.name} updated meeting "${meeting.title}"`,
+      details: `${req.user.name} updated meeting details for "${meeting.title}"`,
+      metadata: {
+        title: meeting.title,
+        dateTime: meeting.dateTime,
+        durationMinutes: meeting.durationMinutes,
+      },
       workspaceId: req.user.workspaceId,
     });
 
-    // Socket broadcasts
-    const io = req.app.get('io');
+    // Real-time Socket broadcast
     if (io) {
       io.to(`group:${meeting.groupId}`).emit('meeting:updated', populatedMeeting);
+      io.to(`workspace:${req.user.workspaceId}`).emit('meeting:updated', populatedMeeting);
       meeting.attendeeIds.forEach((attId) => {
         io.to(`user:${attId.toString()}`).emit('meeting:updated', populatedMeeting);
       });
@@ -357,21 +519,24 @@ const updateMeeting = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Meeting details updated',
+      message: 'Meeting details updated and calendar synchronized!',
       meeting: populatedMeeting,
     });
   } catch (error) {
     console.error('[Update Meeting Error]:', error);
-    return res.status(500).json({ success: false, message: 'Failed to update meeting' });
+    return res.status(500).json({ success: false, message: 'Failed to update meeting details' });
   }
 };
 
 /**
- * Admin: Soft cancel meeting
+ * 5. Cancel a meeting & notify all attendees
  */
 const cancelMeeting = async (req, res) => {
   try {
     const { id } = req.params;
+    const rawReason = req.body.cancelReason || req.body.reason || '';
+    const reason = typeof rawReason === 'string' ? rawReason.trim() : '';
+
     const meeting = await Meeting.findOne({ _id: id, workspaceId: req.user.workspaceId })
       .populate('groupId', 'name')
       .populate('attendeeIds', 'email name');
@@ -380,6 +545,15 @@ const cancelMeeting = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Meeting not found' });
     }
 
+    if (meeting.status === 'cancelled') {
+      return res.status(200).json({
+        success: true,
+        message: 'Meeting is already cancelled.',
+        meeting,
+      });
+    }
+
+    // Authorization: Admin or Creator
     if (req.user.role !== 'admin' && meeting.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -388,19 +562,26 @@ const cancelMeeting = async (req, res) => {
     }
 
     meeting.status = 'cancelled';
+    meeting.cancelledAt = new Date();
+    meeting.cancelledBy = req.user._id;
+    meeting.cancelReason = reason.trim() || 'Cancelled by meeting organizer';
     await meeting.save();
 
     // Cancel Google Calendar Event
     if (meeting.googleEventId) {
-      await deleteOrCancelEvent(meeting.googleEventId);
+      await cancelMeetingEvent(meeting.googleEventId);
     }
 
-    // Auto-post cancellation alert to chat
+    // Post cancellation alert in channel chat
     await Message.create({
       groupId: meeting.groupId._id || meeting.groupId,
       senderId: req.user._id,
       type: 'text',
-      content: `🚫 **Meeting Cancelled**: The scheduled session "${meeting.title}" has been cancelled.`,
+      content: `🚫 **Meeting Cancelled**: "${meeting.title}" originally scheduled for ${new Date(
+        meeting.dateTime
+      ).toLocaleDateString([], { month: 'short', day: 'numeric' })} has been cancelled.${
+        reason ? `\n*Reason:* ${reason.trim()}` : ''
+      }`,
       workspaceId: req.user.workspaceId,
       readBy: [req.user._id],
     });
@@ -413,7 +594,7 @@ const cancelMeeting = async (req, res) => {
         subject: `[SAAS Nexus] Cancelled: ${meeting.title}`,
         meeting,
         action: 'cancelled',
-      }).catch((e) => console.warn('Email send warning:', e));
+      }).catch((e) => console.warn('[Meeting Cancel Email Warning]:', e.message));
     }
 
     // Log Activity
@@ -422,29 +603,50 @@ const cancelMeeting = async (req, res) => {
       action: 'meeting.cancel',
       targetType: 'Meeting',
       targetId: meeting._id,
-      details: `${req.user.name} cancelled meeting "${meeting.title}"`,
+      details: `${req.user.name} cancelled meeting "${meeting.title}"${reason ? ` (Reason: "${reason.trim()}")` : ''}`,
+      metadata: { reason: meeting.cancelReason },
       workspaceId: req.user.workspaceId,
     });
 
-    // Real-time notification
+    const populatedMeeting = await Meeting.findById(meeting._id)
+      .populate('groupId', 'name avatar chatPermission memberIds')
+      .populate('createdBy', 'name email avatar post role')
+      .populate('attendeeIds', 'name email avatar post department role')
+      .populate('cancelledBy', 'name email avatar post');
+
+    // Real-time socket & Notification Center alert
     const io = req.app.get('io');
     if (io) {
-      io.to(`group:${meeting.groupId._id || meeting.groupId}`).emit('meeting:cancelled', {
+      const payload = {
         meetingId: meeting._id,
         title: meeting.title,
-      });
+        meeting: populatedMeeting,
+      };
+      io.to(`group:${meeting.groupId._id || meeting.groupId}`).emit('meeting:cancelled', payload);
+      io.to(`workspace:${req.user.workspaceId}`).emit('meeting:cancelled', payload);
+      io.to(`group:${meeting.groupId._id || meeting.groupId}`).emit('meeting:updated', populatedMeeting);
+
       meeting.attendeeIds?.forEach((att) => {
-        io.to(`user:${att._id.toString()}`).emit('meeting:cancelled', {
-          meetingId: meeting._id,
-          title: meeting.title,
-        });
+        io.to(`user:${att._id.toString()}`).emit('meeting:cancelled', payload);
       });
     }
 
+    const attendeeIdList = meeting.attendeeIds?.map((a) => a._id) || [];
+    await notify({
+      userIds: attendeeIdList,
+      type: 'meeting',
+      title: `🚫 Meeting Cancelled: ${meeting.title}`,
+      body: `The meeting scheduled for ${new Date(meeting.dateTime).toLocaleDateString([], { month: 'short', day: 'numeric' })} was cancelled.`,
+      linkTo: 'meetings',
+      refId: meeting._id,
+      workspaceId: req.user.workspaceId,
+      io,
+    });
+
     return res.status(200).json({
       success: true,
-      message: 'Meeting cancelled successfully',
-      meeting,
+      message: 'Meeting cancelled and attendees notified.',
+      meeting: populatedMeeting,
     });
   } catch (error) {
     console.error('[Cancel Meeting Error]:', error);
@@ -453,27 +655,36 @@ const cancelMeeting = async (req, res) => {
 };
 
 /**
- * Admin: Hard delete meeting
+ * 6. Hard delete a meeting (Admin only, cleans up DB record)
  */
 const deleteMeeting = async (req, res) => {
   try {
     const { id } = req.params;
-    const meeting = await Meeting.findOneAndDelete({ _id: id, workspaceId: req.user.workspaceId });
+    const meeting = await Meeting.findOne({ _id: id, workspaceId: req.user.workspaceId });
 
     if (!meeting) {
       return res.status(404).json({ success: false, message: 'Meeting not found' });
     }
 
-    if (meeting.googleEventId) {
-      await deleteOrCancelEvent(meeting.googleEventId);
+    if (req.user.role !== 'admin' && meeting.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: Only administrators can permanently delete meetings.',
+      });
     }
+
+    if (meeting.googleEventId) {
+      await cancelMeetingEvent(meeting.googleEventId);
+    }
+
+    await Meeting.findByIdAndDelete(meeting._id);
 
     await ActivityLog.create({
       actorId: req.user._id,
       action: 'meeting.delete',
       targetType: 'Meeting',
       targetId: id,
-      details: `${req.user.name} deleted meeting "${meeting.title}"`,
+      details: `${req.user.name} deleted meeting record "${meeting.title}"`,
       workspaceId: req.user.workspaceId,
     });
 
@@ -483,11 +694,15 @@ const deleteMeeting = async (req, res) => {
         meetingId: id,
         title: meeting.title,
       });
+      io.to(`workspace:${req.user.workspaceId}`).emit('meeting:cancelled', {
+        meetingId: id,
+        title: meeting.title,
+      });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Meeting removed from workspace',
+      message: 'Meeting permanently removed.',
     });
   } catch (error) {
     console.error('[Delete Meeting Error]:', error);

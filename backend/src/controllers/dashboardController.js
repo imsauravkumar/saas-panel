@@ -48,15 +48,15 @@ const getDashboardSummary = async (req, res) => {
     // 3. Next Upcoming Meeting
     const now = new Date();
     const nextMeeting = await Meeting.findOne({
-      attendeeIds: userId,
+      $or: [{ attendeeIds: userId }, { groupId: { $in: userGroupIds } }, { createdBy: userId }],
       workspaceId,
       dateTime: { $gte: now },
       status: 'upcoming',
     })
       .sort({ dateTime: 1 })
-      .populate('createdBy', 'name email avatar role')
-      .populate('groupId', 'name')
-      .populate('attendeeIds', 'name avatar role post')
+      .populate('createdBy', 'name email avatar role post')
+      .populate('groupId', 'name avatar')
+      .populate('attendeeIds', 'name avatar role post email')
       .lean();
 
     // 4. Task Counts & Nearest Tasks
@@ -165,6 +165,7 @@ const getAdminDashboardSummary = async (req, res) => {
       tasksInProgressCount,
       tasksAwaitingReviewCount,
       meetingsThisWeekCount,
+      nextMeeting,
       recentActivity,
     ] = await Promise.all([
       User.countDocuments({ workspaceId, status: { $ne: 'disabled' } }),
@@ -176,6 +177,16 @@ const getAdminDashboardSummary = async (req, res) => {
         dateTime: { $gte: startOfWeek, $lte: endOfWeek },
         status: { $ne: 'cancelled' },
       }),
+      Meeting.findOne({
+        workspaceId,
+        dateTime: { $gte: new Date() },
+        status: 'upcoming',
+      })
+        .sort({ dateTime: 1 })
+        .populate('createdBy', 'name email avatar role post')
+        .populate('groupId', 'name avatar')
+        .populate('attendeeIds', 'name avatar role post email')
+        .lean(),
       ActivityLog.find({ workspaceId })
         .sort({ createdAt: -1 })
         .limit(10)
@@ -191,6 +202,7 @@ const getAdminDashboardSummary = async (req, res) => {
         tasksInProgressCount,
         tasksAwaitingReviewCount,
         meetingsThisWeekCount,
+        nextMeeting,
         recentActivity,
       },
     });

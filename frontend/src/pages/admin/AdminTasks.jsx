@@ -15,6 +15,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
   const { socket } = useSocket();
 
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
 
   // Filters
@@ -30,6 +31,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
 
   const fetchTasks = useCallback(async () => {
     try {
+      setLoading(true);
       const params = {};
       if (selectedGroupId) params.groupId = selectedGroupId;
       if (selectedAssigneeId) params.assignedTo = selectedAssigneeId;
@@ -42,6 +44,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
       }
     } catch (_err) {
       addToast('Failed to load tasks', 'error');
+    } finally {
+      setLoading(false);
     }
   }, [selectedGroupId, selectedAssigneeId, selectedPriority, addToast]);
 
@@ -247,11 +251,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
       {/* Page Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Work & Task Management</h1>
-          <p>
-            Assign work deliverables, review submissions, verify task completion, and track
-            team velocity across Kanban stages.
-          </p>
+          <h1>Task Management</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -405,13 +405,20 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         </select>
       </div>
 
-      {/* Kanban Board View — 4 Columns */}
-      {viewMode === 'kanban' ? (
+      {/* Loading Skeleton / Kanban / List View */}
+      {loading ? (
+        <div className="kanban-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="kanban-col">
+              <div className="skeleton-shimmer" style={{ height: '28px', marginBottom: '8px' }} />
+              <div className="skeleton-shimmer" style={{ height: '110px', borderRadius: 'var(--radius-md)' }} />
+              <div className="skeleton-shimmer" style={{ height: '110px', borderRadius: 'var(--radius-md)' }} />
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'kanban' ? (
         <div
           className="kanban-grid"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          }}
         >
           {/* Column 1: To Do */}
           <div className="kanban-col">

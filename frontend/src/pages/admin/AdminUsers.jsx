@@ -282,10 +282,6 @@ const AdminUsers = ({ groups = [] }) => {
       <div className="page-header">
         <div className="page-header-title">
           <h1>Team Management</h1>
-          <p>
-            Provision user accounts, configure role titles, sync channels, and audit team
-            activities.
-          </p>
         </div>
 
         <button
@@ -438,18 +434,40 @@ const AdminUsers = ({ groups = [] }) => {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td
-                  colSpan="7"
-                  style={{
-                    textAlign: 'center',
-                    padding: '36px',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                >
-                  Loading team members...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={`skel-user-${idx}`}>
+                  <td style={{ width: '40px' }}>
+                    <div className="skeleton-shimmer" style={{ width: '16px', height: '16px', borderRadius: '3px' }} />
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="skeleton-shimmer" style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0 }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '120px' }}>
+                        <div className="skeleton-shimmer" style={{ height: '13px', width: '90px' }} />
+                        <div className="skeleton-shimmer" style={{ height: '11px', width: '120px' }} />
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div className="skeleton-shimmer" style={{ height: '16px', width: '60px', borderRadius: '4px' }} />
+                      <div className="skeleton-shimmer" style={{ height: '11px', width: '85px' }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="skeleton-shimmer" style={{ height: '18px', width: '80px', borderRadius: '12px' }} />
+                  </td>
+                  <td>
+                    <div className="skeleton-shimmer" style={{ height: '18px', width: '90px', borderRadius: '4px' }} />
+                  </td>
+                  <td>
+                    <div className="skeleton-shimmer" style={{ height: '18px', width: '65px', borderRadius: '12px' }} />
+                  </td>
+                  <td>
+                    <div className="skeleton-shimmer" style={{ height: '12px', width: '75px' }} />
+                  </td>
+                </tr>
+              ))
             ) : users.length === 0 ? (
               <tr>
                 <td
