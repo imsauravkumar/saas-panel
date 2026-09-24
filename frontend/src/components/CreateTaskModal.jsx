@@ -3,6 +3,7 @@ import { CheckSquare, AlertCircle, Search, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CustomDateTimePicker from './CustomDateTimePicker';
 
 const CreateTaskModal = ({
   isOpen,
@@ -203,12 +204,11 @@ const CreateTaskModal = ({
 
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Deadline / Due Date *</label>
-            <input
-              type="datetime-local"
-              required
-              className="form-input"
+            <CustomDateTimePicker
               value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+              onChange={(val) => setFormData({ ...formData, deadline: val })}
+              disabled={loading}
+              placeholder="Select deadline..."
             />
           </div>
         </div>

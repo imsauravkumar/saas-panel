@@ -196,7 +196,7 @@ const AdminUsers = ({ groups = [] }) => {
   const handleDeleteUser = (user) => {
     confirm({
       title: 'Permanently Remove User',
-      message: `Are you sure you want to permanently delete ${user.name}? This will remove them from all groups and tasks.`,
+      message: `Are you sure you want to permanently delete ${user.name}? This will remove them from all channels and tasks.`,
       confirmText: 'Delete User',
       type: 'danger',
       onConfirm: async () => {
@@ -1411,7 +1411,7 @@ const AdminUsers = ({ groups = [] }) => {
                   }}
                 >
                   <Activity size={13} color="var(--color-primary)" />
-                  <span>Recent Activity Audit Trail</span>
+                  <span>Recent Audit Logs</span>
                 </div>
                 <div
                   style={{

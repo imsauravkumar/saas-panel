@@ -121,10 +121,13 @@ const UserTasks = () => {
   };
 
   const getPriorityBadge = (p) => {
-    if (p === 'urgent') return <Badge variant="danger">URGENT</Badge>;
-    if (p === 'high') return <Badge variant="warning">HIGH</Badge>;
-    if (p === 'medium') return <Badge variant="primary">MEDIUM</Badge>;
-    return <Badge variant="neutral">LOW</Badge>;
+    const priority = (p || 'medium').toLowerCase();
+    return (
+      <span className={`task-priority-chip ${priority}`}>
+        <span className="task-priority-dot" />
+        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      </span>
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -221,10 +224,10 @@ const UserTasks = () => {
             className={`segmented-pill-btn ${viewMode === 'kanban' ? 'active' : ''}`}
             style={{ padding: '6px 10px' }}
             onClick={() => setViewMode('kanban')}
-            title="Kanban Board View"
+            title="Board View"
           >
             <Columns size={15} />
-            <span className="desktop-only">Kanban</span>
+            <span className="desktop-only">Board</span>
           </button>
           <button
             type="button"
@@ -340,17 +343,15 @@ const UserTasks = () => {
           ))}
         </div>
       ) : viewMode === 'kanban' ? (
-        <div
-          className="kanban-grid"
-        >
+        <div className="kanban-grid">
           {/* Column 1: To Do */}
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#94A3B8',
                   }}
@@ -378,25 +379,13 @@ const UserTasks = () => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #94A3B8',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
                         {getPriorityBadge(task.priority)}
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -406,26 +395,11 @@ const UserTasks = () => {
                     <div className="task-card-title">{task.title}</div>
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
-                    {isOverdue && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          color: 'var(--color-danger)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        <AlertTriangle size={12} /> OVERDUE
-                      </div>
-                    )}
-
                     <div className="task-card-footer">
                       <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
-                        <Calendar size={13} />
+                        <Calendar size={12} />
                         <span>
-                          Due{' '}
+                          {isOverdue ? 'Overdue: ' : 'Due '}
                           {new Date(task.deadline).toLocaleDateString([], {
                             month: 'short',
                             day: 'numeric',
@@ -459,8 +433,8 @@ const UserTasks = () => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#3B82F6',
                   }}
@@ -494,44 +468,19 @@ const UserTasks = () => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: isReopened
-                        ? '3.5px solid #EF4444'
-                        : isOverdue
-                          ? '3.5px solid var(--color-danger)'
-                          : '3.5px solid #3B82F6',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
                         {isReopened ? (
-                          <span
-                            style={{
-                              fontSize: '10.5px',
-                              fontWeight: 700,
-                              color: '#B91C1C',
-                              backgroundColor: '#FEE2E2',
-                              padding: '2px 6px',
-                              borderRadius: 'var(--radius-sm)',
-                            }}
-                          >
-                            ⚠️ CHANGES REQUESTED
+                          <span className="task-priority-chip urgent">
+                            <span className="task-priority-dot" /> Changes Requested
                           </span>
                         ) : (
                           getPriorityBadge(task.priority)
                         )}
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -542,41 +491,16 @@ const UserTasks = () => {
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {isReopened && latestNote && (
-                      <div
-                        style={{
-                          backgroundColor: '#FEF2F2',
-                          border: '1px solid #FCA5A5',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '6px 8px',
-                          fontSize: '11.5px',
-                          color: '#991B1B',
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        <strong>Feedback:</strong> {latestNote}
-                      </div>
-                    )}
-
-                    {isOverdue && !isReopened && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          color: 'var(--color-danger)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        <AlertTriangle size={12} /> OVERDUE
+                      <div className="task-card-banner danger">
+                        <div><strong>Feedback:</strong> {latestNote}</div>
                       </div>
                     )}
 
                     <div className="task-card-footer">
                       <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
-                        <Calendar size={13} />
+                        <Calendar size={12} />
                         <span>
-                          Due{' '}
+                          {isOverdue ? 'Overdue: ' : 'Due '}
                           {new Date(task.deadline).toLocaleDateString([], {
                             month: 'short',
                             day: 'numeric',
@@ -589,12 +513,6 @@ const UserTasks = () => {
                       <button
                         type="button"
                         className="btn btn-primary task-card-action-btn"
-                        style={{
-                          flex: 1,
-                          backgroundColor: '#F59E0B',
-                          borderColor: '#F59E0B',
-                          color: '#FFFFFF',
-                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveTaskDetail(task);
@@ -616,8 +534,8 @@ const UserTasks = () => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#F59E0B',
                   }}
@@ -630,7 +548,7 @@ const UserTasks = () => {
                   fontWeight: 700,
                   backgroundColor: '#FEF3C7',
                   color: '#B45309',
-                  padding: '2px 6px',
+                  padding: '2px 7px',
                   borderRadius: '10px',
                 }}
               >
@@ -660,36 +578,15 @@ const UserTasks = () => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: '3.5px solid #F59E0B',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 700,
-                            color: '#B45309',
-                            backgroundColor: '#FEF3C7',
-                            padding: '2px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                          }}
-                        >
-                          ⏳ IN REVIEW
+                        <span className="task-priority-chip high">
+                          <span className="task-priority-dot" /> In Review
                         </span>
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -700,26 +597,16 @@ const UserTasks = () => {
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {submissionNote && (
-                      <div
-                        style={{
-                          backgroundColor: '#FFFBEB',
-                          border: '1px solid #FDE68A',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '6px 8px',
-                          fontSize: '11.5px',
-                          color: '#78350F',
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        <strong>Your note:</strong> {submissionNote}
+                      <div className="task-card-banner warning">
+                        <div><strong>Your note:</strong> {submissionNote}</div>
                       </div>
                     )}
 
                     <div className="task-card-footer">
                       <span
                         style={{
-                          fontSize: '11px',
-                          color: '#B45309',
+                          fontSize: '11.5px',
+                          color: '#D97706',
                           fontWeight: 600,
                         }}
                       >
@@ -738,11 +625,11 @@ const UserTasks = () => {
                           textAlign: 'center',
                           fontSize: '11.5px',
                           fontWeight: 600,
-                          color: '#B45309',
+                          color: '#92400E',
                           backgroundColor: '#FEF3C7',
                           padding: '6px 10px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid #FCD34D',
+                          borderRadius: '8px',
+                          border: '1px solid #FDE68A',
                         }}
                       >
                         Waiting for Admin review
@@ -760,8 +647,8 @@ const UserTasks = () => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#10B981',
                   }}
@@ -787,25 +674,28 @@ const UserTasks = () => {
                 <div
                   key={task._id}
                   className="task-card"
-                  style={{
-                    borderLeft: '3.5px solid #10B981',
-                  }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
                   <div className="task-card-header">
                     <div className="task-card-header-left">
-                      <Badge variant="success">DONE</Badge>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          padding: '2.5px 8px',
+                          borderRadius: '6px',
+                          backgroundColor: '#ECFDF5',
+                          color: '#059669',
+                          border: '1px solid #A7F3D0',
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669' }} /> Completed
+                      </span>
                       {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
-                          }}
-                        >
+                        <span className="task-group-pill">
                           #{task.groupId?.name}
                         </span>
                       )}
@@ -814,7 +704,7 @@ const UserTasks = () => {
 
                   <div
                     className="task-card-title"
-                    style={{ textDecoration: 'line-through', opacity: 0.8 }}
+                    style={{ color: 'var(--color-text-secondary)', textDecoration: 'line-through' }}
                   >
                     {task.title}
                   </div>

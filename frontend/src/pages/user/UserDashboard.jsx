@@ -735,7 +735,7 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
                       <Badge variant={ann.scope === 'company' ? 'primary' : 'neutral'}>
                         {ann.scope === 'company'
                           ? '🌐 Company'
-                          : `#${ann.groupId?.name || 'Group'}`}
+                          : `#${ann.groupId?.name || 'Channel'}`}
                       </Badge>
                     </div>
 

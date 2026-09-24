@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Megaphone, Plus, Pin, Calendar, Trash2, Edit2, Search, Globe, Users } from 'lucide-react';
+import { Megaphone, Plus, Pin, Calendar, Trash2, Edit2, Search, Globe } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
-import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
 import CreateAnnouncementModal from '../../components/CreateAnnouncementModal';
 
@@ -147,7 +146,7 @@ const AdminAnnouncements = ({ groups = [] }) => {
           <Search size={14} className="search-icon" />
           <input
             type="text"
-            placeholder="Search bulletins and updates..."
+            placeholder="Search announcements..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -168,10 +167,10 @@ const AdminAnnouncements = ({ groups = [] }) => {
       </div>
 
       {/* Announcements Feed */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {loading ? (
           Array.from({ length: 3 }).map((_, idx) => (
-            <div key={`skel-ann-${idx}`} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '4px solid var(--color-border)' }}>
+            <div key={`skel-ann-${idx}`} className="announcement-card" style={{ gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="skeleton-shimmer" style={{ width: '110px', height: '20px', borderRadius: '4px' }} />
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '14px', borderRadius: '4px' }} />
@@ -225,70 +224,36 @@ const AdminAnnouncements = ({ groups = [] }) => {
             return (
               <div
                 key={a._id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  borderLeft: isPinned
-                    ? '4px solid var(--color-warning)'
-                    : isUrgent
-                      ? '4px solid var(--color-danger)'
-                      : '4px solid var(--color-primary)',
-                  backgroundColor: isPinned ? 'rgba(245, 158, 11, 0.03)' : 'var(--color-surface)',
-                }}
+                className={`announcement-card ${isPinned ? 'is-pinned' : ''} ${isUrgent ? 'is-urgent' : ''}`}
               >
                 {/* Meta Top Bar */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="announcement-card-header">
+                  <div className="announcement-card-header-left">
                     {isPinned && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          backgroundColor: 'var(--color-warning-soft)',
-                          color: 'var(--color-warning)',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
+                      <span className="announcement-chip pinned">
+                        <span className="task-priority-dot" style={{ background: '#D97706' }} />
                         <Pin size={11} /> PINNED
                       </span>
                     )}
 
                     {isCompany ? (
-                      <Badge variant="primary" icon={Globe}>
-                        COMPANY-WIDE
-                      </Badge>
+                      <span className="announcement-chip company">
+                        <Globe size={11} /> Company-wide
+                      </span>
                     ) : (
-                      <Badge variant="neutral" icon={Users}>
+                      <span className="task-group-pill">
                         #{a.groupId?.name || 'Channel'}
-                      </Badge>
+                      </span>
                     )}
 
-                    {isUrgent && <Badge variant="danger">URGENT</Badge>}
+                    {isUrgent && (
+                      <span className="announcement-chip urgent">
+                        <span className="task-priority-dot" style={{ background: '#DC2626' }} /> Urgent
+                      </span>
+                    )}
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
+                  <div className="announcement-card-header-right">
                     <Calendar size={13} />
                     <span>
                       {new Date(a.createdAt).toLocaleDateString([], {
@@ -302,39 +267,16 @@ const AdminAnnouncements = ({ groups = [] }) => {
 
                 {/* Title & Body */}
                 <div>
-                  <h3
-                    style={{
-                      fontSize: '17px',
-                      fontWeight: 700,
-                      margin: '0 0 6px 0',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
+                  <h3 className="announcement-title">
                     {a.title}
                   </h3>
-                  <div
-                    style={{
-                      fontSize: '13.5px',
-                      lineHeight: 1.6,
-                      color: 'var(--color-text-primary)',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
+                  <div className="announcement-body">
                     {a.body}
                   </div>
                 </div>
 
                 {/* Footer with Author and Admin Actions */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: '12px',
-                    marginTop: '4px',
-                  }}
-                >
+                <div className="announcement-card-footer">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Avatar
                       name={a.createdBy?.name || 'Admin'}
@@ -353,18 +295,19 @@ const AdminAnnouncements = ({ groups = [] }) => {
                       style={{
                         padding: '4px 10px',
                         fontSize: '12px',
-                        color: isPinned ? 'var(--color-warning)' : 'var(--color-text-secondary)',
+                        height: '28px',
+                        borderRadius: '6px',
+                        color: isPinned ? '#D97706' : 'var(--color-text-secondary)',
                       }}
                       onClick={() => handleTogglePin(a._id)}
                       title={isPinned ? 'Unpin from top' : 'Pin to top'}
                     >
-                      <Pin size={13} /> {isPinned ? 'Unpin' : 'Pin'}
+                      <Pin size={12} /> {isPinned ? 'Unpin' : 'Pin'}
                     </button>
 
                     <button
                       type="button"
-                      className="btn btn-ghost btn-icon"
-                      style={{ width: '32px', height: '32px' }}
+                      className="task-card-quick-btn"
                       onClick={() => {
                         setEditingAnnouncement(a);
                         setIsCreateOpen(true);
@@ -376,8 +319,7 @@ const AdminAnnouncements = ({ groups = [] }) => {
 
                     <button
                       type="button"
-                      className="btn btn-ghost btn-icon"
-                      style={{ width: '32px', height: '32px', color: 'var(--color-danger)' }}
+                      className="task-card-quick-btn danger"
                       onClick={() => handleDelete(a._id, a.title)}
                       title="Delete Announcement"
                     >

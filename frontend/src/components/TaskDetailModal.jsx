@@ -218,7 +218,7 @@ const TaskDetailModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Task & Work Deliverable" maxWidth="560px">
+    <Modal isOpen={isOpen} onClose={onClose} title="Task Details" maxWidth="560px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Header Summary */}
         <div>

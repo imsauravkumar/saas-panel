@@ -16,7 +16,6 @@ import {
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
-import Badge from '../../components/Badge';
 import Modal from '../../components/Modal';
 import Avatar from '../../components/Avatar';
 import AddGroupMembersModal from '../../components/AddGroupMembersModal';
@@ -125,7 +124,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
       {/* Page Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1>Group Management</h1>
+          <h1>Channels</h1>
         </div>
 
         <button
@@ -145,9 +144,9 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
       </div>
 
       {/* Search Bar */}
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <div className="search-input-box" style={{ width: '300px' }}>
-          <Search size={15} className="search-icon" />
+      <div className="filter-bar-container">
+        <div className="search-input-box filter-search-input">
+          <Search size={14} className="search-icon" />
           <input
             type="text"
             placeholder="Search channels by name..."
@@ -163,14 +162,14 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
           className="card"
           style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--color-text-muted)' }}
         >
-          <Layers size={42} style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
+          <Layers size={42} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }} />
           <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-text-primary)' }}>
             No channels found
           </div>
           <p style={{ fontSize: '13px', maxWidth: '360px', margin: '6px auto 16px auto' }}>
             {searchTerm
               ? 'No channels matched your search term.'
-              : 'Group channels allow your workspace members to collaborate in dedicated rooms.'}
+              : 'Channels allow your workspace members to collaborate in dedicated team spaces.'}
           </p>
           <button
             className="btn btn-primary btn-sm"
@@ -192,76 +191,35 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
-            gap: '20px',
+            gap: '16px',
           }}
         >
           {filteredGroups.map((group) => {
             const isLocked = group.chatPermission === 'adminOnly';
 
             return (
-              <div
-                key={group._id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  position: 'relative',
-                  border: '1px solid var(--color-border)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
+              <div key={group._id} className="group-card">
                 {/* Header Row */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                  }}
-                >
+                <div className="group-card-header">
                   <div
+                    className="group-card-info"
                     onClick={() => handleOpenEdit(group)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      cursor: 'pointer',
-                    }}
+                    style={{ cursor: 'pointer' }}
                     title="Click to view/edit channel details & photo"
                   >
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: 'var(--radius-md)',
-                        backgroundColor: 'var(--color-primary-soft)',
-                        color: 'var(--color-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                      }}
-                    >
+                    <div className="group-avatar-box">
                       {group.avatar ? (
                         <img
                           src={group.avatar}
                           alt={group.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <Hash size={20} />
                       )}
                     </div>
 
-                    <div>
-                      <h3
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 600,
-                          color: 'var(--color-text-primary)',
-                        }}
-                      >
+                    <div style={{ minWidth: 0 }}>
+                      <h3 className="group-card-title">
                         #{group.name}
                       </h3>
                       <div
@@ -271,7 +229,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                           gap: '6px',
                           fontSize: '12px',
                           color: 'var(--color-text-secondary)',
-                          marginTop: '2px',
+                          marginTop: '3px',
                         }}
                       >
                         <Users size={13} />
@@ -280,91 +238,83 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                     </div>
                   </div>
 
-                  <Badge variant={isLocked ? 'warning' : 'neutral'}>
+                  <span className={`task-priority-chip ${isLocked ? 'high' : 'low'}`}>
+                    <span className="task-priority-dot" style={{ background: isLocked ? '#F59E0B' : '#10B981' }} />
                     {isLocked ? 'Admin Only' : 'Everyone'}
-                  </Badge>
+                  </span>
                 </div>
 
                 {/* Description */}
-                <p
-                  style={{
-                    fontSize: '13px',
-                    color: 'var(--color-text-secondary)',
-                    flex: 1,
-                    minHeight: '38px',
-                    lineHeight: 1.5,
-                  }}
-                >
+                <p className="group-card-desc">
                   {group.description || 'No description provided for this channel.'}
                 </p>
 
-                {/* Member Preview Avatars */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ display: 'flex', gap: '-6px' }}>
-                      {group.memberIds?.slice(0, 4).map((m) => (
+                {/* Member Preview Avatars & Action Controls */}
+                <div className="group-card-footer">
+                  <div className="task-card-avatars">
+                    {group.memberIds?.slice(0, 4).map((m, i) => (
+                      <div
+                        key={m._id || m || i}
+                        className="task-card-avatar-item"
+                        title={m.name || 'Member'}
+                      >
                         <Avatar
-                          key={m._id || m}
                           name={m.name || 'Member'}
                           src={m.avatar}
-                          size="sm"
+                          size="xs"
                         />
-                      ))}
-                    </div>
-                    {group.memberIds?.length > 4 && (
-                      <span
+                      </div>
+                    ))}
+                    {(group.memberIds?.length || 0) > 4 && (
+                      <div
+                        className="task-card-avatar-item"
                         style={{
-                          fontSize: '11.5px',
-                          color: 'var(--color-text-muted)',
-                          marginLeft: '4px',
+                          width: '24px',
+                          height: '24px',
+                          backgroundColor: 'var(--color-surface-alt)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: 'var(--color-text-secondary)',
                         }}
                       >
-                        +{group.memberIds.length - 4} more
-                      </span>
+                        +{group.memberIds.length - 4}
+                      </div>
                     )}
                   </div>
 
                   {/* Channel Action Buttons */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <button
                       type="button"
-                      className="btn btn-secondary btn-icon"
-                      style={{ width: '32px', height: '32px', padding: 0 }}
+                      className="task-card-quick-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         setManagingMembersGroup(group);
                       }}
                       title="Add Members to Channel"
                     >
-                      <UserPlus size={14} />
+                      <UserPlus size={13} />
                     </button>
 
                     <button
                       type="button"
-                      className="btn btn-secondary btn-icon"
-                      style={{ width: '32px', height: '32px', padding: 0 }}
+                      className="task-card-quick-btn"
                       onClick={(e) => handleOpenEdit(group, e)}
                       title="Channel Settings & Photo"
                     >
-                      <Settings size={14} />
+                      <Settings size={13} />
                     </button>
 
                     <button
                       type="button"
-                      className="btn btn-danger btn-icon"
-                      style={{ width: '32px', height: '32px', padding: 0 }}
+                      className="task-card-quick-btn danger"
                       onClick={(e) => handleDeleteGroup(group, e)}
                       title="Delete Channel"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
 
                     <button
@@ -372,15 +322,18 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
                       className="btn btn-primary btn-sm"
                       style={{
                         fontSize: '12px',
-                        padding: '6px 10px',
+                        height: '28px',
+                        padding: '0 10px',
+                        borderRadius: '6px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
+                        marginLeft: '2px',
                       }}
                       onClick={() => onSelectGroupDashboard && onSelectGroupDashboard(group._id)}
                       title="Open Channel Space"
                     >
-                      <span>Open</span> <ExternalLink size={12} />
+                      <span>Open</span> <ExternalLink size={11} />
                     </button>
                   </div>
                 </div>

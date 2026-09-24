@@ -138,7 +138,7 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
               }}
             >
               <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 600 }}>Work & Task Assignments</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600 }}>Task Assignments</div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                   Email alerts when new deliverables are assigned to you with deadlines.
                 </div>
@@ -166,7 +166,7 @@ const NotificationPreferencesModal = ({ isOpen, onClose }) => {
             >
               <div>
                 <div style={{ fontSize: '13.5px', fontWeight: 600 }}>
-                  Company & Channel Bulletins
+                  Announcements
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                   Important workspace broadcasts and administrative updates.

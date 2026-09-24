@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Megaphone, Pin, Calendar, Search, Globe, Users } from 'lucide-react';
+import { Megaphone, Pin, Calendar, Search, Globe } from 'lucide-react';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
-import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
 
 const UserAnnouncements = () => {
@@ -78,7 +77,7 @@ const UserAnnouncements = () => {
           <Search size={14} className="search-icon" />
           <input
             type="text"
-            placeholder="Search bulletins..."
+            placeholder="Search announcements..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -86,10 +85,10 @@ const UserAnnouncements = () => {
       </div>
 
       {/* Feed */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {loading ? (
           Array.from({ length: 3 }).map((_, idx) => (
-            <div key={`skel-ann-${idx}`} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '4px solid var(--color-border)' }}>
+            <div key={`skel-ann-${idx}`} className="announcement-card" style={{ gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="skeleton-shimmer" style={{ width: '110px', height: '20px', borderRadius: '4px' }} />
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '14px', borderRadius: '4px' }} />
@@ -115,10 +114,10 @@ const UserAnnouncements = () => {
               style={{ margin: '0 auto 12px auto', opacity: 0.5, color: 'var(--color-primary)' }}
             />
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              No bulletins published
+              No announcements published
             </div>
             <p style={{ fontSize: '13px', margin: '4px auto 0 auto' }}>
-              Check back later for company broadcasts and channel updates.
+              Check back later for company broadcasts and channel announcements.
             </p>
           </div>
         ) : (
@@ -130,64 +129,36 @@ const UserAnnouncements = () => {
             return (
               <div
                 key={a._id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  borderLeft: isPinned
-                    ? '4px solid var(--color-warning)'
-                    : isUrgent
-                      ? '4px solid var(--color-danger)'
-                      : '4px solid var(--color-primary)',
-                  backgroundColor: isPinned ? 'rgba(245, 158, 11, 0.03)' : 'var(--color-surface)',
-                }}
+                className={`announcement-card ${isPinned ? 'is-pinned' : ''} ${isUrgent ? 'is-urgent' : ''}`}
               >
                 {/* Meta Top Bar */}
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="announcement-card-header">
+                  <div className="announcement-card-header-left">
                     {isPinned && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          backgroundColor: 'var(--color-warning-soft)',
-                          color: 'var(--color-warning)',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
+                      <span className="announcement-chip pinned">
+                        <span className="task-priority-dot" style={{ background: '#D97706' }} />
                         <Pin size={11} /> PINNED
                       </span>
                     )}
 
                     {isCompany ? (
-                      <Badge variant="primary" icon={Globe}>
-                        COMPANY-WIDE
-                      </Badge>
+                      <span className="announcement-chip company">
+                        <Globe size={11} /> Company-wide
+                      </span>
                     ) : (
-                      <Badge variant="neutral" icon={Users}>
+                      <span className="task-group-pill">
                         #{a.groupId?.name || 'Channel'}
-                      </Badge>
+                      </span>
                     )}
 
-                    {isUrgent && <Badge variant="danger">URGENT</Badge>}
+                    {isUrgent && (
+                      <span className="announcement-chip urgent">
+                        <span className="task-priority-dot" style={{ background: '#DC2626' }} /> Urgent
+                      </span>
+                    )}
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
+                  <div className="announcement-card-header-right">
                     <Calendar size={13} />
                     <span>
                       {new Date(a.createdAt).toLocaleDateString([], {
@@ -201,36 +172,22 @@ const UserAnnouncements = () => {
 
                 {/* Title & Content */}
                 <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 6px 0' }}>
+                  <h3 className="announcement-title">
                     {a.title}
                   </h3>
-                  <div
-                    style={{
-                      fontSize: '13.5px',
-                      lineHeight: 1.6,
-                      color: 'var(--color-text-primary)',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
+                  <div className="announcement-body">
                     {a.body}
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: '12px',
-                    marginTop: '4px',
-                    gap: '8px',
-                  }}
-                >
-                  <Avatar name={a.createdBy?.name || 'Admin'} src={a.createdBy?.avatar} size="xs" />
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                    Published by <strong>{a.createdBy?.name || 'Administrator'}</strong>
-                  </span>
+                <div className="announcement-card-footer">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Avatar name={a.createdBy?.name || 'Admin'} src={a.createdBy?.avatar} size="xs" />
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Published by <strong>{a.createdBy?.name || 'Administrator'}</strong>
+                    </span>
+                  </div>
                 </div>
               </div>
             );

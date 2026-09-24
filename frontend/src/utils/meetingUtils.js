@@ -3,12 +3,41 @@
  */
 
 export const TYPE_METADATA = {
-  general: { label: 'General Video Sync', shortLabel: 'General', emoji: '📹', badgeVariant: 'primary' },
-  standup: { label: 'Daily Standup', shortLabel: 'Standup', emoji: '⚡', badgeVariant: 'warning' },
-  sync: { label: '1-on-1 Sync', shortLabel: '1-on-1', emoji: '👥', badgeVariant: 'primary' },
-  review: { label: 'Design / Code Review', shortLabel: 'Review', emoji: '🔍', badgeVariant: 'info' },
-  demo: { label: 'Product Demo', shortLabel: 'Demo', emoji: '🚀', badgeVariant: 'success' },
-  allhands: { label: 'All-Hands Sync', shortLabel: 'All-Hands', emoji: '🏢', badgeVariant: 'purple' },
+  general: {
+    label: 'General Discussion',
+    shortLabel: 'General',
+    emoji: '💬',
+    desc: 'Open team syncs, planning & discussions',
+    badgeVariant: 'primary',
+  },
+  standup: {
+    label: 'Daily Standup',
+    shortLabel: 'Standup',
+    emoji: '⚡',
+    desc: 'Quick progress, priorities & blocker check-in',
+    badgeVariant: 'warning',
+  },
+  sync: {
+    label: '1-on-1 Sync',
+    shortLabel: '1-on-1',
+    emoji: '👥',
+    desc: 'Personal check-in, growth & feedback',
+    badgeVariant: 'primary',
+  },
+  review: {
+    label: 'Review & Demo',
+    shortLabel: 'Review',
+    emoji: '🔍',
+    desc: 'Sprint demo, design & code review',
+    badgeVariant: 'info',
+  },
+  allhands: {
+    label: 'All-Hands Meeting',
+    shortLabel: 'All-Hands',
+    emoji: '🏢',
+    desc: 'Company-wide updates & strategic milestones',
+    badgeVariant: 'purple',
+  },
 };
 
 /**

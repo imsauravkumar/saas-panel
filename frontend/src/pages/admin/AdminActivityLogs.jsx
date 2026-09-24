@@ -78,7 +78,7 @@ const AdminActivityLogs = () => {
           <Search size={14} className="search-icon" />
           <input
             type="text"
-            placeholder="Search audit trail by actor, action or details..."
+            placeholder="Search audit logs by actor, action or details..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

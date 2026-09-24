@@ -1367,17 +1367,7 @@ const GroupChat = ({
         {currentGroup || currentRecipient ? (
           <>
             {/* Header */}
-            <div
-              className="chat-header"
-              style={{
-                padding: '10px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface)',
-              }}
-            >
+            <div className="chat-header">
                 {chatMode === 'group' ? (
                   /* Channel Header */
                   <div
@@ -1385,32 +1375,38 @@ const GroupChat = ({
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
+                      gap: '8px',
                       cursor: 'pointer',
+                      minWidth: 0,
                     }}
                     title="Click for channel info & participants"
                   >
                     <div
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: 'var(--radius-md)',
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: 'var(--radius-sm)',
                         backgroundColor: 'var(--color-primary-soft)',
                         color: 'var(--color-primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
-                      <Hash size={18} />
+                      <Hash size={15} />
                     </div>
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <h2
                           style={{
-                            fontSize: '15px',
+                            fontSize: '14px',
                             fontWeight: 700,
                             color: 'var(--color-text-primary)',
+                            margin: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           #{currentGroup.name}
@@ -1419,16 +1415,18 @@ const GroupChat = ({
                           variant={
                             currentGroup.chatPermission === 'adminOnly' ? 'warning' : 'neutral'
                           }
+                          size="sm"
                         >
-                          {currentGroup.chatPermission === 'adminOnly' ? 'Admin Broadcast' : 'Open'}
+                          {currentGroup.chatPermission === 'adminOnly' ? 'Admin' : 'Open'}
                         </Badge>
                       </div>
                       <p
                         style={{
-                          fontSize: '11.5px',
+                          fontSize: '11px',
                           color: 'var(--color-text-secondary)',
-                          marginTop: '2px',
-                          maxWidth: '350px',
+                          marginTop: '1px',
+                          marginBottom: 0,
+                          maxWidth: 'min(300px, 45vw)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -1441,7 +1439,7 @@ const GroupChat = ({
                   </div>
                 ) : (
                   /* Direct Chat Header */
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                     <Avatar
                       name={
                         currentRecipient.isSelf || currentRecipient._id === user?.id
@@ -1453,20 +1451,24 @@ const GroupChat = ({
                           ? user?.avatar
                           : currentRecipient.avatar
                       }
-                      size="md"
+                      size="sm"
                       isOnline={
                         currentRecipient.isSelf || currentRecipient._id === user?.id
                           ? true
                           : onlineUsers.includes(currentRecipient._id)
                       }
                     />
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <h2
                           style={{
-                            fontSize: '15px',
+                            fontSize: '14px',
                             fontWeight: 700,
                             color: 'var(--color-text-primary)',
+                            margin: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {currentRecipient.isSelf || currentRecipient._id === user?.id
@@ -1476,25 +1478,25 @@ const GroupChat = ({
                         {currentRecipient.isSelf || currentRecipient._id === user?.id ? (
                           <span
                             style={{
-                              fontSize: '9.5px',
+                              fontSize: '9px',
                               fontWeight: 700,
                               backgroundColor: 'var(--color-primary-soft)',
                               color: 'var(--color-primary)',
-                              padding: '1px 6px',
-                              borderRadius: '4px',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
                             }}
                           >
-                            Message yourself
+                            You
                           </span>
                         ) : (
                           currentRecipient.role === 'admin' && (
                             <span
                               style={{
-                                fontSize: '9.5px',
+                                fontSize: '9px',
                                 fontWeight: 800,
                                 backgroundColor: 'var(--color-primary-soft)',
                                 color: 'var(--color-primary)',
-                                padding: '1px 5px',
+                                padding: '1px 4px',
                                 borderRadius: '3px',
                               }}
                             >
@@ -1505,13 +1507,18 @@ const GroupChat = ({
                       </div>
                       <p
                         style={{
-                          fontSize: '11.5px',
+                          fontSize: '11px',
                           color: 'var(--color-text-secondary)',
-                          marginTop: '2px',
+                          marginTop: '1px',
+                          marginBottom: 0,
+                          maxWidth: 'min(280px, 45vw)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {currentRecipient.isSelf || currentRecipient._id === user?.id ? (
-                          'Save notes, voice memos, files & photos for yourself'
+                          'Personal space & notes'
                         ) : onlineUsers.includes(currentRecipient._id) ? (
                           <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
                             Active now
@@ -1527,7 +1534,7 @@ const GroupChat = ({
                 )}
 
                 {/* Header Action Tools */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                   {/* In-Chat Search Button */}
                   <button
                     type="button"
@@ -1535,22 +1542,22 @@ const GroupChat = ({
                       setIsSearchOpen((prev) => !prev);
                       if (isSearchOpen) setChatSearchQuery('');
                     }}
-                    className={`btn btn-ghost btn-icon ${isSearchOpen ? 'active' : ''}`}
+                    className={`btn btn-ghost btn-icon btn-sm ${isSearchOpen ? 'active' : ''}`}
                     title="Search messages in conversation"
-                    style={{ width: '32px', height: '32px' }}
+                    style={{ width: '28px', height: '28px' }}
                   >
-                    <Search size={16} />
+                    <Search size={14} />
                   </button>
 
                   {/* Shared Media Gallery Drawer Button */}
                   <button
                     type="button"
                     onClick={() => setIsMediaDrawerOpen(true)}
-                    className="btn btn-ghost btn-icon"
+                    className="btn btn-ghost btn-icon btn-sm"
                     title="Shared Files & Media"
-                    style={{ width: '32px', height: '32px' }}
+                    style={{ width: '28px', height: '28px' }}
                   >
-                    <Folder size={16} />
+                    <Folder size={14} />
                   </button>
 
                   {/* Google Meet Video Conference Button */}
@@ -1558,11 +1565,11 @@ const GroupChat = ({
                     <button
                       type="button"
                       onClick={() => setIsMeetingModalOpen(true)}
-                      className="btn btn-ghost btn-icon"
+                      className="btn btn-ghost btn-icon btn-sm"
                       title="Start or Schedule Google Meet Call"
-                      style={{ width: '32px', height: '32px', color: 'var(--color-primary)' }}
+                      style={{ width: '28px', height: '28px', color: 'var(--color-primary)' }}
                     >
-                      <VideoIcon size={16} />
+                      <VideoIcon size={14} />
                     </button>
                   )}
 
@@ -1574,14 +1581,16 @@ const GroupChat = ({
                         onClick={() => setIsAddMembersOpen(true)}
                         className="btn btn-secondary btn-sm"
                         style={{
-                          fontSize: '12px',
+                          fontSize: '11.5px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '3px',
+                          padding: '3px 8px',
+                          height: '28px',
                         }}
                         title="Add Teammates"
                       >
-                        <UserPlus size={13} />
+                        <UserPlus size={12} />
                         <span>Add</span>
                       </button>
 
@@ -1597,14 +1606,16 @@ const GroupChat = ({
                         }}
                         className="btn btn-secondary btn-sm"
                         style={{
-                          fontSize: '12px',
+                          fontSize: '11.5px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '3px',
+                          padding: '3px 8px',
+                          height: '28px',
                         }}
                         title="Channel Settings"
                       >
-                        <Settings size={13} />
+                        <Settings size={12} />
                         <span>Settings</span>
                       </button>
                     </>
@@ -1699,7 +1710,6 @@ const GroupChat = ({
               className="chat-messages-area"
               ref={messagesContainerRef}
               onScroll={handleScroll}
-              style={{ flex: 1, overflowY: 'auto', padding: '16px' }}
             >
               {hasMore && (
                 <div style={{ textAlign: 'center', marginBottom: '12px' }}>
@@ -2077,10 +2087,11 @@ const GroupChat = ({
                               {msg.content && (
                                 <div
                                   style={{
-                                    fontSize: '13.5px',
-                                    lineHeight: 1.45,
+                                    fontSize: '13px',
+                                    lineHeight: 1.4,
                                     whiteSpace: 'pre-wrap',
                                     wordBreak: 'break-word',
+                                    overflowWrap: 'anywhere',
                                     color: isSelf ? '#FFFFFF' : 'var(--color-text-primary)',
                                   }}
                                 >
@@ -2408,14 +2419,7 @@ const GroupChat = ({
             )}
 
             {/* Rich Composer Section */}
-            <div
-              className="chat-composer-container"
-              style={{
-                padding: '10px 16px',
-                backgroundColor: 'var(--color-surface)',
-                borderTop: '1px solid var(--color-border)',
-              }}
-            >
+            <div className="chat-composer-container">
               {!canPost ? (
                 <div
                   style={{
@@ -2622,8 +2626,8 @@ const GroupChat = ({
                     style={{
                       display: 'flex',
                       alignItems: 'flex-start',
-                      padding: '8px 12px',
-                      gap: '8px',
+                      padding: '6px 10px',
+                      gap: '6px',
                     }}
                   >
                     <textarea
@@ -2648,12 +2652,12 @@ const GroupChat = ({
                         border: 'none',
                         outline: 'none',
                         resize: 'none',
-                        fontSize: '13.5px',
+                        fontSize: '13px',
                         color: 'var(--color-text-primary)',
                         fontFamily: 'inherit',
-                        lineHeight: 1.4,
-                        maxHeight: '110px',
-                        minHeight: '22px',
+                        lineHeight: 1.35,
+                        maxHeight: '85px',
+                        minHeight: '20px',
                       }}
                     />
                   </div>

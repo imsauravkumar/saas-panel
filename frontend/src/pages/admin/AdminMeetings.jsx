@@ -404,116 +404,62 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
             return (
               <div
                 key={m._id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--color-border)',
-                  borderLeft: isCancelled
-                    ? '4px solid var(--color-danger)'
-                    : countdown.isLive
-                      ? '4px solid var(--color-success)'
-                      : isUpcoming
-                        ? '4px solid var(--color-primary)'
-                        : '4px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                  padding: '16px 18px',
-                  position: 'relative',
-                  opacity: isCancelled ? 0.82 : 1,
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                }}
+                className={`meeting-card ${isCancelled ? 'is-cancelled' : ''} ${countdown.isLive ? 'is-live' : ''}`}
               >
                 {/* Top Meta Bar */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '8px',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <Badge
-                      variant={
-                        isCancelled ? 'danger' : isCompleted ? 'neutral' : countdown.isLive ? 'success' : 'primary'
-                      }
-                    >
-                      {isCancelled ? 'CANCELLED' : countdown.isLive ? 'LIVE NOW' : isUpcoming ? 'UPCOMING' : 'COMPLETED'}
-                    </Badge>
+                <div className="meeting-card-header">
+                  <div className="meeting-card-header-left">
+                    {isCancelled ? (
+                      <span className="meeting-status-chip cancelled">
+                        <span className="task-priority-dot" style={{ background: '#DC2626' }} /> Cancelled
+                      </span>
+                    ) : countdown.isLive ? (
+                      <span className="meeting-status-chip live">
+                        <span className="task-priority-dot" style={{ background: '#059669', boxShadow: '0 0 0 2px rgba(5, 150, 105, 0.25)' }} /> Live Now
+                      </span>
+                    ) : isUpcoming ? (
+                      <span className="meeting-status-chip upcoming">
+                        <span className="task-priority-dot" style={{ background: '#2563EB' }} /> Upcoming
+                      </span>
+                    ) : (
+                      <span className="meeting-status-chip completed">
+                        <span className="task-priority-dot" style={{ background: '#94A3B8' }} /> Completed
+                      </span>
+                    )}
 
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        backgroundColor: 'var(--color-surface-alt)',
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                    >
+                    <span className="task-priority-chip low">
                       {typeInfo.emoji} {typeInfo.label}
                     </span>
 
                     {m.groupId && (
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: 'var(--color-primary)',
-                        }}
-                      >
+                      <span className="task-group-pill">
                         #{typeof m.groupId === 'object' ? m.groupId.name : m.groupId}
                       </span>
                     )}
 
                     {isDemo && (
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                          color: '#D97706',
-                          padding: '1px 5px',
-                          borderRadius: '3px',
-                          border: '1px solid rgba(245, 158, 11, 0.3)',
-                        }}
-                      >
+                      <span className="task-priority-chip high">
                         Demo Link
                       </span>
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    style={{ padding: '2px 6px', fontSize: '11.5px', color: 'var(--color-text-secondary)' }}
-                    onClick={() => setViewingMeeting(m)}
-                    title="View Full Details"
-                  >
-                    <Eye size={13} /> View
-                  </button>
+                  <div className="meeting-card-header-right">
+                    <button
+                      type="button"
+                      className="task-card-quick-btn"
+                      onClick={() => setViewingMeeting(m)}
+                      title="View Full Details"
+                    >
+                      <Eye size={13} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Cancelled Banner if applicable */}
                 {isCancelled && (
-                  <div
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      border: '1px solid rgba(239, 68, 68, 0.25)',
-                      fontSize: '12px',
-                      color: 'var(--color-danger)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <AlertCircle size={14} />
+                  <div className="task-card-banner danger">
+                    <AlertCircle size={13} style={{ flexShrink: 0, marginTop: '1px' }} />
                     <span>Cancelled: {m.cancelReason || 'Meeting was cancelled by organizer.'}</span>
                   </div>
                 )}
@@ -521,61 +467,32 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                 {/* Title & Agenda */}
                 <div>
                   <h3
-                    style={{
-                      fontSize: '16px',
-                      fontWeight: 700,
-                      color: 'var(--color-text)',
-                      cursor: 'pointer',
-                      margin: '0 0 4px 0',
-                      lineHeight: 1.3,
-                      textDecoration: isCancelled ? 'line-through' : 'none',
-                    }}
+                    className="meeting-title"
+                    style={{ textDecoration: isCancelled ? 'line-through' : 'none', opacity: isCancelled ? 0.75 : 1 }}
                     onClick={() => setViewingMeeting(m)}
                   >
                     {m.title}
                   </h3>
                   {m.description && (
-                    <p
-                      style={{
-                        fontSize: '12.5px',
-                        color: 'var(--color-text-secondary)',
-                        margin: 0,
-                        lineHeight: 1.4,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
+                    <p className="meeting-desc" style={{ marginTop: '3px' }}>
                       {m.description}
                     </p>
                   )}
                 </div>
 
                 {/* Localized Date, Time, Timezone & Live countdown */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                    fontSize: '12px',
-                    backgroundColor: 'var(--color-surface-alt)',
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                  }}
-                >
+                <div className="meeting-schedule-box">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Calendar size={13} color="var(--color-primary)" />
-                      <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formattedDate}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{formattedDate}</span>
                     </div>
                     {isUpcoming && countdown.text && (
                       <span
                         style={{
                           fontSize: '11px',
                           fontWeight: 600,
-                          color: countdown.isLive ? '#10B981' : 'var(--color-primary)',
+                          color: countdown.isLive ? '#059669' : 'var(--color-primary)',
                         }}
                       >
                         {countdown.text}
@@ -583,10 +500,10 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)' }}>
                     <Clock size={13} color="var(--color-primary)" />
                     <span>
-                      {formattedTime} <strong style={{ color: 'var(--color-text-secondary)' }}>{timeZone}</strong> ({m.durationMinutes || 30} mins)
+                      {formattedTime} <strong style={{ color: 'var(--color-text-muted)' }}>{timeZone}</strong> ({m.durationMinutes || 30} mins)
                     </span>
                   </div>
                 </div>
@@ -601,32 +518,27 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)' }}>
-                    <Users size={14} color="var(--color-text-tertiary)" />
+                    <Users size={13} color="var(--color-text-muted)" />
                     <span>{m.attendeeIds?.length || 0} attendees</span>
                   </div>
 
-                  <div style={{ display: 'flex', marginRight: '4px' }}>
+                  <div className="task-card-avatars">
                     {(m.attendeeIds || []).slice(0, 4).map((att, i) => (
                       <div
                         key={att._id || i}
-                        style={{
-                          marginLeft: i > 0 ? '-8px' : '0',
-                          border: '2px solid var(--color-surface)',
-                          borderRadius: '50%',
-                        }}
+                        className="task-card-avatar-item"
+                        title={att.name}
                       >
                         <Avatar name={att.name || 'User'} src={att.avatar} size="xs" />
                       </div>
                     ))}
                     {(m.attendeeIds?.length || 0) > 4 && (
                       <div
+                        className="task-card-avatar-item"
                         style={{
-                          marginLeft: '-8px',
                           width: '24px',
                           height: '24px',
-                          borderRadius: '50%',
                           backgroundColor: 'var(--color-surface-alt)',
-                          border: '2px solid var(--color-surface)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -642,17 +554,7 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                 </div>
 
                 {/* Footer Controls */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: '12px',
-                    marginTop: 'auto',
-                    gap: '8px',
-                  }}
-                >
+                <div className="meeting-card-footer">
                   {!isCancelled && meetUrl ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
                       <a
@@ -663,30 +565,31 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                         style={{
                           flex: 1,
                           justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '12.5px',
-                          minHeight: '34px',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          height: '32px',
+                          borderRadius: '8px',
                         }}
                       >
-                        <Video size={14} /> Join Meet <ExternalLink size={11} />
+                        <Video size={13} /> Join Meet <ExternalLink size={11} />
                       </a>
 
                       <button
                         type="button"
                         className="btn btn-secondary btn-icon"
-                        style={{ width: '34px', height: '34px' }}
+                        style={{ width: '32px', height: '32px', borderRadius: '8px' }}
                         onClick={() => handleCopyLink(m._id, meetUrl)}
                         title="Copy Google Meet Link"
                       >
-                        {isCopied ? <Check size={14} color="var(--color-success)" /> : <Copy size={14} />}
+                        {isCopied ? <Check size={13} color="var(--color-success)" /> : <Copy size={13} />}
                       </button>
                     </div>
                   ) : isCancelled ? (
-                    <span style={{ fontSize: '12px', color: 'var(--color-danger)', fontWeight: 600 }}>
+                    <span style={{ fontSize: '11.5px', color: 'var(--color-danger)', fontWeight: 600 }}>
                       Meeting Cancelled
                     </span>
                   ) : (
-                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                    <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
                       No link available
                     </span>
                   )}
@@ -696,23 +599,22 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                     {isUpcoming && (
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '34px', height: '34px' }}
+                        className="task-card-quick-btn"
                         onClick={() => {
                           setEditingMeeting(m);
                           setIsCreateOpen(true);
                         }}
                         title="Edit Meeting"
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={13} />
                       </button>
                     )}
 
                     {isUpcoming && (
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '34px', height: '34px', color: 'var(--color-warning)' }}
+                        className="task-card-quick-btn"
+                        style={{ color: 'var(--color-warning)' }}
                         onClick={() => {
                           confirm({
                             title: 'Cancel Meeting',
@@ -724,18 +626,17 @@ const AdminMeetings = ({ groups = [], users = [] }) => {
                         }}
                         title="Cancel Meeting"
                       >
-                        <XCircle size={14} />
+                        <XCircle size={13} />
                       </button>
                     )}
 
                     <button
                       type="button"
-                      className="btn btn-ghost btn-icon"
-                      style={{ width: '34px', height: '34px', color: 'var(--color-danger)' }}
+                      className="task-card-quick-btn danger"
                       onClick={() => handleDelete(m._id, m.title)}
                       title="Delete Record"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>

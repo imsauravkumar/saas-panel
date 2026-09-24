@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Users, ExternalLink, Search, Layers, Hash } from 'lucide-react';
-import Badge from '../../components/Badge';
+import { Users, ExternalLink, Search, Layers, Hash } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 
 const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
@@ -36,17 +35,17 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
 
   return (
     <div className="page-container">
+      {/* Header */}
       <div className="page-header">
         <div className="page-header-title">
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <MessageSquare size={26} color="var(--color-primary)" />
-            Group Management
-          </h1>
+          <h1>Channels</h1>
         </div>
+      </div>
 
-        {/* Search Bar */}
-        <div className="search-input-box" style={{ flex: '1 1 200px', maxWidth: '300px' }}>
-          <Search size={15} className="search-icon" />
+      {/* Search Bar */}
+      <div className="filter-bar-container">
+        <div className="search-input-box filter-search-input">
+          <Search size={14} className="search-icon" />
           <input
             type="text"
             placeholder="Search channels..."
@@ -74,24 +73,25 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
               width: '64px',
               height: '64px',
               borderRadius: 'var(--radius-full)',
-              background: 'var(--color-surface-hover)',
+              background: 'var(--color-surface-alt)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '16px',
             }}
           >
-            <Layers size={32} color="var(--color-text-tertiary)" />
+            <Layers size={32} color="var(--color-primary)" style={{ opacity: 0.7 }} />
           </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
             No Channels Found
           </h3>
           <p
             style={{
               color: 'var(--color-text-secondary)',
-              fontSize: '14px',
+              fontSize: '13px',
               maxWidth: '400px',
               marginTop: '6px',
+              lineHeight: 1.5,
             }}
           >
             {searchTerm
@@ -103,8 +103,8 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-            gap: '20px',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+            gap: '16px',
           }}
         >
           {filteredGroups.map((group) => {
@@ -114,50 +114,18 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
             return (
               <div
                 key={group._id}
-                className="card"
+                className="group-card"
                 onClick={() => onSelectGroupDashboard && onSelectGroupDashboard(group._id)}
-                style={{
-                  background: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--color-border)',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)',
-                }}
+                style={{ cursor: 'pointer' }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: 'var(--radius-md)',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        color: 'var(--color-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: '16px',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        flexShrink: 0,
-                      }}
-                    >
+                {/* Header */}
+                <div className="group-card-header">
+                  <div className="group-card-info">
+                    <div className="group-avatar-box">
                       {group.avatar ? (
                         <img
                           src={group.avatar}
                           alt={group.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <Hash size={20} />
@@ -166,10 +134,10 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                         <div
                           style={{
                             position: 'absolute',
-                            top: '-2px',
-                            right: '-2px',
-                            width: '10px',
-                            height: '10px',
+                            top: '2px',
+                            right: '2px',
+                            width: '8px',
+                            height: '8px',
                             borderRadius: '50%',
                             background: 'var(--color-primary)',
                             border: '2px solid var(--color-surface)',
@@ -178,24 +146,13 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                       )}
                     </div>
 
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h3
-                          style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}
-                        >
+                        <h3 className="group-card-title">
                           #{group.name}
                         </h3>
                         {hasUnread && (
-                          <span
-                            style={{
-                              background: 'var(--color-primary)',
-                              color: '#fff',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              borderRadius: 'var(--radius-full)',
-                              padding: '1px 6px',
-                            }}
-                          >
+                          <span className="task-priority-chip high">
                             {group.unreadCount} new
                           </span>
                         )}
@@ -207,7 +164,7 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                           gap: '6px',
                           fontSize: '12px',
                           color: 'var(--color-text-secondary)',
-                          marginTop: '2px',
+                          marginTop: '3px',
                         }}
                       >
                         <Users size={13} />
@@ -216,48 +173,26 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                     </div>
                   </div>
 
-                  <Badge variant={isLocked ? 'warning' : 'neutral'}>
+                  <span className={`task-priority-chip ${isLocked ? 'high' : 'low'}`}>
+                    <span className="task-priority-dot" style={{ background: isLocked ? '#F59E0B' : '#10B981' }} />
                     {isLocked ? 'Admin Only' : 'Everyone'}
-                  </Badge>
+                  </span>
                 </div>
 
-                <p
-                  style={{
-                    fontSize: '13px',
-                    color: 'var(--color-text-secondary)',
-                    flex: 1,
-                    minHeight: '36px',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {group.description || 'General discussions and updates.'}
+                {/* Description */}
+                <p className="group-card-desc">
+                  {group.description || 'General discussions and team updates.'}
                 </p>
 
                 {/* Last Message Snippet */}
                 {group.lastMessagePreview && (
-                  <div
-                    style={{
-                      background: 'var(--color-surface-hover)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '8px 10px',
-                      fontSize: '12px',
-                      color: 'var(--color-text-secondary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                    }}
-                  >
-                    <span
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {group.lastMessagePreview}
-                    </span>
+                  <div className="group-message-preview">
+                    <span>{group.lastMessagePreview}</span>
                     {group.lastMessageAt && (
                       <span
                         style={{
                           fontSize: '11px',
-                          color: 'var(--color-text-tertiary)',
+                          color: 'var(--color-text-muted)',
                           flexShrink: 0,
                         }}
                       >
@@ -267,19 +202,40 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                   </div>
                 )}
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderTop: '1px solid var(--color-border)',
-                    paddingTop: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '-6px' }}>
-                    {group.memberIds?.slice(0, 4).map((m) => (
-                      <Avatar key={m._id || m} name={m.name || 'Member'} src={m.avatar} size="xs" />
+                {/* Footer with Member Preview Avatars */}
+                <div className="group-card-footer">
+                  <div className="task-card-avatars">
+                    {group.memberIds?.slice(0, 4).map((m, i) => (
+                      <div
+                        key={m._id || m || i}
+                        className="task-card-avatar-item"
+                        title={m.name || 'Member'}
+                      >
+                        <Avatar
+                          name={m.name || 'Member'}
+                          src={m.avatar}
+                          size="xs"
+                        />
+                      </div>
                     ))}
+                    {(group.memberIds?.length || 0) > 4 && (
+                      <div
+                        className="task-card-avatar-item"
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          backgroundColor: 'var(--color-surface-alt)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: 'var(--color-text-secondary)',
+                        }}
+                      >
+                        +{group.memberIds.length - 4}
+                      </div>
+                    )}
                   </div>
 
                   <span
@@ -292,7 +248,7 @@ const UserGroups = ({ groups = [], onSelectGroupDashboard }) => {
                       gap: '4px',
                     }}
                   >
-                    Open Channel <ExternalLink size={13} />
+                    Open Channel <ExternalLink size={12} />
                   </span>
                 </div>
               </div>

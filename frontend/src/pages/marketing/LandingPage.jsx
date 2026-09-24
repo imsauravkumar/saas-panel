@@ -219,7 +219,7 @@ const LandingPage = ({ onNavigateAuth }) => {
                   <span className="landing-hero-gradient-text">Entire Company.</span>
                 </h1>
                 <p className="landing-hero-subhead">
-                  Real-time channels, Google Meet video sync, Kanban task management, and
+                  Real-time channels, Google Meet video sync, visual task boards, and
                   announcements — centralized under clean Administrator governance.
                 </p>
                 <div className="landing-hero-ctas">
@@ -475,7 +475,7 @@ const LandingPage = ({ onNavigateAuth }) => {
               </div>
               <div className="landing-stat-chip">
                 <CheckSquare size={18} className="landing-stat-chip-icon" />
-                <span>Work & Tasks</span>
+                <span>Task Management</span>
               </div>
             </div>
           </div>
@@ -511,7 +511,7 @@ const LandingPage = ({ onNavigateAuth }) => {
                 <div className="landing-feature-icon-wrapper">
                   <Sliders size={24} />
                 </div>
-                <h3>Groups & Permissions</h3>
+                <h3>Channel Management</h3>
                 <p>
                   Administrators curate channels, assign team members, and toggle posting
                   permissions between open discussion and broadcast-only modes.
@@ -523,7 +523,7 @@ const LandingPage = ({ onNavigateAuth }) => {
                 <div className="landing-feature-icon-wrapper">
                   <Video size={24} />
                 </div>
-                <h3>Google Meet Integration</h3>
+                <h3>Meetings</h3>
                 <p>
                   Schedule video syncs directly from any channel with automatic calendar syncing,
                   instant Google Meet links, and team notifications.
@@ -535,9 +535,9 @@ const LandingPage = ({ onNavigateAuth }) => {
                 <div className="landing-feature-icon-wrapper">
                   <CheckSquare size={24} />
                 </div>
-                <h3>Task & Work Management</h3>
+                <h3>Task Management</h3>
                 <p>
-                  Interactive Kanban workflows. Assign tasks with priorities, deadline countdowns,
+                  Visual task board workflows. Assign tasks with priorities, deadline countdowns,
                   status transitions from To Do to Done, and activity auditing.
                 </p>
               </div>
@@ -547,7 +547,7 @@ const LandingPage = ({ onNavigateAuth }) => {
                 <div className="landing-feature-icon-wrapper">
                   <Megaphone size={24} />
                 </div>
-                <h3>Targeted Announcements</h3>
+                <h3>Announcements</h3>
                 <p>
                   Publish company-wide alerts or department notices with sticky pinning, ensuring
                   critical organizational updates never get lost in chat noise.

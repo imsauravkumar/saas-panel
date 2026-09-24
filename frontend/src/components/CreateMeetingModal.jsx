@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Video,
   Calendar,
@@ -14,10 +14,13 @@ import {
   Sparkles,
   Info,
   X,
+  ChevronDown,
+  Hash,
 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CustomDateTimePicker from './CustomDateTimePicker';
 import { TYPE_METADATA, formatMeetingDateTime } from '../utils/meetingUtils';
 
 const AGENDA_TEMPLATES = [
@@ -61,8 +64,30 @@ const CreateMeetingModal = ({
   const [dateTime, setDateTime] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(30);
   const [meetingType, setMeetingType] = useState('general');
+  const [formatDropdownOpen, setFormatDropdownOpen] = useState(false);
+  const formatContainerRef = useRef(null);
+  const [channelDropdownOpen, setChannelDropdownOpen] = useState(false);
+  const channelContainerRef = useRef(null);
   const [selectedAttendeeIds, setSelectedAttendeeIds] = useState([]);
   const [attendeeSearch, setAttendeeSearch] = useState('');
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (formatContainerRef.current && !formatContainerRef.current.contains(e.target)) {
+        setFormatDropdownOpen(false);
+      }
+      if (channelContainerRef.current && !channelContainerRef.current.contains(e.target)) {
+        setChannelDropdownOpen(false);
+      }
+    };
+    if (formatDropdownOpen || channelDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [formatDropdownOpen, channelDropdownOpen]);
 
   // UI / Status states
   const [submitting, setSubmitting] = useState(false);
@@ -267,7 +292,7 @@ const CreateMeetingModal = ({
             ? 'Edit Meeting Schedule'
             : 'Schedule Google Meet Session'
       }
-      maxWidth="620px"
+      maxWidth="500px"
     >
       {/* 1. Post-Creation Success View with Instant Meet Link */}
       {createdSuccessData ? (
@@ -401,29 +426,29 @@ const CreateMeetingModal = ({
         </div>
       ) : (
         /* 2. Main Create / Edit Form */
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {error && (
             <div
               style={{
-                padding: '10px 14px',
+                padding: '8px 12px',
                 borderRadius: 'var(--radius-sm)',
                 background: 'rgba(239, 68, 68, 0.12)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 color: '#DC2626',
-                fontSize: '12.5px',
+                fontSize: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
               }}
             >
-              <AlertCircle size={16} />
+              <AlertCircle size={15} />
               <span>{error}</span>
             </div>
           )}
 
           {/* Title */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '12px' }}>
               <span>Meeting Title *</span>
               <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{title.length}/120</span>
             </label>
@@ -431,50 +456,190 @@ const CreateMeetingModal = ({
               type="text"
               required
               maxLength={120}
-              placeholder="e.g. Q4 Sprint Planning & Architecture Review"
+              placeholder="e.g. Sprint Planning, Architecture Sync..."
               className="form-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={submitting}
+              style={{ height: '35px', fontSize: '13px' }}
             />
           </div>
 
-          {/* Channel / Group & Meeting Type Row */}
+          {/* Channel & Meeting Type Row */}
           <div className="responsive-form-row">
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Channel / Group *</label>
-              <select
-                className="form-select"
-                value={groupId}
-                onChange={(e) => handleGroupChange(e.target.value)}
-                disabled={submitting || isEditing}
-                required
-              >
-                <option value="" disabled>
-                  Select channel...
-                </option>
-                {groups.map((g) => (
-                  <option key={g._id} value={g._id}>
-                    #{g.name} ({g.memberIds?.length || 0} members)
-                  </option>
-                ))}
-              </select>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Hash size={13} color="var(--color-primary)" />
+                <span>Channel *</span>
+              </label>
+              <div className="session-format-container" ref={channelContainerRef}>
+                <button
+                  type="button"
+                  className={`session-format-trigger ${channelDropdownOpen ? 'is-open' : ''} ${
+                    submitting || isEditing ? 'is-disabled' : ''
+                  }`}
+                  onClick={() => !submitting && !isEditing && setChannelDropdownOpen(!channelDropdownOpen)}
+                  disabled={submitting || isEditing}
+                >
+                  {(() => {
+                    const selChannel = groups.find((g) => g._id === groupId) || groups[0];
+                    return (
+                      <>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '7px',
+                            minWidth: 0,
+                            flex: 1,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px', flexShrink: 0 }}>
+                            #
+                          </span>
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              color: 'var(--color-text-primary)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {selChannel?.name || 'Select channel...'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          {selChannel && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                padding: '2px 6px',
+                                background: 'var(--color-surface-alt)',
+                                borderRadius: '4px',
+                                color: 'var(--color-text-muted)',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {selChannel.memberIds?.length || 0} members
+                            </span>
+                          )}
+                          <ChevronDown
+                            size={14}
+                            style={{
+                              color: 'var(--color-text-muted)',
+                              transform: channelDropdownOpen ? 'rotate(180deg)' : 'none',
+                              transition: 'transform 0.2s ease',
+                            }}
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
+                </button>
+
+                {channelDropdownOpen && (
+                  <div className="session-format-dropdown">
+                    {groups.map((g) => {
+                      const isSelected = g._id === groupId;
+                      return (
+                        <button
+                          key={g._id}
+                          type="button"
+                          className={`session-format-option ${isSelected ? 'is-selected' : ''}`}
+                          onClick={() => {
+                            handleGroupChange(g._id);
+                            setChannelDropdownOpen(false);
+                          }}
+                        >
+                          <div
+                            className="session-format-emoji-badge"
+                            style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '14px' }}
+                          >
+                            #
+                          </div>
+                          <div className="session-format-info" style={{ minWidth: 0 }}>
+                            <span
+                              className="session-format-label"
+                              style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            >
+                              {g.name}
+                            </span>
+                            <span className="session-format-desc">
+                              {g.memberIds?.length || 0} members {g.description ? `• ${g.description}` : ''}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <Check size={14} color="var(--color-primary)" style={{ flexShrink: 0, marginLeft: 'auto' }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Session Format</label>
-              <select
-                className="form-select"
-                value={meetingType}
-                onChange={(e) => setMeetingType(e.target.value)}
-                disabled={submitting}
-              >
-                {Object.entries(TYPE_METADATA).map(([key, info]) => (
-                  <option key={key} value={key}>
-                    {info.emoji} {info.label}
-                  </option>
-                ))}
-              </select>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Video size={13} color="var(--color-primary)" />
+                <span>Meeting Format</span>
+              </label>
+              <div className="session-format-container" ref={formatContainerRef}>
+                <button
+                  type="button"
+                  className={`session-format-trigger ${formatDropdownOpen ? 'is-open' : ''}`}
+                  onClick={() => !submitting && setFormatDropdownOpen(!formatDropdownOpen)}
+                  disabled={submitting}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '15px' }}>{(TYPE_METADATA[meetingType] || TYPE_METADATA.general).emoji}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      {(TYPE_METADATA[meetingType] || TYPE_METADATA.general).label}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: 'var(--color-text-muted)',
+                      transform: formatDropdownOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
+
+                {formatDropdownOpen && (
+                  <div className="session-format-dropdown session-format-dropdown-right">
+                    {Object.entries(TYPE_METADATA).map(([key, info]) => {
+                      const isSelected = key === meetingType;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`session-format-option ${isSelected ? 'is-selected' : ''}`}
+                          onClick={() => {
+                            setMeetingType(key);
+                            setFormatDropdownOpen(false);
+                          }}
+                        >
+                          <div className="session-format-emoji-badge">
+                            {info.emoji}
+                          </div>
+                          <div className="session-format-info">
+                            <span className="session-format-label">{info.label}</span>
+                            <span className="session-format-desc">{info.desc}</span>
+                          </div>
+                          {isSelected && (
+                            <Check size={14} color="var(--color-primary)" style={{ flexShrink: 0, marginLeft: 'auto' }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -484,25 +649,12 @@ const CreateMeetingModal = ({
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Calendar size={13} color="var(--color-primary)" />
                 <span>Date & Time *</span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--color-primary)',
-                    fontWeight: 600,
-                    marginLeft: 'auto',
-                  }}
-                >
-                  ({userTimezone})
-                </span>
               </label>
-              <input
-                type="datetime-local"
-                required
-                className="form-input"
+              <CustomDateTimePicker
                 value={dateTime}
-                onChange={(e) => setDateTime(e.target.value)}
+                onChange={setDateTime}
                 disabled={submitting}
-                style={{ height: '38px' }}
+                timezoneLabel={userTimezone}
               />
             </div>
 
@@ -537,8 +689,9 @@ const CreateMeetingModal = ({
                 marginBottom: '6px',
               }}
             >
-              <label className="form-label" style={{ marginBottom: 0 }}>
-                Attendees ({selectedAttendeeIds.length} selected)
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 0 }}>
+                <Users size={13} color="var(--color-primary)" />
+                <span>Attendees ({selectedAttendeeIds.length} selected)</span>
               </label>
               <div style={{ display: 'flex', gap: '8px', fontSize: '11.5px' }}>
                 <button
@@ -680,13 +833,13 @@ const CreateMeetingModal = ({
               </div>
             </div>
             <textarea
-              rows={3}
+              rows={2}
               placeholder="Outline the meeting purpose, key talking points, or reference documents..."
               className="form-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
-              style={{ fontSize: '12.5px', lineHeight: 1.4 }}
+              style={{ fontSize: '12px', lineHeight: 1.35, minHeight: '50px', padding: '6px 10px' }}
             />
           </div>
 
@@ -695,34 +848,35 @@ const CreateMeetingModal = ({
             style={{
               display: 'flex',
               justifyContent: 'flex-end',
-              gap: '10px',
-              marginTop: '8px',
-              paddingTop: '10px',
+              gap: '8px',
+              marginTop: '4px',
+              paddingTop: '8px',
               borderTop: '1px solid var(--color-border)',
             }}
           >
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={onClose}
               disabled={submitting}
+              style={{ height: '34px', fontSize: '12.5px', padding: '0 14px' }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-primary btn-sm"
               disabled={submitting || !title.trim() || !groupId || !dateTime}
-              style={{ minWidth: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ height: '34px', minWidth: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12.5px', padding: '0 16px' }}
             >
               {submitting ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>{isEditing ? 'Updating Schedule...' : 'Generating Meet...'}</span>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>{isEditing ? 'Updating...' : 'Generating...'}</span>
                 </>
               ) : (
                 <>
-                  <Video size={16} />
+                  <Video size={15} />
                   <span>{isEditing ? 'Save Changes' : 'Schedule & Generate Meet'}</span>
                 </>
               )}

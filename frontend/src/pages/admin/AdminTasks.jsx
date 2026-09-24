@@ -159,10 +159,13 @@ const AdminTasks = ({ users = [], groups = [] }) => {
   };
 
   const getPriorityBadge = (p) => {
-    if (p === 'urgent') return <Badge variant="danger">URGENT</Badge>;
-    if (p === 'high') return <Badge variant="warning">HIGH</Badge>;
-    if (p === 'medium') return <Badge variant="primary">MEDIUM</Badge>;
-    return <Badge variant="neutral">LOW</Badge>;
+    const priority = (p || 'medium').toLowerCase();
+    return (
+      <span className={`task-priority-chip ${priority}`}>
+        <span className="task-priority-dot" />
+        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      </span>
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -262,10 +265,10 @@ const AdminTasks = ({ users = [], groups = [] }) => {
               className={`segmented-pill-btn ${viewMode === 'kanban' ? 'active' : ''}`}
               style={{ padding: '6px 10px' }}
               onClick={() => setViewMode('kanban')}
-              title="Kanban Board View"
+              title="Board View"
             >
               <Columns size={15} />
-              <span className="desktop-only">Kanban</span>
+              <span className="desktop-only">Board</span>
             </button>
             <button
               type="button"
@@ -405,17 +408,15 @@ const AdminTasks = ({ users = [], groups = [] }) => {
           ))}
         </div>
       ) : viewMode === 'kanban' ? (
-        <div
-          className="kanban-grid"
-        >
+        <div className="kanban-grid">
           {/* Column 1: To Do */}
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#94A3B8',
                   }}
@@ -443,25 +444,13 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #94A3B8',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
                         {getPriorityBadge(task.priority)}
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -478,7 +467,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           }}
                           title="Edit Task"
                         >
-                          <Edit2 size={12} />
+                          <Edit2 size={13} />
                         </button>
                         <button
                           type="button"
@@ -495,7 +484,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           }}
                           title="Delete Task"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -503,26 +492,11 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <div className="task-card-title">{task.title}</div>
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
-                    {isOverdue && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          color: 'var(--color-danger)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        <AlertTriangle size={12} /> OVERDUE
-                      </div>
-                    )}
-
                     <div className="task-card-footer">
                       <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
-                        <Calendar size={13} />
+                        <Calendar size={12} />
                         <span>
-                          Due{' '}
+                          {isOverdue ? 'Overdue: ' : 'Due '}
                           {new Date(task.deadline).toLocaleDateString([], {
                             month: 'short',
                             day: 'numeric',
@@ -530,11 +504,11 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex' }}>
+                      <div className="task-card-avatars">
                         {(task.assignedTo || []).slice(0, 3).map((u, i) => (
                           <div
                             key={u._id || i}
-                            style={{ marginLeft: i > 0 ? '-6px' : '0' }}
+                            className="task-card-avatar-item"
                             title={u.name}
                           >
                             <Avatar name={u.name || 'User'} src={u.avatar} size="xs" />
@@ -568,8 +542,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#3B82F6',
                   }}
@@ -603,44 +577,19 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: isReopened
-                        ? '3.5px solid #EF4444'
-                        : isOverdue
-                          ? '3.5px solid var(--color-danger)'
-                          : '3.5px solid #3B82F6',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
                         {isReopened ? (
-                          <span
-                            style={{
-                              fontSize: '10.5px',
-                              fontWeight: 700,
-                              color: '#B91C1C',
-                              backgroundColor: '#FEE2E2',
-                              padding: '2px 6px',
-                              borderRadius: 'var(--radius-sm)',
-                            }}
-                          >
-                            ⚠️ CHANGES REQUESTED
+                          <span className="task-priority-chip urgent">
+                            <span className="task-priority-dot" /> Changes Requested
                           </span>
                         ) : (
                           getPriorityBadge(task.priority)
                         )}
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -657,7 +606,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           }}
                           title="Edit Task"
                         >
-                          <Edit2 size={12} />
+                          <Edit2 size={13} />
                         </button>
                         <button
                           type="button"
@@ -674,7 +623,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           }}
                           title="Delete Task"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -683,41 +632,16 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {isReopened && latestFeedback && (
-                      <div
-                        style={{
-                          backgroundColor: '#FEF2F2',
-                          border: '1px solid #FCA5A5',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '6px 8px',
-                          fontSize: '11.5px',
-                          color: '#991B1B',
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        <strong>Feedback:</strong> {latestFeedback}
-                      </div>
-                    )}
-
-                    {isOverdue && !isReopened && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          color: 'var(--color-danger)',
-                          fontWeight: 700,
-                        }}
-                      >
-                        <AlertTriangle size={12} /> OVERDUE
+                      <div className="task-card-banner danger">
+                        <div><strong>Feedback:</strong> {latestFeedback}</div>
                       </div>
                     )}
 
                     <div className="task-card-footer">
                       <div className={`task-card-date ${isOverdue ? 'is-overdue' : ''}`}>
-                        <Calendar size={13} />
+                        <Calendar size={12} />
                         <span>
-                          Due{' '}
+                          {isOverdue ? 'Overdue: ' : 'Due '}
                           {new Date(task.deadline).toLocaleDateString([], {
                             month: 'short',
                             day: 'numeric',
@@ -725,11 +649,11 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex' }}>
+                      <div className="task-card-avatars">
                         {(task.assignedTo || []).slice(0, 3).map((u, i) => (
                           <div
                             key={u._id || i}
-                            style={{ marginLeft: i > 0 ? '-6px' : '0' }}
+                            className="task-card-avatar-item"
                             title={u.name}
                           >
                             <Avatar name={u.name || 'User'} src={u.avatar} size="xs" />
@@ -749,8 +673,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#F59E0B',
                   }}
@@ -763,7 +687,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   fontWeight: 700,
                   backgroundColor: '#FEF3C7',
                   color: '#B45309',
-                  padding: '2px 6px',
+                  padding: '2px 7px',
                   borderRadius: '10px',
                 }}
               >
@@ -793,37 +717,15 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                   <div
                     key={task._id}
                     className="task-card"
-                    style={{
-                      borderLeft: '3.5px solid #F59E0B',
-                      backgroundColor: '#FFFDF5',
-                    }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 700,
-                            color: '#B45309',
-                            backgroundColor: '#FEF3C7',
-                            padding: '2px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                          }}
-                        >
-                          ⏳ NEEDS REVIEW
+                        <span className="task-priority-chip high">
+                          <span className="task-priority-dot" /> Needs Review
                         </span>
                         {task.groupId && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--color-primary)',
-                              backgroundColor: 'var(--color-primary-soft)',
-                              padding: '2px 7px',
-                              borderRadius: 'var(--radius-full)',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span className="task-group-pill">
                             #{task.groupId?.name}
                           </span>
                         )}
@@ -845,7 +747,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           }}
                           title="Delete Task"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -854,23 +756,13 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
                     {submissionNote && (
-                      <div
-                        style={{
-                          backgroundColor: '#FEF3C7',
-                          border: '1px solid #FDE68A',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '6px 8px',
-                          fontSize: '11.5px',
-                          color: '#78350F',
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        <strong>Assignee Note:</strong> {submissionNote}
+                      <div className="task-card-banner warning">
+                        <div><strong>Assignee Note:</strong> {submissionNote}</div>
                       </div>
                     )}
 
                     <div className="task-card-footer">
-                      <span style={{ fontSize: '11px', color: '#B45309', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11.5px', color: '#D97706', fontWeight: 600 }}>
                         Submitted on{' '}
                         {new Date(task.submittedAt || task.updatedAt).toLocaleDateString([], {
                           month: 'short',
@@ -878,11 +770,11 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         })}
                       </span>
 
-                      <div style={{ display: 'flex' }}>
+                      <div className="task-card-avatars">
                         {(task.assignedTo || []).slice(0, 3).map((u, i) => (
                           <div
                             key={u._id || i}
-                            style={{ marginLeft: i > 0 ? '-6px' : '0' }}
+                            className="task-card-avatar-item"
                             title={u.name}
                           >
                             <Avatar name={u.name || 'User'} src={u.avatar} size="xs" />
@@ -895,11 +787,6 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       <button
                         type="button"
                         className="btn btn-primary task-card-action-btn"
-                        style={{
-                          flex: 1,
-                          backgroundColor: '#10B981',
-                          borderColor: '#10B981',
-                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveTaskDetail(task);
@@ -921,8 +808,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
               <div className="kanban-col-title">
                 <span
                   style={{
-                    width: '9px',
-                    height: '9px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     backgroundColor: '#10B981',
                   }}
@@ -948,25 +835,28 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                 <div
                   key={task._id}
                   className="task-card"
-                  style={{
-                    borderLeft: '3.5px solid #10B981',
-                  }}
                   onClick={() => setActiveTaskDetail(task)}
                 >
                   <div className="task-card-header">
                     <div className="task-card-header-left">
-                      <Badge variant="success">DONE</Badge>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          padding: '2.5px 8px',
+                          borderRadius: '6px',
+                          backgroundColor: '#ECFDF5',
+                          color: '#059669',
+                          border: '1px solid #A7F3D0',
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669' }} /> Completed
+                      </span>
                       {task.groupId && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--color-primary)',
-                            backgroundColor: 'var(--color-primary-soft)',
-                            padding: '2px 7px',
-                            borderRadius: 'var(--radius-full)',
-                            fontWeight: 600,
-                          }}
-                        >
+                        <span className="task-group-pill">
                           #{task.groupId?.name}
                         </span>
                       )}
@@ -988,14 +878,14 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         }}
                         title="Delete Task"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
 
                   <div
                     className="task-card-title"
-                    style={{ textDecoration: 'line-through', opacity: 0.8 }}
+                    style={{ color: 'var(--color-text-secondary)', textDecoration: 'line-through' }}
                   >
                     {task.title}
                   </div>
@@ -1007,11 +897,11 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                       ✓ Verified by {task.verifiedBy?.name || 'Admin'}
                     </span>
 
-                    <div style={{ display: 'flex' }}>
+                    <div className="task-card-avatars">
                       {(task.assignedTo || []).slice(0, 3).map((u, i) => (
                         <div
                           key={u._id || i}
-                          style={{ marginLeft: i > 0 ? '-6px' : '0' }}
+                          className="task-card-avatar-item"
                           title={u.name}
                         >
                           <Avatar name={u.name || 'User'} src={u.avatar} size="xs" />
