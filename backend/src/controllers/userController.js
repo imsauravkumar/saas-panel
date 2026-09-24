@@ -187,13 +187,14 @@ const createUser = async (req, res) => {
       firebaseUid = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     }
 
-    // 2. Create MongoDB User Document
+    // 2. Create MongoDB User Document (Every admin-created account has isOwner: false)
     const newUser = await User.create({
       firebaseUid,
       name: name.trim(),
       email: emailLower,
       password, // hashed automatically by model hook
-      role,
+      role: role === 'admin' ? 'admin' : 'user',
+      isOwner: false,
       post: post.trim(),
       department: department.trim(),
       groupIds: groupIds || [],
@@ -212,17 +213,21 @@ const createUser = async (req, res) => {
       );
     }
 
-    // 4. Log Activity
+    // 4. Log Activity with clear Actor -> Action -> Target
     await logActivity({
       actorId: req.user._id,
-      action: 'user.create',
+      action: newUser.role === 'admin' ? 'admin.create' : 'user.create',
       targetType: 'User',
       targetId: newUser._id,
-      details: `Admin ${req.user.name} provisioned user ${newUser.name} (${newUser.post || 'Member'})`,
+      details:
+        newUser.role === 'admin'
+          ? `Admin ${req.user.name} created Admin account: ${newUser.name} (${newUser.post || 'Administrator'})`
+          : `Admin ${req.user.name} provisioned user ${newUser.name} (${newUser.post || 'Member'})`,
       metadata: {
         post: newUser.post,
         department: newUser.department,
         role: newUser.role,
+        isOwner: false,
         groupCount: groupIds.length,
       },
       workspaceId: req.user.workspaceId,
@@ -230,13 +235,14 @@ const createUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `User ${newUser.name} created successfully.`,
+      message: `${newUser.role === 'admin' ? 'Administrator' : 'User'} ${newUser.name} created successfully.`,
       user: {
         id: newUser._id,
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
+        isOwner: false,
         post: newUser.post,
         department: newUser.department,
         status: newUser.status,
@@ -396,6 +402,9 @@ const toggleUserStatus = async (req, res) => {
       });
     }
 
+    const newStatus = req.body.status || (user.status === 'active' ? 'disabled' : 'active');
+
+    // Rule 2: Cannot disable own account
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({
         success: false,
@@ -404,7 +413,33 @@ const toggleUserStatus = async (req, res) => {
       });
     }
 
-    const newStatus = req.body.status || (user.status === 'active' ? 'disabled' : 'active');
+    // Rule 1: Cannot disable the workspace Owner account
+    if (user.isOwner && newStatus === 'disabled') {
+      return res.status(403).json({
+        success: false,
+        error: 'The workspace Owner account cannot be deactivated.',
+        message: 'The workspace Owner account cannot be deactivated.',
+      });
+    }
+
+    // Rule 3: Workspace must retain at least one active Admin
+    if (user.role === 'admin' && newStatus === 'disabled') {
+      const activeAdminCount = await User.countDocuments({
+        workspaceId: req.user.workspaceId,
+        role: 'admin',
+        status: 'active',
+        _id: { $ne: user._id },
+      });
+
+      if (activeAdminCount === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot deactivate this account. The workspace must retain at least one active administrator.',
+          message: 'Cannot deactivate this account. The workspace must retain at least one active administrator.',
+        });
+      }
+    }
+
     user.status = newStatus;
     await user.save();
 
@@ -430,19 +465,20 @@ const toggleUserStatus = async (req, res) => {
       }
     }
 
+    // Clear Actor -> Action -> Target logging
     await logActivity({
       actorId: req.user._id,
       action: newStatus === 'active' ? 'user.enable' : 'user.disable',
       targetType: 'User',
       targetId: user._id,
-      details: `User ${user.name} account was ${newStatus}`,
-      metadata: { status: newStatus },
+      details: `Admin ${req.user.name} ${newStatus === 'active' ? 'enabled' : 'disabled'} ${user.role === 'admin' ? 'Admin' : 'user'} account: ${user.name}`,
+      metadata: { status: newStatus, role: user.role, isOwner: user.isOwner },
       workspaceId: req.user.workspaceId,
     });
 
     return res.status(200).json({
       success: true,
-      message: `User account is now ${newStatus}`,
+      message: `${user.role === 'admin' ? 'Administrator' : 'User'} account is now ${newStatus}`,
       status: user.status,
     });
   } catch (error) {
@@ -521,6 +557,8 @@ const adminResetUserPassword = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Rule 2: Cannot delete self
     if (id === req.user._id.toString()) {
       return res.status(400).json({
         success: false,
@@ -529,7 +567,7 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOneAndDelete({ _id: id, workspaceId: req.user.workspaceId });
+    const user = await User.findOne({ _id: id, workspaceId: req.user.workspaceId });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -537,6 +575,35 @@ const deleteUser = async (req, res) => {
         message: 'User not found',
       });
     }
+
+    // Rule 1: Cannot delete Owner account
+    if (user.isOwner) {
+      return res.status(403).json({
+        success: false,
+        error: 'The workspace Owner account cannot be deleted.',
+        message: 'The workspace Owner account cannot be deleted.',
+      });
+    }
+
+    // Rule 3: Workspace must retain at least one active Admin
+    if (user.role === 'admin') {
+      const activeAdminCount = await User.countDocuments({
+        workspaceId: req.user.workspaceId,
+        role: 'admin',
+        status: 'active',
+        _id: { $ne: user._id },
+      });
+
+      if (activeAdminCount === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot delete this account. The workspace must retain at least one active administrator.',
+          message: 'Cannot delete this account. The workspace must retain at least one active administrator.',
+        });
+      }
+    }
+
+    await User.findByIdAndDelete(user._id);
 
     // Clean up references from all groups and tasks
     await Promise.all([
@@ -567,19 +634,20 @@ const deleteUser = async (req, res) => {
       io.in(`user_${user._id}`).disconnectSockets(true);
     }
 
+    // Clear Actor -> Action -> Target logging
     await logActivity({
       actorId: req.user._id,
-      action: 'user.delete',
+      action: user.role === 'admin' ? 'admin.delete' : 'user.delete',
       targetType: 'User',
       targetId: user._id,
-      details: `User ${user.name} (${user.email}) was permanently removed from the workspace`,
-      metadata: { email: user.email, name: user.name },
+      details: `Admin ${req.user.name} permanently removed ${user.role === 'admin' ? 'Admin' : 'user'} account: ${user.name} (${user.email})`,
+      metadata: { email: user.email, name: user.name, role: user.role, isOwner: user.isOwner },
       workspaceId: req.user.workspaceId,
     });
 
     return res.status(200).json({
       success: true,
-      message: 'User permanently removed from workspace.',
+      message: `${user.role === 'admin' ? 'Administrator' : 'User'} permanently removed from workspace.`,
     });
   } catch (error) {
     return res.status(500).json({
@@ -606,8 +674,43 @@ const bulkUserAction = async (req, res) => {
       });
     }
 
-    // Filter out current admin user
-    const targetIds = userIds.filter((id) => id !== req.user._id.toString());
+    // Filter out self and find target users to protect Owner
+    const rawTargetIds = userIds.filter((id) => id !== req.user._id.toString());
+    const targetUsers = await User.find({
+      _id: { $in: rawTargetIds },
+      workspaceId: req.user.workspaceId,
+    });
+
+    // Exclude Owner accounts from bulk destruction
+    const safeUsers = targetUsers.filter((u) => !u.isOwner);
+    const targetIds = safeUsers.map((u) => u._id);
+
+    if (targetIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No eligible users to process. The Owner and self accounts cannot be bulk modified.',
+        message: 'No eligible users to process. The Owner and self accounts cannot be bulk modified.',
+      });
+    }
+
+    // Check remaining active admin constraint
+    const targetAdminIds = safeUsers.filter((u) => u.role === 'admin').map((u) => u._id.toString());
+    if (targetAdminIds.length > 0) {
+      const remainingActiveAdmins = await User.countDocuments({
+        workspaceId: req.user.workspaceId,
+        role: 'admin',
+        status: 'active',
+        _id: { $nin: targetIds },
+      });
+
+      if (remainingActiveAdmins === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Action blocked. The workspace must retain at least one active administrator.',
+          message: 'Action blocked. The workspace must retain at least one active administrator.',
+        });
+      }
+    }
 
     if (action === 'disable') {
       await User.updateMany(

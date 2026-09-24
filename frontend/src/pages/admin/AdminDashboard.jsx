@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, MessageSquare, CheckSquare, Video, Plus, Megaphone, Shield } from 'lucide-react';
+import { Users, MessageSquare, CheckSquare, Video, Plus, Megaphone, Shield, Clock } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../../components/Avatar';
 
@@ -79,6 +79,63 @@ const AdminDashboard = ({
         </div>
       </div>
 
+      {/* Review Queue Alert */}
+      {summary?.tasksAwaitingReviewCount > 0 && (
+        <div
+          onClick={() => setTab('tasks')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#F59E0B'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.35)'; }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'rgba(245, 158, 11, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Clock size={18} color="#D97706" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--color-text)' }}>
+                {summary.tasksAwaitingReviewCount} Task{summary.tasksAwaitingReviewCount > 1 ? 's' : ''} Awaiting Review
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                Team members submitted task deliverables ready for your verification and approval.
+              </div>
+            </div>
+          </div>
+          <button
+            className="btn btn-primary btn-sm"
+            style={{
+              background: '#D97706',
+              borderColor: '#B45309',
+              fontSize: '12px',
+              padding: '5px 12px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Review Tasks →
+          </button>
+        </div>
+      )}
+
       {/* Row 1 — Quick Stats Row */}
       <div className="stat-grid" style={{ marginBottom: '16px' }}>
         {/* Total Users */}
@@ -103,14 +160,21 @@ const AdminDashboard = ({
           </div>
         </div>
 
-        {/* Tasks in Progress */}
+        {/* Tasks in Progress & Pending Review */}
         <div onClick={() => setTab('tasks')} className="stat-card" style={{ cursor: 'pointer' }}>
           <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B' }}>
             <CheckSquare size={18} />
           </div>
           <div style={{ minWidth: 0, overflow: 'hidden' }}>
-            <div className="stat-val">{summary?.tasksInProgressCount || 0}</div>
-            <div className="stat-lbl">Tasks in Progress</div>
+            <div className="stat-val">
+              {summary?.tasksInProgressCount || 0}
+              {summary?.tasksAwaitingReviewCount > 0 && (
+                <span style={{ fontSize: '12px', color: '#D97706', fontWeight: 500, marginLeft: '6px' }}>
+                  ({summary.tasksAwaitingReviewCount} review)
+                </span>
+              )}
+            </div>
+            <div className="stat-lbl">In Progress Tasks</div>
           </div>
         </div>
 

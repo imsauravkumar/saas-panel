@@ -35,14 +35,14 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['todo', 'inprogress', 'completed'],
+      enum: ['todo', 'inprogress', 'submittedForReview', 'completed', 'reopened'],
       default: 'todo',
     },
     statusHistory: [
       {
         status: {
           type: String,
-          enum: ['todo', 'inprogress', 'completed'],
+          enum: ['todo', 'inprogress', 'submittedForReview', 'completed', 'reopened'],
           required: true,
         },
         changedBy: {
@@ -54,8 +54,26 @@ const taskSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        note: {
+          type: String,
+          trim: true,
+          default: '',
+        },
       },
     ],
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
+    submittedAt: {
+      type: Date,
+      default: null,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

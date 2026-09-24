@@ -4,6 +4,7 @@ const {
   getTasks,
   getTaskSummary,
   getTaskById,
+  getPendingReviewTasks,
   createTask,
   updateTaskStatus,
   updateTask,
@@ -18,6 +19,7 @@ router.use(authenticate);
 // List & Summary
 router.get('/', getTasks);
 router.get('/summary', getTaskSummary);
+router.get('/pending-review', requireAdmin, getPendingReviewTasks);
 router.get('/:id', getTaskById);
 
 // Mutations

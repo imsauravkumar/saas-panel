@@ -90,13 +90,17 @@ const getDashboardSummary = async (req, res) => {
     const taskCounts = {
       todo: 0,
       inprogress: 0,
+      submittedForReview: 0,
       completed: 0,
+      reopened: 0,
       dueThisWeek: dueThisWeekCount,
     };
     taskStats.forEach((stat) => {
       if (stat._id === 'todo') taskCounts.todo = stat.count;
       if (stat._id === 'inprogress') taskCounts.inprogress = stat.count;
+      if (stat._id === 'submittedForReview') taskCounts.submittedForReview = stat.count;
       if (stat._id === 'completed') taskCounts.completed = stat.count;
+      if (stat._id === 'reopened') taskCounts.reopened = stat.count;
     });
 
     // 5. Recent Announcements (top 3, pinned first)
@@ -159,12 +163,14 @@ const getAdminDashboardSummary = async (req, res) => {
       userCount,
       activeGroupCount,
       tasksInProgressCount,
+      tasksAwaitingReviewCount,
       meetingsThisWeekCount,
       recentActivity,
     ] = await Promise.all([
       User.countDocuments({ workspaceId, status: { $ne: 'disabled' } }),
       Group.countDocuments({ workspaceId, isDeleted: false }),
-      Task.countDocuments({ workspaceId, isDeleted: false, status: 'inprogress' }),
+      Task.countDocuments({ workspaceId, isDeleted: false, status: { $in: ['inprogress', 'reopened'] } }),
+      Task.countDocuments({ workspaceId, isDeleted: false, status: 'submittedForReview' }),
       Meeting.countDocuments({
         workspaceId,
         dateTime: { $gte: startOfWeek, $lte: endOfWeek },
@@ -183,6 +189,7 @@ const getAdminDashboardSummary = async (req, res) => {
         userCount,
         activeGroupCount,
         tasksInProgressCount,
+        tasksAwaitingReviewCount,
         meetingsThisWeekCount,
         recentActivity,
       },

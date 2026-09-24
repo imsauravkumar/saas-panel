@@ -42,6 +42,7 @@ const seedDB = async () => {
       email: 'admin@nexus.corp',
       password: 'Admin@12345',
       role: 'admin',
+      isOwner: true,
       post: 'VP of Engineering / Workspace Admin',
       department: 'Executive Leadership',
       avatar:

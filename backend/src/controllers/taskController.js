@@ -1,6 +1,8 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Group = require('../models/Group');
 const ActivityLog = require('../models/ActivityLog');
+const Notification = require('../models/Notification');
 const { notify } = require('../services/notify');
 
 /**
@@ -32,6 +34,7 @@ const getTasks = async (req, res) => {
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar')
       .populate('createdBy', 'name email avatar')
+      .populate('verifiedBy', 'name email avatar post')
       .populate('statusHistory.changedBy', 'name email avatar')
       .populate('comments.user', 'name avatar')
       .sort({ deadline: 1, createdAt: -1 });
@@ -48,7 +51,7 @@ const getTasks = async (req, res) => {
 };
 
 /**
- * Get task summary metrics (total, todo, inprogress, completed, overdue)
+ * Get task summary metrics (total, todo, inprogress, submittedForReview, completed, reopened, overdue)
  */
 const getTaskSummary = async (req, res) => {
   try {
@@ -64,7 +67,9 @@ const getTaskSummary = async (req, res) => {
       total: tasks.length,
       todo: tasks.filter((t) => t.status === 'todo').length,
       inprogress: tasks.filter((t) => t.status === 'inprogress').length,
+      submittedForReview: tasks.filter((t) => t.status === 'submittedForReview').length,
       completed: tasks.filter((t) => t.status === 'completed').length,
+      reopened: tasks.filter((t) => t.status === 'reopened').length,
       overdue: tasks.filter((t) => t.status !== 'completed' && new Date(t.deadline) < now).length,
     };
 
@@ -92,6 +97,7 @@ const getTaskById = async (req, res) => {
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar memberIds')
       .populate('createdBy', 'name email avatar post')
+      .populate('verifiedBy', 'name email avatar post')
       .populate('statusHistory.changedBy', 'name email avatar post')
       .populate('comments.user', 'name avatar');
 
@@ -118,6 +124,44 @@ const getTaskById = async (req, res) => {
   } catch (error) {
     console.error('[Get Task Detail Error]:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch task details' });
+  }
+};
+
+/**
+ * Admin: Get all tasks pending review across the workspace
+ * Sorted oldest-submitted-first
+ */
+const getPendingReviewTasks = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res
+        .status(403)
+        .json({ success: false, message: 'Access denied: Admin role required' });
+    }
+
+    const tasks = await Task.find({
+      workspaceId: req.user.workspaceId,
+      isDeleted: false,
+      status: 'submittedForReview',
+    })
+      .populate('assignedTo', 'name email avatar post department')
+      .populate('groupId', 'name avatar')
+      .populate('createdBy', 'name email avatar')
+      .populate('verifiedBy', 'name email avatar post')
+      .populate('statusHistory.changedBy', 'name email avatar post')
+      .populate('comments.user', 'name avatar')
+      .sort({ submittedAt: 1, createdAt: 1 });
+
+    return res.status(200).json({
+      success: true,
+      count: tasks.length,
+      tasks,
+    });
+  } catch (error) {
+    console.error('[Get Pending Review Tasks Error]:', error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch pending review tasks' });
   }
 };
 
@@ -222,15 +266,24 @@ const createTask = async (req, res) => {
 };
 
 /**
- * Update task status (Accessible by assigned user or Admin)
+ * Update task status
+ * - Only assigned user or admin can move: todo -> inprogress
+ * - Only assigned user or admin can move: inprogress -> submittedForReview
+ * - Only assigned user or admin can move: reopened -> inprogress or submittedForReview
+ * - Only ADMIN can move: submittedForReview -> completed (Approve/Verify) or submittedForReview -> reopened (Reject, requires non-empty note)
+ * - User CANNOT mark task completed directly
  */
 const updateTaskStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, note } = req.body;
 
-    if (!['todo', 'inprogress', 'completed'].includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status value.' });
+    const validStatuses = ['todo', 'inprogress', 'submittedForReview', 'completed', 'reopened'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status value. Allowed: ${validStatuses.join(', ')}`,
+      });
     }
 
     const task = await Task.findOne({
@@ -244,18 +297,122 @@ const updateTaskStatus = async (req, res) => {
 
     // Check authorization: must be admin or in assignedTo
     const isAssigned = task.assignedTo.some((u) => u.toString() === req.user._id.toString());
-    if (req.user.role !== 'admin' && !isAssigned) {
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isAdmin && !isAssigned) {
       return res
         .status(403)
         .json({ success: false, message: 'You are not authorized to update this task.' });
     }
 
+    const currentStatus = task.status;
+
+    // No-op if target status is identical
+    if (currentStatus === status) {
+      const populatedTask = await Task.findById(task._id)
+        .populate('assignedTo', 'name email avatar post department')
+        .populate('groupId', 'name avatar')
+        .populate('createdBy', 'name email avatar')
+        .populate('verifiedBy', 'name email avatar post')
+        .populate('statusHistory.changedBy', 'name email avatar')
+        .populate('comments.user', 'name avatar');
+      return res.status(200).json({ success: true, task: populatedTask });
+    }
+
+    // State machine transition validation
+    if (currentStatus === 'todo') {
+      if (status !== 'inprogress') {
+        return res.status(400).json({
+          success: false,
+          message: 'Tasks in "To Do" must first be moved to "In Progress".',
+        });
+      }
+    } else if (currentStatus === 'inprogress') {
+      if (status === 'completed') {
+        return res.status(403).json({
+          success: false,
+          message:
+            'Tasks cannot be marked as completed directly. Please submit the task for Admin review.',
+        });
+      }
+      if (!['todo', 'submittedForReview'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid transition from "In Progress" to "${status}".`,
+        });
+      }
+    } else if (currentStatus === 'reopened') {
+      if (status === 'completed') {
+        return res.status(403).json({
+          success: false,
+          message:
+            'Tasks cannot be marked as completed directly. Please submit the task for Admin review once fixed.',
+        });
+      }
+      if (!['inprogress', 'submittedForReview'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid transition from "Reopened" to "${status}".`,
+        });
+      }
+    } else if (currentStatus === 'submittedForReview') {
+      // Only Admin can act on tasks in review
+      if (!isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message:
+            'Only workspace administrators can approve or reject tasks submitted for review.',
+        });
+      }
+      if (!['completed', 'reopened'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Review queue tasks can only be approved ("completed") or rejected ("reopened").`,
+        });
+      }
+      // Rejection requires non-empty feedback note
+      if (status === 'reopened' && (!note || typeof note !== 'string' || !note.trim())) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'A feedback note explaining what needs fixing is required when rejecting a task.',
+        });
+      }
+    } else if (currentStatus === 'completed') {
+      // Only Admin can modify a completed task
+      if (!isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: 'Only workspace administrators can reopen a completed task.',
+        });
+      }
+      if (!['inprogress', 'reopened', 'todo'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid transition from "Completed" to "${status}".`,
+        });
+      }
+    }
+
     const previousStatus = task.status;
     task.status = status;
+
+    // Set timestamps & verification metadata
+    if (status === 'submittedForReview') {
+      task.submittedAt = new Date();
+    } else if (status === 'completed') {
+      task.verifiedBy = req.user._id;
+      task.verifiedAt = new Date();
+    } else if (['inprogress', 'reopened', 'todo'].includes(status) && previousStatus === 'completed') {
+      task.verifiedBy = null;
+      task.verifiedAt = null;
+    }
+
     task.statusHistory.push({
       status,
       changedBy: req.user._id,
       changedAt: new Date(),
+      note: note && typeof note === 'string' ? note.trim() : '',
     });
 
     await task.save();
@@ -265,8 +422,8 @@ const updateTaskStatus = async (req, res) => {
       action: 'task.statusChange',
       targetType: 'Task',
       targetId: task._id,
-      details: `${req.user.name} moved "${task.title}" to ${status.toUpperCase()}`,
-      metadata: { from: previousStatus, to: status },
+      details: `${req.user.name} moved "${task.title}" to ${status.toUpperCase()}${note ? ` (Note: "${note.trim()}")` : ''}`,
+      metadata: { from: previousStatus, to: status, note: note ? note.trim() : undefined },
       workspaceId: req.user.workspaceId,
     });
 
@@ -274,6 +431,7 @@ const updateTaskStatus = async (req, res) => {
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar')
       .populate('createdBy', 'name email avatar')
+      .populate('verifiedBy', 'name email avatar post')
       .populate('statusHistory.changedBy', 'name email avatar')
       .populate('comments.user', 'name avatar');
 
@@ -281,27 +439,32 @@ const updateTaskStatus = async (req, res) => {
     if (io) {
       io.to(`workspace:${req.user.workspaceId}`).emit('task_updated', populatedTask);
       io.to(`workspace_${req.user.workspaceId}`).emit('task_updated', populatedTask);
+      io.to(`workspace:${req.user.workspaceId}`).emit('task:updated', populatedTask);
+      io.to(`workspace_${req.user.workspaceId}`).emit('task:updated', populatedTask);
       io.to(`workspace:${req.user.workspaceId}`).emit('task:statusChanged', {
         taskId: task._id,
         status,
         changedBy: { _id: req.user._id, name: req.user.name },
+        note: note ? note.trim() : undefined,
         task: populatedTask,
       });
 
-      // Target assigned users and admin
+      // Target assigned users and admins
       task.assignedTo.forEach((userId) => {
         io.to(`user:${userId.toString()}`).emit('task:statusChanged', {
           taskId: task._id,
           status,
           changedBy: { _id: req.user._id, name: req.user.name },
+          note: note ? note.trim() : undefined,
           task: populatedTask,
         });
       });
     }
 
-    // Notify admin(s) when an assignee updates the status (not if admin themselves changed it)
-    if (req.user.role !== 'admin') {
-      try {
+    // In-app Notifications
+    try {
+      if (status === 'submittedForReview') {
+        // User submitted for review -> Notify workspace admins
         const admins = await User.find({
           workspaceId: req.user.workspaceId,
           role: 'admin',
@@ -310,26 +473,79 @@ const updateTaskStatus = async (req, res) => {
 
         if (admins.length > 0) {
           const adminIds = admins.map((a) => a._id);
-          const statusLabel =
-            status === 'completed'
-              ? '✅ Completed'
-              : status === 'inprogress'
-                ? '🔄 In Progress'
-                : '📋 To Do';
+          const submissionNote = note && typeof note === 'string' && note.trim() ? ` — "${note.trim()}"` : '';
           await notify({
             userIds: adminIds,
             type: 'task',
-            title: `Task Update: "${task.title}"`,
-            body: `${req.user.name} moved the task to ${statusLabel}`,
+            title: `📋 Task Submitted for Review`,
+            body: `${req.user.name} submitted '${task.title}' for review${submissionNote}`,
             linkTo: 'tasks',
             refId: task._id,
             workspaceId: req.user.workspaceId,
             io,
           });
         }
-      } catch (notifyErr) {
-        console.error('[Task Status Notify Admin Error]:', notifyErr);
+      } else if (status === 'completed') {
+        // Admin verified task -> Notify assignees
+        const assigneeIds = task.assignedTo
+          .map((id) => id.toString())
+          .filter((id) => id !== req.user._id.toString());
+
+        if (assigneeIds.length > 0) {
+          await notify({
+            userIds: assigneeIds,
+            type: 'task',
+            title: `✅ Task Approved`,
+            body: `Your task '${task.title}' was approved ✅`,
+            linkTo: 'tasks',
+            refId: task._id,
+            workspaceId: req.user.workspaceId,
+            io,
+          });
+        }
+      } else if (status === 'reopened') {
+        // Admin rejected task -> Notify assignees with the admin's note
+        const assigneeIds = task.assignedTo
+          .map((id) => id.toString())
+          .filter((id) => id !== req.user._id.toString());
+
+        if (assigneeIds.length > 0) {
+          const feedbackNote = note && typeof note === 'string' ? note.trim() : 'Please check task details for changes.';
+          await notify({
+            userIds: assigneeIds,
+            type: 'task',
+            title: `⚠️ Task Needs Changes`,
+            body: `Your task '${task.title}' needs changes: "${feedbackNote}"`,
+            linkTo: 'tasks',
+            refId: task._id,
+            workspaceId: req.user.workspaceId,
+            io,
+          });
+        }
+      } else if (!isAdmin && (status === 'inprogress' || status === 'todo')) {
+        // Regular user started/resumed task -> Notify admins
+        const admins = await User.find({
+          workspaceId: req.user.workspaceId,
+          role: 'admin',
+          status: { $ne: 'disabled' },
+        }).select('_id');
+
+        if (admins.length > 0) {
+          const adminIds = admins.map((a) => a._id);
+          await notify({
+            userIds: adminIds,
+            type: 'task',
+            title: `Task Update: "${task.title}"`,
+            body: `${req.user.name} moved the task to ${status === 'inprogress' ? '🔄 In Progress' : '📋 To Do'}`,
+            linkTo: 'tasks',
+            refId: task._id,
+            workspaceId: req.user.workspaceId,
+            io,
+          });
+        }
       }
+    } catch (notifyErr) {
+      console.error('[Task Status Notification Error]:', notifyErr);
     }
 
     return res.status(200).json({
@@ -368,6 +584,10 @@ const updateTask = async (req, res) => {
     if (deadline) task.deadline = new Date(deadline);
     if (status && status !== task.status) {
       task.status = status;
+      if (status === 'completed') {
+        task.verifiedBy = req.user._id;
+        task.verifiedAt = new Date();
+      }
       task.statusHistory.push({
         status,
         changedBy: req.user._id,
@@ -390,6 +610,7 @@ const updateTask = async (req, res) => {
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar')
       .populate('createdBy', 'name email avatar')
+      .populate('verifiedBy', 'name email avatar post')
       .populate('statusHistory.changedBy', 'name email avatar');
 
     const io = req.app.get('io');
@@ -444,6 +665,7 @@ const addTaskComment = async (req, res) => {
       .populate('assignedTo', 'name email avatar post department')
       .populate('groupId', 'name avatar')
       .populate('createdBy', 'name email avatar')
+      .populate('verifiedBy', 'name email avatar post')
       .populate('statusHistory.changedBy', 'name email avatar')
       .populate('comments.user', 'name avatar');
 
@@ -550,6 +772,7 @@ module.exports = {
   getTasks,
   getTaskSummary,
   getTaskById,
+  getPendingReviewTasks,
   createTask,
   updateTaskStatus,
   updateTask,

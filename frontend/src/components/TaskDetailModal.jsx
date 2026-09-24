@@ -8,6 +8,12 @@ import {
   History,
   Send,
   CheckCircle2,
+  Clock,
+  Check,
+  XCircle,
+  RotateCcw,
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
@@ -31,6 +37,16 @@ const TaskDetailModal = ({
   const [submittingComment, setSubmittingComment] = useState(false);
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'history' | 'comments'
 
+  // User Submission note state
+  const [showSubmitPrompt, setShowSubmitPrompt] = useState(false);
+  const [submissionNote, setSubmissionNote] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  // Admin Rejection state
+  const [showRejectPrompt, setShowRejectPrompt] = useState(false);
+  const [rejectionNote, setRejectionNote] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
+
   if (!task) return null;
 
   const isAssigned = task.assignedTo?.some((u) => (u._id || u).toString() === currentUserId);
@@ -43,12 +59,143 @@ const TaskDetailModal = ({
   const isOverdue = !isCompleted && deadlineDate < now;
   const isDueSoon = !isCompleted && !isOverdue && deadlineDate - now < 48 * 3600 * 1000;
 
-  const handleStatusClick = async (newStatus) => {
-    if (!canModifyStatus || task.status === newStatus) return;
+  // Find latest rejection note if reopened
+  const latestReopenedEntry = task.statusHistory
+    ?.slice()
+    .reverse()
+    .find((h) => h.status === 'reopened' && h.note);
+
+  // Find latest submission note if submittedForReview
+  const latestSubmissionEntry = task.statusHistory
+    ?.slice()
+    .reverse()
+    .find((h) => h.status === 'submittedForReview' && h.note);
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'todo':
+        return <Badge variant="neutral">TO DO</Badge>;
+      case 'inprogress':
+        return <Badge variant="primary">IN PROGRESS</Badge>;
+      case 'submittedForReview':
+        return (
+          <span
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              color: '#B45309',
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Clock size={12} /> AWAITING REVIEW
+          </span>
+        );
+      case 'reopened':
+        return (
+          <span
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              color: '#B91C1C',
+              backgroundColor: '#FEE2E2',
+              border: '1px solid #FCA5A5',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <AlertTriangle size={12} /> CHANGES REQUESTED
+          </span>
+        );
+      case 'completed':
+        return (
+          <span
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              color: '#047857',
+              backgroundColor: '#D1FAE5',
+              border: '1px solid #6EE7B7',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <CheckCircle2 size={12} /> VERIFIED DONE
+          </span>
+        );
+      default:
+        return <Badge variant="neutral">{status?.toUpperCase()}</Badge>;
+    }
+  };
+
+  const getPriorityBadge = (p) => {
+    if (p === 'urgent') return <Badge variant="danger">URGENT</Badge>;
+    if (p === 'high') return <Badge variant="warning">HIGH PRIORITY</Badge>;
+    if (p === 'medium') return <Badge variant="primary">MEDIUM</Badge>;
+    return <Badge variant="neutral">LOW</Badge>;
+  };
+
+  // Quick direct status transition
+  const handleSimpleStatusTransition = async (newStatus) => {
+    if (!canModifyStatus) return;
     try {
       await onStatusChange(task._id, newStatus);
     } catch (_err) {
       addToast('Failed to update status', 'error');
+    }
+  };
+
+  // Submit for Admin Review with optional note
+  const handleSubmitForReview = async (e) => {
+    if (e) e.preventDefault();
+    setIsSubmittingReview(true);
+    try {
+      await onStatusChange(task._id, 'submittedForReview', submissionNote.trim());
+      setShowSubmitPrompt(false);
+      setSubmissionNote('');
+    } catch (_err) {
+      addToast('Failed to submit task for review', 'error');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Admin Reject with required note
+  const handleAdminReject = async (e) => {
+    if (e) e.preventDefault();
+    if (!rejectionNote.trim()) {
+      addToast('A feedback note is required to explain what needs fixing', 'error');
+      return;
+    }
+    setIsRejecting(true);
+    try {
+      await onStatusChange(task._id, 'reopened', rejectionNote.trim());
+      setShowRejectPrompt(false);
+      setRejectionNote('');
+    } catch (_err) {
+      addToast('Failed to reject task', 'error');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  // Admin Approve
+  const handleAdminApprove = async () => {
+    try {
+      await onStatusChange(task._id, 'completed');
+    } catch (_err) {
+      addToast('Failed to approve task', 'error');
     }
   };
 
@@ -70,16 +217,9 @@ const TaskDetailModal = ({
     }
   };
 
-  const getPriorityBadge = (p) => {
-    if (p === 'urgent') return <Badge variant="danger">URGENT</Badge>;
-    if (p === 'high') return <Badge variant="warning">HIGH PRIORITY</Badge>;
-    if (p === 'medium') return <Badge variant="primary">MEDIUM</Badge>;
-    return <Badge variant="neutral">LOW</Badge>;
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Task & Deliverable Detail" maxWidth="520px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Task & Work Deliverable" maxWidth="560px">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Header Summary */}
         <div>
           <div
@@ -91,6 +231,7 @@ const TaskDetailModal = ({
               flexWrap: 'wrap',
             }}
           >
+            {getStatusBadge(task.status)}
             {getPriorityBadge(task.priority)}
 
             {task.groupId && (
@@ -140,151 +281,354 @@ const TaskDetailModal = ({
                 ⏳ DUE SOON (&lt;48h)
               </span>
             )}
-
-            {isCompleted && (
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: 'var(--color-success)',
-                  backgroundColor: 'var(--color-success-soft)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <CheckCircle2 size={13} /> COMPLETED
-              </span>
-            )}
           </div>
 
-          <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.3px', margin: 0 }}>
+          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.3px', margin: 0 }}>
             {task.title}
           </h2>
         </div>
 
-        {/* Interactive Segmented Status Bar */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface-alt)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            padding: '4px',
-            display: 'flex',
-            gap: '4px',
-          }}
-        >
-          <button
-            type="button"
-            disabled={!canModifyStatus}
-            onClick={() => handleStatusClick('todo')}
+        {/* 1. REJECTED / REOPENED PROMINENT FEEDBACK CALLOUT */}
+        {task.status === 'reopened' && (
+          <div
             style={{
-              flex: 1,
-              padding: '10px 0',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 600,
-              fontSize: '13px',
-              cursor: canModifyStatus ? 'pointer' : 'default',
-              backgroundColor: task.status === 'todo' ? 'var(--color-surface)' : 'transparent',
-              color:
-                task.status === 'todo'
-                  ? 'var(--color-text-primary)'
-                  : 'var(--color-text-secondary)',
-              boxShadow: task.status === 'todo' ? 'var(--shadow-sm)' : 'none',
-              transition: 'all 150ms ease',
+              backgroundColor: '#FEF2F2',
+              border: '1.5px solid #F87171',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px 16px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              flexDirection: 'column',
               gap: '6px',
             }}
           >
-            <span
+            <div
               style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#94A3B8',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#B91C1C',
+                fontWeight: 700,
+                fontSize: '13px',
               }}
-            />
-            To Do
-          </button>
+            >
+              <AlertTriangle size={16} />
+              <span>Admin Feedback & Required Changes:</span>
+            </div>
+            <div
+              style={{
+                fontSize: '13.5px',
+                color: '#7F1D1D',
+                lineHeight: 1.4,
+                paddingLeft: '24px',
+                whiteSpace: 'pre-wrap',
+                fontWeight: 500,
+              }}
+            >
+              {latestReopenedEntry?.note ||
+                'Task was reopened by administrator. Please resolve necessary updates and submit for review again.'}
+            </div>
+            {latestReopenedEntry?.changedBy?.name && (
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#991B1B',
+                  paddingLeft: '24px',
+                  marginTop: '2px',
+                }}
+              >
+                Feedback from {latestReopenedEntry.changedBy.name} on{' '}
+                {new Date(latestReopenedEntry.changedAt).toLocaleString([], {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-          <button
-            type="button"
-            disabled={!canModifyStatus}
-            onClick={() => handleStatusClick('inprogress')}
+        {/* 2. VERIFIED COMPLETED BANNER */}
+        {task.status === 'completed' && (
+          <div
             style={{
-              flex: 1,
-              padding: '10px 0',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 600,
-              fontSize: '13px',
-              cursor: canModifyStatus ? 'pointer' : 'default',
-              backgroundColor:
-                task.status === 'inprogress' ? 'var(--color-surface)' : 'transparent',
-              color:
-                task.status === 'inprogress'
-                  ? 'var(--color-warning)'
-                  : 'var(--color-text-secondary)',
-              boxShadow: task.status === 'inprogress' ? 'var(--shadow-sm)' : 'none',
-              transition: 'all 150ms ease',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
+              gap: '12px',
             }}
           >
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#F59E0B',
-              }}
-            />
-            In Progress
-          </button>
+            <ShieldCheck size={20} color="#10B981" />
+            <div>
+              <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#047857' }}>
+                Deliverable Verified & Closed
+              </div>
+              <div style={{ fontSize: '12px', color: '#065F46', marginTop: '1px' }}>
+                Verified by {task.verifiedBy?.name || 'Administrator'} on{' '}
+                {new Date(task.verifiedAt || task.updatedAt).toLocaleDateString([], {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-          <button
-            type="button"
-            disabled={!canModifyStatus}
-            onClick={() => handleStatusClick('completed')}
+        {/* 3. AWAITING REVIEW BANNER & ACTIONS */}
+        {task.status === 'submittedForReview' && (
+          <div
             style={{
-              flex: 1,
-              padding: '10px 0',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 600,
-              fontSize: '13px',
-              cursor: canModifyStatus ? 'pointer' : 'default',
-              backgroundColor: task.status === 'completed' ? 'var(--color-surface)' : 'transparent',
-              color:
-                task.status === 'completed'
-                  ? 'var(--color-success)'
-                  : 'var(--color-text-secondary)',
-              boxShadow: task.status === 'completed' ? 'var(--shadow-sm)' : 'none',
-              transition: 'all 150ms ease',
+              backgroundColor: '#FFFBEB',
+              border: '1.5px solid #FCD34D',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 16px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
+              flexDirection: 'column',
+              gap: '10px',
             }}
           >
-            <span
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={17} color="#D97706" />
+              <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#92400E' }}>
+                Awaiting Administrator Verification
+              </span>
+            </div>
+
+            {latestSubmissionEntry?.note && (
+              <div
+                style={{
+                  fontSize: '13px',
+                  color: '#78350F',
+                  backgroundColor: '#FEF3C7',
+                  padding: '8px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid #FDE68A',
+                }}
+              >
+                <strong>Assignee Submission Note:</strong> {latestSubmissionEntry.note}
+              </div>
+            )}
+
+            {/* Admin Verification Action Buttons */}
+            {isAdmin ? (
+              <div>
+                {!showRejectPrompt ? (
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{
+                        backgroundColor: '#10B981',
+                        borderColor: '#10B981',
+                        flex: 1,
+                        height: '36px',
+                        fontSize: '13px',
+                        gap: '6px',
+                      }}
+                      onClick={handleAdminApprove}
+                    >
+                      <Check size={15} /> Approve & Mark Completed
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{
+                        color: '#DC2626',
+                        borderColor: '#FCA5A5',
+                        flex: 1,
+                        height: '36px',
+                        fontSize: '13px',
+                        gap: '6px',
+                      }}
+                      onClick={() => setShowRejectPrompt(true)}
+                    >
+                      <XCircle size={15} /> Request Changes (Reject)
+                    </button>
+                  </div>
+                ) : (
+                  /* Admin Rejection Note Input Form */
+                  <form
+                    onSubmit={handleAdminReject}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}
+                  >
+                    <label
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#991B1B',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <AlertTriangle size={13} />
+                      Feedback Note (Required — what needs to be fixed?):
+                    </label>
+                    <textarea
+                      required
+                      placeholder="e.g. Please update the unit tests and adjust token contrast before approval..."
+                      className="form-textarea"
+                      rows={3}
+                      style={{ fontSize: '13px', borderColor: '#F87171' }}
+                      value={rejectionNote}
+                      onChange={(e) => setRejectionNote(e.target.value)}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setShowRejectPrompt(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isRejecting || !rejectionNote.trim()}
+                        className="btn btn-primary btn-sm"
+                        style={{ backgroundColor: '#DC2626', borderColor: '#DC2626' }}
+                      >
+                        {isRejecting ? 'Rejecting...' : 'Confirm Changes Request'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#B45309' }}>
+                Your work has been submitted to workspace administrators for review. You will be
+                notified once approved or if changes are requested.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 4. WORKFLOW ACTION BUTTONS FOR ASSIGNEE / ADMIN (WHEN NOT SUBMITTED FOR REVIEW) */}
+        {task.status !== 'submittedForReview' && (
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface-alt)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+              padding: '12px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div
               style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#10B981',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
               }}
-            />
-            Completed ✓
-          </button>
-        </div>
+            >
+              <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                Workflow Action:
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {/* To Do -> Start Task */}
+                {task.status === 'todo' && (
+                  <button
+                    type="button"
+                    disabled={!canModifyStatus}
+                    className="btn btn-primary btn-sm"
+                    onClick={() => handleSimpleStatusTransition('inprogress')}
+                  >
+                    Start Task <ArrowRight size={13} />
+                  </button>
+                )}
+
+                {/* In Progress or Reopened -> Submit for Review */}
+                {(task.status === 'inprogress' || task.status === 'reopened') && (
+                  <>
+                    {task.status === 'reopened' && (
+                      <button
+                        type="button"
+                        disabled={!canModifyStatus}
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleSimpleStatusTransition('inprogress')}
+                      >
+                        Resume Task
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={!canModifyStatus}
+                      className="btn btn-primary btn-sm"
+                      style={{ backgroundColor: '#F59E0B', borderColor: '#F59E0B', color: '#FFFFFF' }}
+                      onClick={() => setShowSubmitPrompt((prev) => !prev)}
+                    >
+                      <CheckCircle2 size={14} /> Submit for Review
+                    </button>
+                  </>
+                )}
+
+                {/* Completed -> Admin can reopen */}
+                {task.status === 'completed' && isAdmin && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ border: '1px solid var(--color-border)' }}
+                    onClick={() => handleSimpleStatusTransition('inprogress')}
+                  >
+                    <RotateCcw size={13} /> Reopen Deliverable
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Prompt for optional submission note */}
+            {showSubmitPrompt && (
+              <form
+                onSubmit={handleSubmitForReview}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  paddingTop: '10px',
+                  borderTop: '1px solid var(--color-border)',
+                }}
+              >
+                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                  Submission Note / What was accomplished? (Optional):
+                </label>
+                <textarea
+                  placeholder="e.g. Completed theme tokens in index.css, verified contrast ratios on all devices..."
+                  className="form-textarea"
+                  rows={2}
+                  style={{ fontSize: '12.5px' }}
+                  value={submissionNote}
+                  onChange={(e) => setSubmissionNote(e.target.value)}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setShowSubmitPrompt(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReview}
+                    className="btn btn-primary btn-sm"
+                    style={{ backgroundColor: '#F59E0B', borderColor: '#F59E0B' }}
+                  >
+                    {isSubmittingReview ? 'Submitting...' : 'Confirm Submission'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
 
         {/* Schedule & Deadline Box */}
         <div
@@ -292,7 +636,7 @@ const TaskDetailModal = ({
             backgroundColor: 'var(--color-surface-alt)',
             borderRadius: 'var(--radius-md)',
             border: `1px solid ${isOverdue ? 'var(--color-danger)' : 'var(--color-border)'}`,
-            padding: '14px 16px',
+            padding: '12px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -311,7 +655,7 @@ const TaskDetailModal = ({
               </div>
               <div
                 style={{
-                  fontSize: '13.5px',
+                  fontSize: '13px',
                   fontWeight: 600,
                   color: isOverdue ? 'var(--color-danger)' : 'var(--color-text-primary)',
                 }}
@@ -409,12 +753,12 @@ const TaskDetailModal = ({
 
         {/* Tab 1: Overview */}
         {activeTab === 'overview' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Description */}
             <div>
               <h4
                 style={{
-                  fontSize: '12.5px',
+                  fontSize: '12px',
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   marginBottom: '6px',
@@ -424,7 +768,7 @@ const TaskDetailModal = ({
               </h4>
               <div
                 style={{
-                  fontSize: '13.5px',
+                  fontSize: '13px',
                   lineHeight: 1.5,
                   color: 'var(--color-text-primary)',
                   backgroundColor: 'var(--color-surface-alt)',
@@ -442,7 +786,7 @@ const TaskDetailModal = ({
             <div>
               <h4
                 style={{
-                  fontSize: '12.5px',
+                  fontSize: '12px',
                   color: 'var(--color-text-muted)',
                   textTransform: 'uppercase',
                   marginBottom: '8px',
@@ -453,7 +797,7 @@ const TaskDetailModal = ({
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
                   gap: '8px',
                 }}
               >
@@ -508,8 +852,8 @@ const TaskDetailModal = ({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
-              maxHeight: '240px',
+              gap: '10px',
+              maxHeight: '260px',
               overflowY: 'auto',
             }}
           >
@@ -540,26 +884,31 @@ const TaskDetailModal = ({
                 >
                   <div
                     style={{
-                      width: '28px',
-                      height: '28px',
+                      width: '26px',
+                      height: '26px',
                       borderRadius: '50%',
                       backgroundColor:
                         item.status === 'completed'
-                          ? 'var(--color-success-soft)'
-                          : item.status === 'inprogress'
-                            ? 'var(--color-warning-soft)'
-                            : 'var(--color-surface)',
+                          ? 'rgba(16, 185, 129, 0.2)'
+                          : item.status === 'submittedForReview'
+                            ? 'rgba(245, 158, 11, 0.2)'
+                            : item.status === 'reopened'
+                              ? 'rgba(239, 68, 68, 0.2)'
+                              : 'var(--color-surface)',
                       color:
                         item.status === 'completed'
-                          ? 'var(--color-success)'
-                          : item.status === 'inprogress'
-                            ? 'var(--color-warning)'
-                            : 'var(--color-text-secondary)',
+                          ? '#10B981'
+                          : item.status === 'submittedForReview'
+                            ? '#F59E0B'
+                            : item.status === 'reopened'
+                              ? '#EF4444'
+                              : 'var(--color-text-secondary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '11px',
                       fontWeight: 700,
+                      flexShrink: 0,
                     }}
                   >
                     {idx + 1}
@@ -571,16 +920,20 @@ const TaskDetailModal = ({
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '6px',
                       }}
                     >
                       <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                        Status set to{' '}
-                        <span style={{ textTransform: 'uppercase', color: 'var(--color-primary)' }}>
-                          {item.status}
-                        </span>
+                        {getStatusBadge(item.status)}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                        {new Date(item.changedAt).toLocaleString()}
+                        {new Date(item.changedAt).toLocaleString([], {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </span>
                     </div>
 
@@ -588,11 +941,32 @@ const TaskDetailModal = ({
                       style={{
                         fontSize: '12px',
                         color: 'var(--color-text-secondary)',
-                        marginTop: '2px',
+                        marginTop: '4px',
                       }}
                     >
-                      Updated by {item.changedBy?.name || 'Workspace User'}
+                      Updated by <strong>{item.changedBy?.name || 'Workspace User'}</strong>
                     </div>
+
+                    {item.note && (
+                      <div
+                        style={{
+                          marginTop: '6px',
+                          padding: '6px 10px',
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor:
+                            item.status === 'reopened'
+                              ? '#FEF2F2'
+                              : 'var(--color-surface)',
+                          border: `1px solid ${item.status === 'reopened' ? '#FCA5A5' : 'var(--color-border)'}`,
+                          fontSize: '12px',
+                          color: item.status === 'reopened' ? '#991B1B' : 'var(--color-text-primary)',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <strong>{item.status === 'reopened' ? 'Feedback Reason:' : 'Note:'}</strong>{' '}
+                        {item.note}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -603,7 +977,6 @@ const TaskDetailModal = ({
         {/* Tab 3: Comments & Updates */}
         {activeTab === 'comments' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Info bar */}
             <div
               style={{
                 fontSize: '12px',
@@ -755,12 +1128,12 @@ const TaskDetailModal = ({
               justifyContent: 'space-between',
               alignItems: 'center',
               borderTop: '1px solid var(--color-border)',
-              paddingTop: '16px',
+              paddingTop: '14px',
               marginTop: '4px',
             }}
           >
             <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-              Admin Actions
+              Admin Controls
             </span>
 
             <div style={{ display: 'flex', gap: '8px' }}>

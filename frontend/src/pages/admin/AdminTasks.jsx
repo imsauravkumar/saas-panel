@@ -112,21 +112,30 @@ const AdminTasks = ({ users = [], groups = [] }) => {
   };
 
   // Status Change
-  const handleStatusChange = async (taskId, newStatus) => {
+  const handleStatusChange = async (taskId, newStatus, note = '') => {
     try {
       // Optimistic local update
       setTasks((prev) => prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t)));
 
-      const { data } = await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (note && note.trim()) payload.note = note.trim();
+
+      const { data } = await api.patch(`/tasks/${taskId}/status`, payload);
       if (data.success) {
-        addToast(`Task moved to ${newStatus.toUpperCase()}`, 'info', 2000);
+        const msg =
+          newStatus === 'completed'
+            ? 'Task deliverable approved & verified!'
+            : newStatus === 'reopened'
+              ? 'Changes requested — task reopened.'
+              : `Task moved to ${newStatus.toUpperCase()}`;
+        addToast(msg, 'info', 2000);
         if (activeTaskDetail?._id === taskId) {
           setActiveTaskDetail(data.task);
         }
         fetchTasks();
       }
-    } catch (_err) {
-      addToast('Failed to update task status', 'error');
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to update task status', 'error');
       fetchTasks();
     }
   };
@@ -152,8 +161,70 @@ const AdminTasks = ({ users = [], groups = [] }) => {
     return <Badge variant="neutral">LOW</Badge>;
   };
 
-  // Search filter
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'todo':
+        return <Badge variant="neutral">TO DO</Badge>;
+      case 'inprogress':
+        return <Badge variant="primary">IN PROGRESS</Badge>;
+      case 'submittedForReview':
+        return (
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#B45309',
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              padding: '2px 7px',
+              borderRadius: 'var(--radius-sm)',
+            }}
+          >
+            AWAITING REVIEW
+          </span>
+        );
+      case 'reopened':
+        return (
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#B91C1C',
+              backgroundColor: '#FEE2E2',
+              border: '1px solid #FCA5A5',
+              padding: '2px 7px',
+              borderRadius: 'var(--radius-sm)',
+            }}
+          >
+            CHANGES REQUESTED
+          </span>
+        );
+      case 'completed':
+        return (
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#047857',
+              backgroundColor: '#D1FAE5',
+              border: '1px solid #6EE7B7',
+              padding: '2px 7px',
+              borderRadius: 'var(--radius-sm)',
+            }}
+          >
+            VERIFIED
+          </span>
+        );
+      default:
+        return <Badge variant="neutral">{status?.toUpperCase()}</Badge>;
+    }
+  };
+
+  // Search & filter
+  const [filterPendingOnly, setFilterPendingOnly] = useState(false);
+
   const filteredTasks = tasks.filter((t) => {
+    if (filterPendingOnly && t.status !== 'submittedForReview') return false;
     const matchesSearch =
       t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -164,8 +235,12 @@ const AdminTasks = ({ users = [], groups = [] }) => {
 
   const now = new Date();
   const todoTasks = filteredTasks.filter((t) => t.status === 'todo');
-  const inProgressTasks = filteredTasks.filter((t) => t.status === 'inprogress');
+  const inProgressTasks = filteredTasks.filter(
+    (t) => t.status === 'inprogress' || t.status === 'reopened'
+  );
+  const pendingReviewTasks = filteredTasks.filter((t) => t.status === 'submittedForReview');
   const completedTasks = filteredTasks.filter((t) => t.status === 'completed');
+  const totalPendingReviewCount = tasks.filter((t) => t.status === 'submittedForReview').length;
 
   return (
     <div className="page-container">
@@ -174,8 +249,8 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         <div className="page-header-title">
           <h1>Work & Task Management</h1>
           <p>
-            Assign work deliverables, set priorities and deadlines, and manage live team velocity
-            across Kanban stages.
+            Assign work deliverables, review submissions, verify task completion, and track
+            team velocity across Kanban stages.
           </p>
         </div>
 
@@ -227,6 +302,53 @@ const AdminTasks = ({ users = [], groups = [] }) => {
           </button>
         </div>
       </div>
+
+      {/* Pending Review Quick Alert / Filter Banner */}
+      {totalPendingReviewCount > 0 && (
+        <div
+          style={{
+            backgroundColor: '#FFFBEB',
+            border: '1px solid #FCD34D',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: '#F59E0B',
+                animation: 'pulse 1.5s infinite',
+              }}
+            />
+            <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#92400E' }}>
+              {totalPendingReviewCount} {totalPendingReviewCount === 1 ? 'task is' : 'tasks are'}{' '}
+              submitted and awaiting your verification
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            style={{
+              backgroundColor: filterPendingOnly ? '#FEF3C7' : '#FFFFFF',
+              borderColor: '#FCD34D',
+              color: '#B45309',
+              fontWeight: 700,
+            }}
+            onClick={() => setFilterPendingOnly((prev) => !prev)}
+          >
+            {filterPendingOnly ? 'Show All Stages' : 'View Pending Queue Only →'}
+          </button>
+        </div>
+      )}
 
       {/* Filters and Search Bar */}
       <div className="filter-bar-container">
@@ -283,10 +405,15 @@ const AdminTasks = ({ users = [], groups = [] }) => {
         </select>
       </div>
 
-      {/* Kanban Board View */}
+      {/* Kanban Board View — 4 Columns */}
       {viewMode === 'kanban' ? (
-        <div className="kanban-grid">
-          {/* Column: To Do */}
+        <div
+          className="kanban-grid"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          }}
+        >
+          {/* Column 1: To Do */}
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
@@ -440,7 +567,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
             )}
           </div>
 
-          {/* Column: In Progress */}
+          {/* Column 2: In Progress / Reopened */}
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
@@ -449,12 +576,12 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     width: '9px',
                     height: '9px',
                     borderRadius: '50%',
-                    backgroundColor: '#F59E0B',
+                    backgroundColor: '#3B82F6',
                   }}
                 />
                 <span>In Progress</span>
               </div>
-              <Badge variant="warning">{inProgressTasks.length}</Badge>
+              <Badge variant="primary">{inProgressTasks.length}</Badge>
             </div>
 
             {inProgressTasks.length === 0 ? (
@@ -471,18 +598,43 @@ const AdminTasks = ({ users = [], groups = [] }) => {
             ) : (
               inProgressTasks.map((task) => {
                 const isOverdue = new Date(task.deadline) < now;
+                const isReopened = task.status === 'reopened';
+                const latestFeedback = task.statusHistory
+                  ?.slice()
+                  .reverse()
+                  .find((h) => h.status === 'reopened' && h.note)?.note;
+
                 return (
                   <div
                     key={task._id}
                     className="task-card"
                     style={{
-                      borderLeft: isOverdue ? '3.5px solid var(--color-danger)' : '3.5px solid #F59E0B',
+                      borderLeft: isReopened
+                        ? '3.5px solid #EF4444'
+                        : isOverdue
+                          ? '3.5px solid var(--color-danger)'
+                          : '3.5px solid #3B82F6',
                     }}
                     onClick={() => setActiveTaskDetail(task)}
                   >
                     <div className="task-card-header">
                       <div className="task-card-header-left">
-                        {getPriorityBadge(task.priority)}
+                        {isReopened ? (
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              color: '#B91C1C',
+                              backgroundColor: '#FEE2E2',
+                              padding: '2px 6px',
+                              borderRadius: 'var(--radius-sm)',
+                            }}
+                          >
+                            ⚠️ CHANGES REQUESTED
+                          </span>
+                        ) : (
+                          getPriorityBadge(task.priority)
+                        )}
                         {task.groupId && (
                           <span
                             style={{
@@ -535,7 +687,23 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <div className="task-card-title">{task.title}</div>
                     {task.description && <div className="task-card-desc">{task.description}</div>}
 
-                    {isOverdue && (
+                    {isReopened && latestFeedback && (
+                      <div
+                        style={{
+                          backgroundColor: '#FEF2F2',
+                          border: '1px solid #FCA5A5',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '6px 8px',
+                          fontSize: '11.5px',
+                          color: '#991B1B',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        <strong>Feedback:</strong> {latestFeedback}
+                      </div>
+                    )}
+
+                    {isOverdue && !isReopened && (
                       <div
                         style={{
                           display: 'flex',
@@ -574,18 +742,176 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                         ))}
                       </div>
                     </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Column 3: Pending Review (Submitted For Review) */}
+          <div className="kanban-col">
+            <div className="kanban-col-header">
+              <div className="kanban-col-title">
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F59E0B',
+                  }}
+                />
+                <span>Pending Review</span>
+              </div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  backgroundColor: '#FEF3C7',
+                  color: '#B45309',
+                  padding: '2px 6px',
+                  borderRadius: '10px',
+                }}
+              >
+                {pendingReviewTasks.length}
+              </span>
+            </div>
+
+            {pendingReviewTasks.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '48px 16px',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '12.5px',
+                }}
+              >
+                No tasks awaiting review
+              </div>
+            ) : (
+              pendingReviewTasks.map((task) => {
+                const submissionNote = task.statusHistory
+                  ?.slice()
+                  .reverse()
+                  .find((h) => h.status === 'submittedForReview' && h.note)?.note;
+
+                return (
+                  <div
+                    key={task._id}
+                    className="task-card"
+                    style={{
+                      borderLeft: '3.5px solid #F59E0B',
+                      backgroundColor: '#FFFDF5',
+                    }}
+                    onClick={() => setActiveTaskDetail(task)}
+                  >
+                    <div className="task-card-header">
+                      <div className="task-card-header-left">
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            color: '#B45309',
+                            backgroundColor: '#FEF3C7',
+                            padding: '2px 6px',
+                            borderRadius: 'var(--radius-sm)',
+                          }}
+                        >
+                          ⏳ NEEDS REVIEW
+                        </span>
+                        {task.groupId && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--color-primary)',
+                              backgroundColor: 'var(--color-primary-soft)',
+                              padding: '2px 7px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{task.groupId?.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="task-card-header-right">
+                        <button
+                          type="button"
+                          className="task-card-quick-btn danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirm({
+                              title: 'Delete Task',
+                              message: `Are you sure you want to delete task "${task.title}"?`,
+                              confirmText: 'Delete Task',
+                              type: 'danger',
+                              onConfirm: () => handleDeleteTask(task._id),
+                            });
+                          }}
+                          title="Delete Task"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="task-card-title">{task.title}</div>
+                    {task.description && <div className="task-card-desc">{task.description}</div>}
+
+                    {submissionNote && (
+                      <div
+                        style={{
+                          backgroundColor: '#FEF3C7',
+                          border: '1px solid #FDE68A',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '6px 8px',
+                          fontSize: '11.5px',
+                          color: '#78350F',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        <strong>Assignee Note:</strong> {submissionNote}
+                      </div>
+                    )}
+
+                    <div className="task-card-footer">
+                      <span style={{ fontSize: '11px', color: '#B45309', fontWeight: 600 }}>
+                        Submitted on{' '}
+                        {new Date(task.submittedAt || task.updatedAt).toLocaleDateString([], {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+
+                      <div style={{ display: 'flex' }}>
+                        {(task.assignedTo || []).slice(0, 3).map((u, i) => (
+                          <div
+                            key={u._id || i}
+                            style={{ marginLeft: i > 0 ? '-6px' : '0' }}
+                            title={u.name}
+                          >
+                            <Avatar name={u.name || 'User'} src={u.avatar} size="xs" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
                     <div className="task-card-actions">
                       <button
                         type="button"
                         className="btn btn-primary task-card-action-btn"
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#10B981',
+                          borderColor: '#10B981',
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleStatusChange(task._id, 'completed');
+                          setActiveTaskDetail(task);
                         }}
-                        title="Mark Complete"
+                        title="Review and Verify Task"
                       >
-                        Mark Done ✓
+                        Review & Verify →
                       </button>
                     </div>
                   </div>
@@ -594,7 +920,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
             )}
           </div>
 
-          {/* Column: Completed */}
+          {/* Column 4: Completed */}
           <div className="kanban-col">
             <div className="kanban-col-header">
               <div className="kanban-col-title">
@@ -683,7 +1009,7 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                     <span
                       style={{ fontSize: '11.5px', color: 'var(--color-success)', fontWeight: 600 }}
                     >
-                      ✓ Completed
+                      ✓ Verified by {task.verifiedBy?.name || 'Admin'}
                     </span>
 
                     <div style={{ display: 'flex' }}>
@@ -792,21 +1118,27 @@ const AdminTasks = ({ users = [], groups = [] }) => {
                           {new Date(task.deadline).toLocaleDateString()}
                         </span>
                       </td>
-                      <td>
-                        <Badge
-                          variant={
-                            task.status === 'completed'
-                              ? 'success'
-                              : task.status === 'inprogress'
-                                ? 'warning'
-                                : 'neutral'
-                          }
-                        >
-                          {task.status.toUpperCase()}
-                        </Badge>
-                      </td>
+                      <td>{getStatusBadge(task.status)}</td>
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', alignItems: 'center' }}>
+                          {task.status === 'submittedForReview' && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              style={{
+                                backgroundColor: '#10B981',
+                                borderColor: '#10B981',
+                                fontSize: '12px',
+                                padding: '3px 10px',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveTaskDetail(task);
+                              }}
+                            >
+                              Review & Verify
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="btn btn-ghost btn-icon"

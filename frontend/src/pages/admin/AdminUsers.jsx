@@ -3,6 +3,7 @@ import {
   UserPlus,
   Search,
   Shield,
+  Crown,
   UserCheck,
   UserX,
   Trash2,
@@ -18,6 +19,7 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
@@ -25,6 +27,7 @@ import Modal from '../../components/Modal';
 import CreateTaskModal from '../../components/CreateTaskModal';
 
 const AdminUsers = ({ groups = [] }) => {
+  const { user: currentAuthUser } = useAuth();
   const { addToast, confirm } = useNotification();
 
   // Directory state
@@ -51,6 +54,7 @@ const AdminUsers = ({ groups = [] }) => {
   const [generatedCreds, setGeneratedCreds] = useState(null);
   const [copied, setCopied] = useState(false);
   const [assignTaskUser, setAssignTaskUser] = useState(null);
+  const [adminConfirmed, setAdminConfirmed] = useState(false);
 
   // User Detail Drawer / Modal state
   const [detailUser, setDetailUser] = useState(null);
@@ -130,10 +134,20 @@ const AdminUsers = ({ groups = [] }) => {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
+    if (formData.role === 'admin' && !adminConfirmed) {
+      addToast(
+        'Please confirm administrator access authorization before creating an Admin account.',
+        'warning'
+      );
+      return;
+    }
     try {
       const { data } = await api.post('/users', formData);
       if (data.success) {
-        addToast(`User ${data.user.name} created successfully!`, 'success');
+        addToast(
+          `${data.user.role === 'admin' ? 'Administrator' : 'User'} ${data.user.name} created successfully!`,
+          'success'
+        );
         setGeneratedCreds({
           name: formData.name,
           email: formData.email,
@@ -279,6 +293,7 @@ const AdminUsers = ({ groups = [] }) => {
           onClick={() => {
             setGeneratedCreds(null);
             setCopied(false);
+            setAdminConfirmed(false);
             const pwd = generateRandomPassword();
             setFormData({
               name: '',
@@ -473,8 +488,21 @@ const AdminUsers = ({ groups = [] }) => {
 
                     <td>
                       <div className="role-title-cell">
-                        <div>
-                          {u.role === 'admin' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {u.isOwner ? (
+                            <Badge
+                              variant="warning"
+                              icon={Crown}
+                              style={{
+                                background: 'rgba(245, 158, 11, 0.15)',
+                                color: '#D97706',
+                                borderColor: 'rgba(245, 158, 11, 0.4)',
+                                fontWeight: 700,
+                              }}
+                            >
+                              Owner
+                            </Badge>
+                          ) : u.role === 'admin' ? (
                             <Badge variant="primary" icon={Shield}>
                               Admin
                             </Badge>
@@ -482,7 +510,7 @@ const AdminUsers = ({ groups = [] }) => {
                             <Badge variant="neutral">Member</Badge>
                           )}
                         </div>
-                        <div className="role-title-text">{u.post || 'Team Member'}</div>
+                        <div className="role-title-text">{u.post || (u.isOwner ? 'Workspace Owner' : u.role === 'admin' ? 'Administrator' : 'Team Member')}</div>
                       </div>
                     </td>
 
@@ -722,6 +750,7 @@ const AdminUsers = ({ groups = [] }) => {
                 value={formData.role}
                 onChange={(e) => {
                   const role = e.target.value;
+                  if (role === 'user') setAdminConfirmed(false);
                   setFormData({
                     ...formData,
                     role,
@@ -735,22 +764,46 @@ const AdminUsers = ({ groups = [] }) => {
               {formData.role === 'admin' && (
                 <div
                   style={{
-                    marginTop: '6px',
-                    padding: '8px 10px',
+                    marginTop: '8px',
+                    padding: '12px 14px',
                     borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--color-primary-soft)',
-                    border: '1px solid var(--color-primary)',
-                    fontSize: '12px',
-                    color: 'var(--color-primary)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    fontSize: '12.5px',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
+                    flexDirection: 'column',
+                    gap: '8px',
                   }}
                 >
-                  <Shield size={14} />
-                  <span>
-                    <strong>Full Administrative Privileges:</strong> This member will have complete access to team management, role administration, security, meetings, channels, and audit logs.
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                    <Shield size={15} />
+                    <span>Full Administrator Privileges Authorization</span>
+                  </div>
+                  <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', lineHeight: 1.4 }}>
+                    This member will have identical administrator access to the workspace, including creating users, verifying tasks, managing channels, and auditing logs.
+                  </div>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      marginTop: '4px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid rgba(99, 102, 241, 0.2)',
+                      color: 'var(--color-text)',
+                      fontWeight: 600,
+                      fontSize: '12px',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={adminConfirmed}
+                      onChange={(e) => setAdminConfirmed(e.target.checked)}
+                      style={{ marginTop: '2px' }}
+                    />
+                    <span>I confirm granting full administrator access to this account.</span>
+                  </label>
                 </div>
               )}
             </div>
@@ -768,7 +821,8 @@ const AdminUsers = ({ groups = [] }) => {
                 />
                 <datalist id="suggested-posts-create">
                   <option value="CEO" />
-                  <option value="Manager" />
+                  <option value="Operations Manager" />
+                  <option value="HR Manager" />
                   <option value="HR Director" />
                   <option value="Lead Engineer" />
                   <option value="Project Manager" />
@@ -860,8 +914,12 @@ const AdminUsers = ({ groups = [] }) => {
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                Provision User & Generate Access
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={formData.role === 'admin' && !adminConfirmed}
+              >
+                {formData.role === 'admin' ? 'Provision Admin & Generate Access' : 'Provision User & Generate Access'}
               </button>
             </div>
           </form>
@@ -1063,9 +1121,24 @@ const AdminUsers = ({ groups = [] }) => {
                     <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
                       {detailData.user.name}
                     </h3>
-                    <Badge variant={detailData.user.role === 'admin' ? 'primary' : 'neutral'}>
-                      {detailData.user.role?.toUpperCase()}
-                    </Badge>
+                    {detailData.user.isOwner ? (
+                      <Badge
+                        variant="warning"
+                        icon={Crown}
+                        style={{
+                          background: 'rgba(245, 158, 11, 0.15)',
+                          color: '#D97706',
+                          borderColor: 'rgba(245, 158, 11, 0.4)',
+                          fontWeight: 700,
+                        }}
+                      >
+                        OWNER
+                      </Badge>
+                    ) : (
+                      <Badge variant={detailData.user.role === 'admin' ? 'primary' : 'neutral'}>
+                        {detailData.user.role?.toUpperCase()}
+                      </Badge>
+                    )}
                     <Badge variant={detailData.user.status === 'active' ? 'success' : 'danger'}>
                       {detailData.user.status?.toUpperCase()}
                     </Badge>
@@ -1085,7 +1158,7 @@ const AdminUsers = ({ groups = [] }) => {
                     <span>{detailData.user.email}</span>
                     <span>•</span>
                     <span style={{ fontWeight: 500 }}>
-                      {detailData.user.post || 'Team Member'}
+                      {detailData.user.post || (detailData.user.isOwner ? 'Workspace Owner' : detailData.user.role === 'admin' ? 'Administrator' : 'Team Member')}
                       {detailData.user.department ? ` (${detailData.user.department})` : ''}
                     </span>
                   </div>
@@ -1155,52 +1228,70 @@ const AdminUsers = ({ groups = [] }) => {
                   <span className="user-modal-btn-label">Password</span>
                 </button>
 
-                <button
-                  type="button"
-                  className={`user-modal-action-btn ${detailData.user.status === 'active' ? '' : 'is-primary-solid'}`}
-                  title={detailData.user.status === 'active' ? 'Disable Account' : 'Enable Account'}
-                  aria-label={detailData.user.status === 'active' ? 'Disable Account' : 'Enable Account'}
-                  onClick={async () => {
-                    await handleToggleStatus(detailData.user);
-                    setDetailData((prev) =>
-                      prev
-                        ? {
-                          ...prev,
-                          user: {
-                            ...prev.user,
-                            status: prev.user.status === 'active' ? 'disabled' : 'active',
-                          },
-                        }
-                        : prev
-                    );
-                  }}
-                >
-                  {detailData.user.status === 'active' ? (
-                    <>
-                      <UserX size={14} color="var(--color-warning)" />
-                      <span className="user-modal-btn-label">Disable</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck size={14} />
-                      <span className="user-modal-btn-label">Enable</span>
-                    </>
-                  )}
-                </button>
+                {/* Disable Button (Hidden/Disabled for Owner & Self) */}
+                {!detailData.user.isOwner && (
+                  <button
+                    type="button"
+                    disabled={detailData.user._id === currentAuthUser?.id || detailData.user._id === currentAuthUser?._id}
+                    className={`user-modal-action-btn ${detailData.user.status === 'active' ? '' : 'is-primary-solid'}`}
+                    title={
+                      detailData.user._id === currentAuthUser?.id || detailData.user._id === currentAuthUser?._id
+                        ? 'You cannot disable your own administrator account'
+                        : detailData.user.status === 'active'
+                          ? 'Disable Account'
+                          : 'Enable Account'
+                    }
+                    aria-label={detailData.user.status === 'active' ? 'Disable Account' : 'Enable Account'}
+                    onClick={async () => {
+                      await handleToggleStatus(detailData.user);
+                      setDetailData((prev) =>
+                        prev
+                          ? {
+                            ...prev,
+                            user: {
+                              ...prev.user,
+                              status: prev.user.status === 'active' ? 'disabled' : 'active',
+                            },
+                          }
+                          : prev
+                      );
+                    }}
+                  >
+                    {detailData.user.status === 'active' ? (
+                      <>
+                        <UserX size={14} color="var(--color-warning)" />
+                        <span className="user-modal-btn-label">Disable</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck size={14} />
+                        <span className="user-modal-btn-label">Enable</span>
+                      </>
+                    )}
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  className="user-modal-action-btn is-danger"
-                  title="Delete Member"
-                  aria-label="Delete Member"
-                  onClick={() => {
-                    setDetailUser(null);
-                    handleDeleteUser(detailData.user);
-                  }}
-                >
-                  <Trash2 size={14} />
-                  <span className="user-modal-btn-label">Delete</span>
-                </button>
+                {/* Delete Button (Hidden/Disabled for Owner & Self) */}
+                {!detailData.user.isOwner && (
+                  <button
+                    type="button"
+                    disabled={detailData.user._id === currentAuthUser?.id || detailData.user._id === currentAuthUser?._id}
+                    className="user-modal-action-btn is-danger"
+                    title={
+                      detailData.user._id === currentAuthUser?.id || detailData.user._id === currentAuthUser?._id
+                        ? 'You cannot delete your own account'
+                        : 'Delete Member'
+                    }
+                    aria-label="Delete Member"
+                    onClick={() => {
+                      setDetailUser(null);
+                      handleDeleteUser(detailData.user);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    <span className="user-modal-btn-label">Delete</span>
+                  </button>
+                )}
               </div>
 
               {/* Statistics Grid */}

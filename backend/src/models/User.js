@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'user'],
       default: 'user',
     },
+    isOwner: {
+      type: Boolean,
+      default: false,
+    },
     post: {
       type: String,
       default: '',
