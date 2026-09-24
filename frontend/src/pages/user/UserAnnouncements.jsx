@@ -73,19 +73,9 @@ const UserAnnouncements = () => {
       </div>
 
       {/* Search Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: 'var(--color-surface)',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border)',
-        }}
-      >
-        <div className="search-input-box" style={{ width: '320px', maxWidth: '100%' }}>
-          <Search size={15} className="search-icon" />
+      <div className="filter-bar-container">
+        <div className="search-input-box filter-search-input">
+          <Search size={14} className="search-icon" />
           <input
             type="text"
             placeholder="Search bulletins..."

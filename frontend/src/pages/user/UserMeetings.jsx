@@ -104,48 +104,18 @@ const UserMeetings = ({ groups = [] }) => {
       </div>
 
       {/* Tabs and Search Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          backgroundColor: 'var(--color-surface)',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            backgroundColor: 'var(--color-surface-alt)',
-            borderRadius: 'var(--radius-md)',
-            padding: '3px',
-            border: '1px solid var(--color-border)',
-          }}
-        >
+      <div className="filter-bar-container" style={{ justifyContent: 'space-between' }}>
+        <div className="segmented-pill-tabs">
           <button
             type="button"
-            className={`btn btn-ghost btn-sm ${activeTab === 'upcoming' ? 'active' : ''}`}
-            style={{
-              backgroundColor: activeTab === 'upcoming' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-              fontWeight: activeTab === 'upcoming' ? 700 : 500,
-            }}
+            className={`segmented-pill-btn ${activeTab === 'upcoming' ? 'active' : ''}`}
             onClick={() => setActiveTab('upcoming')}
           >
             Upcoming Calls
           </button>
           <button
             type="button"
-            className={`btn btn-ghost btn-sm ${activeTab === 'past' ? 'active' : ''}`}
-            style={{
-              backgroundColor: activeTab === 'past' ? 'var(--color-surface)' : 'transparent',
-              color: activeTab === 'past' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-              fontWeight: activeTab === 'past' ? 700 : 500,
-            }}
+            className={`segmented-pill-btn ${activeTab === 'past' ? 'active' : ''}`}
             onClick={() => setActiveTab('past')}
           >
             Past Sessions

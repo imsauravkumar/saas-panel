@@ -128,9 +128,8 @@ const FilesLibrary = ({ groups = [], onSelectGroup: _onSelectGroup }) => {
           gap: '12px',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '24px',
           background: 'var(--color-surface)',
-          padding: '16px 20px',
+          padding: '14px 18px',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--color-border)',
         }}

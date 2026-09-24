@@ -51,7 +51,6 @@ const AdminDashboard = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '14px',
           flexWrap: 'wrap',
           gap: '12px',
         }}
@@ -89,7 +88,6 @@ const AdminDashboard = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '12px 16px',
-            marginBottom: '16px',
             borderRadius: 'var(--radius-md)',
             background: 'rgba(245, 158, 11, 0.12)',
             border: '1px solid rgba(245, 158, 11, 0.35)',
@@ -138,7 +136,7 @@ const AdminDashboard = ({
       )}
 
       {/* Row 1 — Quick Stats Row */}
-      <div className="stat-grid" style={{ marginBottom: '16px' }}>
+      <div className="stat-grid">
         {/* Total Users */}
         <div onClick={() => setTab('users')} className="stat-card" style={{ cursor: 'pointer' }}>
           <div className="stat-icon-wrapper" style={{ background: 'rgba(99, 102, 241, 0.12)', color: 'var(--color-primary)' }}>

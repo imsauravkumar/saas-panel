@@ -145,7 +145,7 @@ const AdminGroups = ({ groups = [], users = [], fetchGroups, onSelectGroupDashbo
       </div>
 
       {/* Search Bar */}
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
         <div className="search-input-box" style={{ width: '300px' }}>
           <Search size={15} className="search-icon" />
           <input

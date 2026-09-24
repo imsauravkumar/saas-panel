@@ -63,7 +63,7 @@ const FirstLoginReset = () => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'var(--color-bg)',
-        padding: '20px',
+        padding: 'clamp(14px, 4vw, 24px)',
       }}
     >
       <div
@@ -74,10 +74,10 @@ const FirstLoginReset = () => {
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-lg)',
-          padding: '36px 32px',
+          padding: 'clamp(24px, 5vw, 36px) clamp(18px, 5vw, 32px)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px',
+          gap: '18px',
         }}
       >
         <div

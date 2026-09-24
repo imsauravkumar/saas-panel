@@ -247,7 +247,6 @@ const UserDashboard = ({ setTab, onSelectGroup }) => {
           alignItems: 'flex-start',
           flexWrap: 'wrap',
           gap: '16px',
-          marginBottom: '24px',
         }}
       >
         <div>

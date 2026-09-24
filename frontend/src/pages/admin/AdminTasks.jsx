@@ -256,38 +256,26 @@ const AdminTasks = ({ users = [], groups = [] }) => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           {/* View Mode Toggle */}
-          <div
-            style={{
-              display: 'flex',
-              backgroundColor: 'var(--color-surface-alt)',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--color-border)',
-              padding: '2px',
-            }}
-          >
+          <div className="segmented-pill-tabs">
             <button
-              className={`btn btn-ghost btn-icon ${viewMode === 'kanban' ? 'active' : ''}`}
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: viewMode === 'kanban' ? 'var(--color-surface)' : 'transparent',
-              }}
+              type="button"
+              className={`segmented-pill-btn ${viewMode === 'kanban' ? 'active' : ''}`}
+              style={{ padding: '6px 10px' }}
               onClick={() => setViewMode('kanban')}
               title="Kanban Board View"
             >
-              <Columns size={16} />
+              <Columns size={15} />
+              <span className="desktop-only">Kanban</span>
             </button>
             <button
-              className={`btn btn-ghost btn-icon ${viewMode === 'list' ? 'active' : ''}`}
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: viewMode === 'list' ? 'var(--color-surface)' : 'transparent',
-              }}
+              type="button"
+              className={`segmented-pill-btn ${viewMode === 'list' ? 'active' : ''}`}
+              style={{ padding: '6px 10px' }}
               onClick={() => setViewMode('list')}
               title="Table / List View"
             >
-              <List size={16} />
+              <List size={15} />
+              <span className="desktop-only">List</span>
             </button>
           </div>
 

@@ -127,7 +127,7 @@ const AuthPage = ({ onBackToLanding, initialLoginMode = true }) => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%)',
-        padding: '24px',
+        padding: 'clamp(14px, 4vw, 24px)',
         position: 'relative',
       }}
     >
@@ -139,16 +139,16 @@ const AuthPage = ({ onBackToLanding, initialLoginMode = true }) => {
           className="btn btn-ghost"
           style={{
             position: 'fixed',
-            top: '20px',
-            left: '20px',
+            top: '16px',
+            left: '16px',
             zIndex: 100,
             color: '#E2E8F0',
             backgroundColor: 'rgba(15, 23, 42, 0.75)',
             backdropFilter: 'blur(8px)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: 'var(--radius-md)',
-            padding: '8px 14px',
-            fontSize: '13px',
+            padding: '7px 12px',
+            fontSize: '12.5px',
             fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
@@ -159,7 +159,7 @@ const AuthPage = ({ onBackToLanding, initialLoginMode = true }) => {
             transition: 'all var(--transition-fast)',
           }}
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={15} />
           <span>Back to Product Overview</span>
         </button>
       )}
@@ -172,10 +172,10 @@ const AuthPage = ({ onBackToLanding, initialLoginMode = true }) => {
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--color-border)',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          padding: '36px 32px',
+          padding: 'clamp(24px, 5vw, 36px) clamp(18px, 5vw, 32px)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px',
+          gap: '18px',
         }}
       >
         {/* Brand Header */}
