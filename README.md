@@ -177,3 +177,5 @@ SAAS_2/
 ## License
 
 This project is built for internal team collaboration and is open for custom extension and deployment. Enjoy building with SAAS Nexus!
+
+<!-- Test note: confirms the GitHub connection used by Claude Code sessions. Safe to remove. -->
